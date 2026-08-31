@@ -16,7 +16,7 @@ export const categoryApi = baseApi.injectEndpoints({
 
         const qs = params.toString();
         return {
-          url: `/categories/admin${qs ? `?${qs}` : ""}`,
+          url: `/admin/category${qs ? `?${qs}` : ""}`,
           method: "GET",
         };
       },

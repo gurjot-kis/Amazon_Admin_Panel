@@ -82,25 +82,46 @@ export const buildPageWindow = (
   return result;
 };
 
+// export const flattenForParentOptions = (
+//   categories: Category[],
+//   depth = 0,
+// ): FlatCategoryOption[] => {
+//   const options: FlatCategoryOption[] = [];
+//   categories.forEach((category) => {
+//     if (category.level <= 2) {
+//       options.push({
+//         _id: category._id,
+//         name: category.name,
+//         level: category.level,
+//         depth,
+//       });
+//     }
+//     if (category.children?.length) {
+//       options.push(...flattenForParentOptions(category.children, depth + 1));
+//     }
+//   });
+//   return options;
+// };
 export const flattenForParentOptions = (
-  categories: Category[],
-  depth = 0,
+  categories: any[],
+  depth = 0
 ): FlatCategoryOption[] => {
-  const options: FlatCategoryOption[] = [];
-  categories.forEach((category) => {
-    if (category.level <= 2) {
-      options.push({
-        _id: category._id,
-        name: category.name,
-        level: category.level,
-        depth,
-      });
+  const result: FlatCategoryOption[] = [];
+
+  for (const cat of categories) {
+    result.push({
+      _id: cat._id,
+      name: cat.name,
+      depth,
+      level: cat.level,
+    });
+
+    if (cat.children?.length) {
+      result.push(...flattenForParentOptions(cat.children, depth + 1));
     }
-    if (category.children?.length) {
-      options.push(...flattenForParentOptions(category.children, depth + 1));
-    }
-  });
-  return options;
+  }
+
+  return result;
 };
 
 export const getAncestorChain = (
