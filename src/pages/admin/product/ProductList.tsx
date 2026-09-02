@@ -395,7 +395,6 @@ const ProductList = () => {
       cellClassName: "d-none d-md-table-cell",
       render: (product) => {
         const categoryImage = resolveImageUrl(product.category?.category_image);
-
         return (
           <div className="pl-category">
             <span className="pl-category-thumb">
@@ -412,18 +411,53 @@ const ProductList = () => {
                   }}
                 />
               ) : null}
-
               <span
-                className={`pl-category-thumb-fallback ${
-                  categoryImage ? "d-none" : ""
-                }`}
+                className={`pl-category-thumb-fallback ${categoryImage ? "d-none" : ""}`}
               >
                 <ImageIcon />
               </span>
             </span>
-
             <span className="pl-category-name" title={product.category?.name}>
               {product.category?.name || "-"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "subCategory",
+      header: "Sub Category",
+      headerClassName: "d-none d-lg-table-cell",
+      cellClassName: "d-none d-lg-table-cell",
+      render: (product) => {
+        if (!product.subCategory) return <span className="pl-no-sub">—</span>;
+        const subCategoryImage = resolveImageUrl(
+          product.subCategory?.category_image,
+        );
+        return (
+          <div className="pl-category">
+            <span className="pl-category-thumb">
+              {subCategoryImage ? (
+                <img
+                  src={subCategoryImage}
+                  alt={product.subCategory.name}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "d-none",
+                    );
+                  }}
+                />
+              ) : null}
+              <span
+                className={`pl-category-thumb-fallback ${subCategoryImage ? "d-none" : ""}`}
+              >
+                <ImageIcon />
+              </span>
+            </span>
+            <span className="pl-category-name" title={product.subCategory.name}>
+              {product.subCategory.name}
             </span>
           </div>
         );

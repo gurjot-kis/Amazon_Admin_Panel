@@ -252,7 +252,18 @@ export default function CreateProductForm() {
     () => categories.find((c) => c._id === selectedL1),
     [categories, selectedL1],
   );
-  const subCategoryOptions = l1?.children ?? [];
+
+  const getLeafNodes = (nodes: Category[]): Category[] =>
+    nodes.flatMap((node) =>
+      node.children && node.children.length > 0
+        ? getLeafNodes(node.children)
+        : [node],
+    );
+
+  const subCategoryOptions = useMemo(
+    () => (l1 ? getLeafNodes(l1.children ?? []) : []),
+    [l1],
+  );
   const subCategory = useMemo(
     () => subCategoryOptions.find((c) => c._id === selectedSubCategory),
     [subCategoryOptions, selectedSubCategory],
@@ -453,14 +464,13 @@ export default function CreateProductForm() {
       const formData = buildFormData();
       if (isEditMode && productId) {
         await updateProduct({ productId, formData }).unwrap();
-        setSubmitMessage("success");
-        navigate("/admin/products");
       } else {
         await createProduct(formData).unwrap();
-        setSubmitMessage("success");
-        navigate("/admin/products");
         resetForm();
       }
+
+      setSubmitMessage("success");
+      navigate("/admin/products");
     } catch (err) {
       setSubmitMessage("error");
       setSubmitError(

@@ -1,5 +1,10 @@
 import { baseApi } from "../../store/api/baseApi";
-import type { GetProductByIdResponse, GetProductsParams, GetProductsResponse, ProductStatus } from "./productTypes";
+import type {
+  GetProductByIdResponse,
+  GetProductsParams,
+  GetProductsResponse,
+  ProductStatus,
+} from "./productTypes";
 
 export interface UpdateProductStatusPayload {
   id: string;
@@ -10,7 +15,6 @@ export interface UpdateProductPayload {
   productId: string;
   formData: FormData;
 }
-
 
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -25,7 +29,7 @@ export const productApi = baseApi.injectEndpoints({
 
         const qs = params.toString();
         return {
-          url: `/admin/products${qs ? `?${qs}` : ""}`,
+          url: `/admin/product${qs ? `?${qs}` : ""}`,
           method: "GET",
         };
       },
@@ -33,29 +37,25 @@ export const productApi = baseApi.injectEndpoints({
       providesTags: ["Product"],
     }),
 
-     createProduct: builder.mutation<void, FormData>({
+    createProduct: builder.mutation<void, FormData>({
       query: (formData) => ({
         url: `/admin/product`,
         method: "POST",
         body: formData,
       }),
       extraOptions: { requiresAuth: true },
-      invalidatesTags: [{ type: "Product", id: "LIST" }],
+      invalidatesTags: ["Product"],
     }),
 
-       getProductById: builder.query<GetProductByIdResponse, string>({
+    getProductById: builder.query<GetProductByIdResponse, string>({
       query: (id) => ({
-        url: `/product/${id}`,
+        url: `/admin/product/${id}`,
         method: "GET",
       }),
       extraOptions: { requiresAuth: true },
-      providesTags: (_result, _error, id) => [{ type: "Product", id }],
+      providesTags: ["Product"],
     }),
- 
 
- 
-    // Same endpoint as getProductById, PUT instead of GET, same multipart
-    // payload shape as createProduct.
     updateProduct: builder.mutation<void, UpdateProductPayload>({
       query: ({ productId, formData }) => ({
         url: `/admin/product/${productId}`,
@@ -63,10 +63,7 @@ export const productApi = baseApi.injectEndpoints({
         body: formData,
       }),
       extraOptions: { requiresAuth: true },
-      invalidatesTags: (_result, _error, { productId }) => [
-        { type: "Product", productId },
-        { type: "Product", id: "LIST" },
-      ],
+      invalidatesTags: ["Product"],
     }),
 
     updateProductStatus: builder.mutation<void, UpdateProductStatusPayload>({

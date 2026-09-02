@@ -25,7 +25,7 @@ export const categoryApi = baseApi.injectEndpoints({
     }),
     getActiveCategories: builder.query<GetCategoriesResponse, void>({
       query: () => ({
-        url: "/categories",
+        url: "/admin/category/active",
         method: "GET",
       }),
       extraOptions: { requiresAuth: true },
@@ -33,7 +33,7 @@ export const categoryApi = baseApi.injectEndpoints({
     }),
     upadteCategoryStatus: builder.mutation<unknown, string>({
       query: (categoryId) => ({
-        url: `/categories/${categoryId}/status`,
+        url: `/admin/category/${categoryId}/status`,
         method: "PATCH",
       }),
       extraOptions: { requiresAuth: true },
@@ -41,7 +41,7 @@ export const categoryApi = baseApi.injectEndpoints({
     }),
     createCategory: builder.mutation<unknown, FormData>({
       query: (formData) => ({
-        url: "/categories",
+        url: "/admin/category",
         method: "POST",
         body: formData,
       }),
@@ -51,7 +51,7 @@ export const categoryApi = baseApi.injectEndpoints({
 
     getCategoryById: builder.query<unknown, string>({
       query: (categoryId) => ({
-        url: `/categories/${categoryId}`,
+        url: `/admin/category/${categoryId}`,
         method: "GET",
       }),
       extraOptions: { requiresAuth: true },
@@ -63,7 +63,7 @@ export const categoryApi = baseApi.injectEndpoints({
       { categoryId: string; formData: FormData }
     >({
       query: ({ categoryId, formData }) => ({
-        url: `/categories/${categoryId}`,
+        url: `/admin/category/${categoryId}`,
         method: "PUT",
         body: formData,
       }),
@@ -73,7 +73,7 @@ export const categoryApi = baseApi.injectEndpoints({
 
     deleteCategory: builder.mutation<unknown, string>({
       query: (categoryId: string) => ({
-        url: `/categories/${categoryId}`,
+        url: `/admin/category/${categoryId}`,
         method: "DELETE",
       }),
       extraOptions: { requiresAuth: true },
@@ -88,6 +88,6 @@ export const {
   useUpadteCategoryStatusMutation,
   useCreateCategoryMutation,
   useGetCategoryByIdQuery,
-  useUpdateCategoryMutation, 
+  useUpdateCategoryMutation,
   useDeleteCategoryMutation,
 } = categoryApi;

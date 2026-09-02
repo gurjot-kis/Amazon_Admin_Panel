@@ -253,6 +253,7 @@ const CategoryList = () => {
               { value: "1", label: "Level 1 (Main)" },
               { value: "2", label: "Level 2 (Sub-category)" },
               { value: "3", label: "Level 3 (Service)" },
+              { value: "4", label: "Level 4 (Sub-service)" },
             ],
           },
         ]}

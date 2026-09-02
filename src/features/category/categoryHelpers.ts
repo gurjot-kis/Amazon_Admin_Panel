@@ -17,6 +17,7 @@ export const LEVEL_LABEL: Record<number, string> = {
   1: "L1",
   2: "L2",
   3: "L3",
+  4: "L4",
 };
 
 export const countAll = (
