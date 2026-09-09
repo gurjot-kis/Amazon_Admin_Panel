@@ -25,7 +25,7 @@ export const categoryApi = baseApi.injectEndpoints({
     }),
     getActiveCategories: builder.query<GetCategoriesResponse, void>({
       query: () => ({
-        url: "/admin/category/active",
+        url: "/common/category/active",
         method: "GET",
       }),
       extraOptions: { requiresAuth: true },

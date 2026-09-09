@@ -18,6 +18,9 @@ import { resolveMediaUrl } from "../../config/api";
 import { ROUTES } from "../../routes";
 import { useLayout } from "../LayoutContext";
 import "../../styles/Sidebar.css";
+import { logout } from "../../features/auth/authSlice";
+import { baseApi } from "../../store/api/baseApi";
+import { useDispatch } from "react-redux";
 
 interface NavItem {
   id: string;
@@ -95,6 +98,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Sidebar(): React.ReactElement {
   const user = getStoredUser() as StoredUser | null;
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { pathname } = useLocation();
   const { isSidebarOpen, setIsSidebarOpen } = useLayout();
 
@@ -106,6 +110,8 @@ export default function Sidebar(): React.ReactElement {
   };
 
   const handleLogout = () => {
+    dispatch(baseApi.util.resetApiState());
+    dispatch(logout());
     clearAuthSession();
     navigate(ROUTES.login, { replace: true });
   };

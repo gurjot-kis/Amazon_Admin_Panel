@@ -4,6 +4,7 @@ import type {
   AddVendorSlotResponse,
   CreateVendorPayload,
   GetVendorByIdResponse,
+  GetVendorSlotByIdResponse,
   GetVendorSlotsParams,
   GetVendorSlotsResponse,
   GetVendorsParams,
@@ -180,7 +181,7 @@ export const vendorApi = baseApi.injectEndpoints({
       AddVendorSlotPayload
     >({
       query: (payload) => ({
-        url: "/vendor-slots",
+        url: "/vendor/vendor-slot",
         method: "POST",
         body: payload,
       }),
@@ -210,7 +211,7 @@ export const vendorApi = baseApi.injectEndpoints({
         const qs = queryParams.toString();
 
         return {
-          url: `/vendor-slots/my-slots${qs ? `?${qs}` : ""}`,
+          url: `vendor/vendor-slot/${qs ? `?${qs}` : ""}`,
           method: "GET",
         };
       },
@@ -222,12 +223,40 @@ export const vendorApi = baseApi.injectEndpoints({
       providesTags: ["VendorSlot"],
     }),
 
+    getVendorSlotById: builder.query<GetVendorSlotByIdResponse, string>({
+      query: (slotId) => ({
+        url: `/vendor/vendor-slot/${slotId}`,
+        method: "GET",
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      providesTags: ["VendorSlot"],
+    }),
+
+    updateVendorSlot: builder.mutation<
+      AddVendorSlotResponse,
+      { slotId: string; payload: AddVendorSlotPayload }
+    >({
+      query: ({ slotId, payload }) => ({
+        url: `/vendor/vendor-slot/${slotId}`,
+        method: "PUT",
+        body: payload,
+      }),
+      extraOptions: {
+        requiresAuth: true,
+      },
+      invalidatesTags: ["VendorSlot"],
+    }),
+
     updateVendorSlotAvailability: builder.mutation<
       UpdateVendorSlotAvailabilityResponse,
       string
     >({
       query: (slotId) => ({
-        url: `/vendor-slots/${slotId}/availability`,
+        url: `/vendor/vendor-slot/${slotId}`,
         method: "PATCH",
       }),
 
@@ -250,7 +279,9 @@ export const {
   useUpdateVendorAvailabilityMutation,
   useDeleteVendorMutation,
   //vendor slot
-  useAddVendorSlotMutation,
   useGetMyVendorSlotsQuery,
+  useGetVendorSlotByIdQuery,
+  useAddVendorSlotMutation,
+  useUpdateVendorSlotMutation,
   useUpdateVendorSlotAvailabilityMutation,
 } = vendorApi;

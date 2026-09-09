@@ -19,7 +19,6 @@ import "../../../styles/vendor/SlotList.css";
 
 const PAGE_LIMIT = 20;
 
-/* ── Helpers ──────────────────────────────────────────────────────── */
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-IN", {
@@ -29,7 +28,6 @@ const formatDate = (iso: string) =>
     year: "numeric",
   });
 
-/* ── Slot type pill ───────────────────────────────────────────────── */
 
 const SlotTypeBadge: React.FC<{ types: string[] }> = ({ types }) => (
   <div className="sl-type-wrap">
@@ -41,7 +39,6 @@ const SlotTypeBadge: React.FC<{ types: string[] }> = ({ types }) => (
   </div>
 );
 
-/* ── Main component ───────────────────────────────────────────────── */
 
 const SlotList = () => {
   const navigate = useNavigate();
@@ -99,7 +96,6 @@ const SlotList = () => {
   };
 
   const columns: DataTableColumn<VendorSlot>[] = [
-    /* ── Category ── */
     {
       key: "categoryName",
       header: "Category",
@@ -117,7 +113,6 @@ const SlotList = () => {
       ),
     },
 
-    /* ── Date ── */
     {
       key: "date",
       header: "Date",
@@ -131,7 +126,6 @@ const SlotList = () => {
       ),
     },
 
-    /* ── Time window ── */
     {
       key: "startTime",
       header: "Time Window",
@@ -145,7 +139,6 @@ const SlotList = () => {
       ),
     },
 
-    /* ── Coordinates ── */
     {
       key: "location",
       header: "Coordinates",
@@ -159,7 +152,6 @@ const SlotList = () => {
       ),
     },
 
-    /* ── Status Toggle (exact CategoryList pattern) ── */
     {
       key: "status",
       header: "Status",
@@ -174,7 +166,6 @@ const SlotList = () => {
       ),
     },
 
-    /* ── Actions ── */
     {
       key: "actions",
       header: "Actions",

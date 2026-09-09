@@ -16,6 +16,7 @@ import { logout } from "../../features/auth/authSlice";
 import { clearRole } from "../../features/auth/roleSlice";
 import { useLayout } from "../LayoutContext";
 import "../../styles/VendorSidebar.css";
+import { baseApi } from "../../store/api/baseApi";
 
 interface NavItem {
   id: string;
@@ -78,9 +79,10 @@ export default function VendorSidebar(): React.ReactElement {
   };
 
   const handleLogout = () => {
-    clearAuthSession();
+    dispatch(baseApi.util.resetApiState());
     dispatch(logout());
     dispatch(clearRole());
+    clearAuthSession();
     navigate(ROUTES.login, { replace: true });
   };
 

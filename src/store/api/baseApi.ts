@@ -22,6 +22,17 @@ const baseQueryWithAuth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   const token = (api.getState() as RootState).auth.token ?? getStoredToken();
 
+  // 🔒 block the request if auth is required but no token exists
+  if (extraOptions?.requiresAuth && !token) {
+    return {
+      error: {
+        status: 401,
+        error: "Unauthorized",
+        data: "No token found",
+      } as FetchBaseQueryError,
+    };
+  }
+
   if (extraOptions?.requiresAuth && token) {
     if (typeof args === "string") {
       args = {
@@ -57,7 +68,7 @@ export const baseApi = createApi({
     "Profile",
     "User",
     "Vendor",
-    "VendorSlot"
+    "VendorSlot",
   ],
   endpoints: () => ({}),
 });

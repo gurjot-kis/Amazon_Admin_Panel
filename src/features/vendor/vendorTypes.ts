@@ -156,6 +156,8 @@ export interface VendorSlot {
   endTime: string;
   location: VendorSlotLocation;
   status: string;
+  bookedCount: number;
+  capacity: number;
   booking_id: string | null;
 }
 
@@ -184,6 +186,12 @@ export interface GetVendorSlotsParams {
 export interface UpdateVendorSlotAvailabilityResponse {
   success: boolean;
   code: number;
+  message: string;
+  data: VendorSlot;
+}
+
+export interface GetVendorSlotByIdResponse {
+  success: boolean;
   message: string;
   data: VendorSlot;
 }

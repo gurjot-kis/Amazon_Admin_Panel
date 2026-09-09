@@ -216,7 +216,10 @@ export function DataTable<T>({
   onPageChange,
   rowClassName,
 }: DataTableProps<T>) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  // const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set(data.map(getId)),
+  );
 
   const toggleRow = (id: string) => {
     setExpandedIds((prev) => {
