@@ -197,16 +197,14 @@ export const vendorApi = baseApi.injectEndpoints({
       GetVendorSlotsResponse,
       GetVendorSlotsParams
     >({
-      query: ({ page, limit }) => {
+      query: ({ page, limit, category_id, status, date }) => {
         const queryParams = new URLSearchParams();
 
-        if (page !== undefined) {
-          queryParams.set("page", String(page));
-        }
-
-        if (limit !== undefined) {
-          queryParams.set("limit", String(limit));
-        }
+        if (page !== undefined) queryParams.set("page", String(page));
+        if (limit !== undefined) queryParams.set("limit", String(limit));
+        if (category_id) queryParams.set("category_id", category_id);
+        if (status) queryParams.set("status", status);
+        if (date) queryParams.set("date", date);
 
         const qs = queryParams.toString();
 

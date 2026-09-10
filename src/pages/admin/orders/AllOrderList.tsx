@@ -382,7 +382,7 @@ const AllOrderList = () => {
         return (
           <div className="ol-payment-col">
             <span className="ol-payment-method">
-              {order.paymentMethod.toUpperCase()}
+              {order.paymentMethod?.toUpperCase() || "N/A"}{" "}
             </span>
             <span className={`ol-badge ${payConfig.className}`}>
               {payConfig.label}

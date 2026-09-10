@@ -28,7 +28,7 @@ import VendorList from "./pages/admin/vendor/VendorList";
 import AddVendor from "./pages/admin/vendor/AddVendor";
 import VendorDashboardPage from "./pages/vendor/VendorDashboardPage";
 import VendorLayout from "./layout/vendor/VendorLayout";
-import VendorSlotList from "./pages/vendor/vendorSlot/SlotList";
+import VendorSlotList from "./pages/vendor/vendorSlot/SlotList/SlotList";
 import AddSlot from "./pages/vendor/vendorSlot/AddSlot";
 
 function App() {

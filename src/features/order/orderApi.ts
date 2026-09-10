@@ -19,7 +19,7 @@ export const orderApi = baseApi.injectEndpoints({
 
         const qs = params.toString()
         return {
-          url: `/orders/admin/all${qs ? `?${qs}` : ''}`,
+          url: `/admin/order/all-orders${qs ? `?${qs}` : ''}`,
           method: 'GET'
         }
       },
@@ -29,7 +29,7 @@ export const orderApi = baseApi.injectEndpoints({
 
     getOrderById: builder.query<GetOrderByIdResponse, string>({
       query: orderId => ({
-        url: `/orders/${orderId}`,
+        url: `/admin/order/${orderId}`,
         method: 'GET'
       }),
       extraOptions: { requiresAuth: true },
@@ -41,7 +41,7 @@ export const orderApi = baseApi.injectEndpoints({
       UpdateOrderStatusRequest
     >({
       query: ({ orderId, status }) => ({
-        url: `/orders/${orderId}/status`,
+        url: `/admin/order/${orderId}/status`,
         method: 'PATCH',
         body: { status }
       }),

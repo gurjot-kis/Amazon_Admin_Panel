@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { HiCalendar, HiClock, HiLocationMarker, HiTag } from "react-icons/hi";
@@ -6,19 +6,27 @@ import { MdDelete, MdModeEdit } from "react-icons/md";
 import {
   useGetMyVendorSlotsQuery,
   useUpdateVendorSlotAvailabilityMutation,
-} from "../../../features/vendor/vendorApi";
-import type { VendorSlot } from "../../../features/vendor/vendorTypes";
+} from "../../../../features/vendor/vendorApi";
+import type { VendorSlot } from "../../../../features/vendor/vendorTypes";
 import {
   DataTable,
   DataTableStatusToggle,
-} from "../../../components/common/DataTable/DataTable";
-import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
-import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
-import { useHeader } from "../../../layout/LayoutContext";
-import "../../../styles/vendor/SlotList.css";
+} from "../../../../components/common/DataTable/DataTable";
+import type { DataTableColumn } from "../../../../components/common/DataTable/DataTable.types";
+import { ConfirmationModal } from "../../../../components/common/ConfirmationModal";
+import { useHeader } from "../../../../layout/LayoutContext";
+import "../../../../styles/vendor/SlotList.css";
+import SlotFilters, { type SlotFiltersValue } from "./SlotFilters";
+import { useGetActiveCategoriesQuery } from "../../../../features/category/categoryApi";
+import { collectPreLeafCategories } from "../AddSlot/utils/addSlotUtils";
 
 const PAGE_LIMIT = 20;
 
+const EMPTY_FILTERS: SlotFiltersValue = {
+  category_id: "",
+  status: "",
+  date: "",
+};
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-IN", {
@@ -27,7 +35,6 @@ const formatDate = (iso: string) =>
     month: "short",
     year: "numeric",
   });
-
 
 const SlotTypeBadge: React.FC<{ types: string[] }> = ({ types }) => (
   <div className="sl-type-wrap">
@@ -39,12 +46,12 @@ const SlotTypeBadge: React.FC<{ types: string[] }> = ({ types }) => (
   </div>
 );
 
-
 const SlotList = () => {
   const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
 
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<SlotFiltersValue>(EMPTY_FILTERS);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<VendorSlot | null>(null);
@@ -53,10 +60,30 @@ const SlotList = () => {
     setHeaderConfig({ title: "My Slots" });
   }, [setHeaderConfig]);
 
+  // Reset to page 1 whenever filters change
+  const handleFiltersChange = (next: SlotFiltersValue) => {
+    setFilters(next);
+    setPage(1);
+  };
+
   const { data, isLoading, isFetching, isError, refetch } =
-    useGetMyVendorSlotsQuery({ page, limit: PAGE_LIMIT });
+    useGetMyVendorSlotsQuery({
+      page,
+      limit: PAGE_LIMIT,
+      ...(filters.category_id ? { category_id: filters.category_id } : {}),
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.date ? { date: filters.date } : {}),
+    });
 
   const [updateSlotStatus] = useUpdateVendorSlotAvailabilityMutation();
+
+  const { data: categoriesRes, isLoading: categoriesLoading } =
+    useGetActiveCategoriesQuery();
+
+  const categoryOptions = useMemo(
+    () => collectPreLeafCategories(categoriesRes?.data ?? []),
+    [categoriesRes],
+  );
 
   const slots = data?.data ?? [];
   const pagination = data?.pagination;
@@ -112,7 +139,6 @@ const SlotList = () => {
         </>
       ),
     },
-
     {
       key: "date",
       header: "Date",
@@ -125,7 +151,6 @@ const SlotList = () => {
         </span>
       ),
     },
-
     {
       key: "startTime",
       header: "Time Window",
@@ -138,7 +163,6 @@ const SlotList = () => {
         </span>
       ),
     },
-
     {
       key: "location",
       header: "Coordinates",
@@ -151,7 +175,6 @@ const SlotList = () => {
         </span>
       ),
     },
-
     {
       key: "status",
       header: "Status",
@@ -165,7 +188,6 @@ const SlotList = () => {
         />
       ),
     },
-
     {
       key: "actions",
       header: "Actions",
@@ -219,6 +241,14 @@ const SlotList = () => {
         emptyMessage="No slots yet. Add your first availability slot."
         pagination={pagination}
         onPageChange={setPage}
+        headerExtra={
+          <SlotFilters
+            value={filters}
+            onChange={handleFiltersChange}
+            categoryOptions={categoryOptions}
+            categoriesLoading={categoriesLoading}
+          />
+        }
       />
 
       <ConfirmationModal

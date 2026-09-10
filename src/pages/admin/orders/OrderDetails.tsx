@@ -332,7 +332,9 @@ const OrderDetails = () => {
                     <div className="od-timeline-content">
                       <div className="od-timeline-top">
                         <span className="od-timeline-status">
-                          {history.status.replace(/_/g, " ").toUpperCase()}
+                          {history.status
+                            ? history.status.replace(/_/g, " ").toUpperCase()
+                            : "N/A"}
                         </span>
                         <span className="od-timeline-date">
                           {formatDate(history.changedAt)}
@@ -422,7 +424,7 @@ const OrderDetails = () => {
             <div className="od-payment-meta">
               <div className="od-meta-badge-row">
                 <span className="od-meta-tag">
-                  {order.paymentMethod.toUpperCase()}
+                  {order.paymentMethod?.toUpperCase() || "N/A"}
                 </span>
                 <span
                   className="od-badge"

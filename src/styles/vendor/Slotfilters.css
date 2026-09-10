@@ -1,0 +1,321 @@
+/* SlotFilters.css
+   Styles for the SlotFilters bar (category, status, date).
+   Mirrors the as-picker-* and sl-* token language already in the project.
+   ------------------------------------------------------------------ */
+
+/* ── Filter bar root ─────────────────────────────────────────────────── */
+
+.sf-root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Shared dropdown trigger ─────────────────────────────────────────── */
+
+.sf-dropdown-root {
+  position: relative;
+}
+
+.sf-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d1d9e0;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+  user-select: none;
+}
+
+.sf-dropdown-trigger:hover {
+  border-color: #a8b8c8;
+  background: #f8fafc;
+}
+
+.sf-dropdown-trigger.is-open,
+.sf-dropdown-trigger:focus-visible {
+  border-color: #1b3a5c;
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.12);
+  outline: none;
+  background: #fff;
+}
+
+/* Active filter gets a light navy tint so user can see it's applied */
+.sf-dropdown-trigger.has-value {
+  border-color: #1b3a5c;
+  background: #f0f4f9;
+  color: #1b3a5c;
+}
+
+.sf-trigger-icon {
+  color: #8a9bb0;
+  flex-shrink: 0;
+}
+
+.sf-dropdown-trigger.has-value .sf-trigger-icon {
+  color: #1b3a5c;
+}
+
+.sf-trigger-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.sf-trigger-chevron {
+  color: #8a9bb0;
+  flex-shrink: 0;
+  transition: transform 0.18s;
+}
+
+.sf-trigger-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* ── Inline clear ×  ─────────────────────────────────────────────────── */
+
+.sf-clear-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #6b7a8d;
+  background: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.sf-clear-x:hover {
+  background: #dce5ef;
+  color: #1b3a5c;
+}
+
+/* ── Dropdown menu ───────────────────────────────────────────────────── */
+
+.sf-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  min-width: 190px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d1d9e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(27, 58, 92, 0.1);
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+/* ── Dropdown items ──────────────────────────────────────────────────── */
+
+.sf-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.sf-dropdown-item:hover {
+  background: #f1f5f9;
+}
+
+.sf-dropdown-item.is-selected {
+  background: #eaf0f8;
+  color: #1b3a5c;
+  font-weight: 600;
+}
+
+.sf-dropdown-item--all {
+  color: #6b7a8d;
+  font-style: italic;
+}
+
+.sf-dropdown-item--all.is-selected {
+  font-style: normal;
+}
+
+.sf-dropdown-item--disabled {
+  color: #9ca3af;
+  pointer-events: none;
+  font-style: italic;
+}
+
+.sf-item-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: #f1f4f8;
+  border: 1px solid #e5e9ed;
+  color: #667685;
+  flex-shrink: 0;
+}
+
+.sf-dropdown-item.is-selected .sf-item-icon-wrap {
+  background: #dce8f4;
+  border-color: #b8d2ea;
+  color: #1b3a5c;
+}
+
+.sf-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Status dots ─────────────────────────────────────────────────────── */
+
+.sf-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sf-status-dot--available {
+  background: #1a7a41;
+}
+
+.sf-status-dot--unavailable {
+  background: #667685;
+}
+
+.sf-status-dot--all {
+  background: #d1d9e0;
+}
+
+/* ── Date wrapper — positions the DatePicker + optional clear ────────── */
+
+.sf-date-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Override as-picker-trigger to match the other sf-dropdown-trigger heights */
+.sf-date-wrap .as-picker-trigger {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #4a5568;
+  border-color: #d1d9e0;
+  min-width: 0;
+  /* DatePicker places the calendar popup itself, no extra positioning needed */
+}
+
+.sf-date-wrap .as-picker-trigger.is-open,
+.sf-date-wrap .as-picker-trigger:focus-within {
+  border-color: #1b3a5c;
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.12);
+}
+
+/* When a date is selected, tint the trigger to match sf has-value style */
+.sf-date-wrap .as-picker-value {
+  color: #1b3a5c;
+}
+
+/* If value is set, the wrapper shows a clear button — push it inside the trigger */
+.sf-date-wrap .as-picker-trigger:has(~ .sf-date-clear) {
+  padding-right: 32px;
+  border-color: #1b3a5c;
+  background: #f0f4f9;
+}
+
+.sf-date-clear {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #6b7a8d;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.sf-date-clear:hover {
+  background: #dce5ef;
+  color: #1b3a5c;
+}
+
+/* ── "Clear all" reset button ────────────────────────────────────────── */
+
+.sf-reset-btn {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px dashed #c9d4de;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #6b7a8d;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+  white-space: nowrap;
+}
+
+.sf-reset-btn:hover {
+  border-color: #1b3a5c;
+  color: #1b3a5c;
+  background: #f0f4f9;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+
+@media (max-width: 575px) {
+  .sf-root {
+    gap: 6px;
+  }
+
+  .sf-trigger-text {
+    max-width: 100px;
+  }
+
+  .sf-reset-btn {
+    width: 100%;
+  }
+}

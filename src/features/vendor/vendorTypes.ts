@@ -179,8 +179,11 @@ export interface GetVendorSlotsResponse {
 }
 
 export interface GetVendorSlotsParams {
-  page?: number;
-  limit?: number;
+  page: number;
+  limit: number;
+  category_id?: string;
+  status?: string;
+  date?: string;
 }
 
 export interface UpdateVendorSlotAvailabilityResponse {
