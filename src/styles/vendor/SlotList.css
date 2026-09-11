@@ -181,7 +181,133 @@
   background: #e5e7eb;
 }
 
+.sl-cat-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px; /* matches parent's 8px minus border */
+  display: block;
+}
+
+/* ── Info banner ─────────────────────────────────────────────────── */
+
+.sl-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.sl-banner-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d4ed8;
+}
+
+.sl-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sl-banner-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+.sl-banner-desc {
+  font-size: 12.5px;
+  color: #1d4ed8;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.sl-banner-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sl-banner-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #1e40af;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.sl-banner-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #93c5fd;
+  font-size: 14px;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.sl-banner-close:hover {
+  color: #1d4ed8;
+}
+
+.sl-banner-btn {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid #1b3a5c;
+  background: #1b3a5c;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(27, 58, 92, 0.2);
+  transition: all 0.15s ease;
+}
+
+.sl-banner-btn:hover {
+  background: #234a72;
+  border-color: #234a72;
+  box-shadow: 0 4px 10px rgba(27, 58, 92, 0.28);
+  transform: translateY(-1px);
+}
+
+.sl-banner-btn:active {
+  transform: translateY(0);
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .sl-banner {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 
 @media (max-width: 767px) {
   .sl-icon-cell {

@@ -19,6 +19,7 @@ import "../../../../styles/vendor/SlotList.css";
 import SlotFilters, { type SlotFiltersValue } from "./SlotFilters";
 import { useGetActiveCategoriesQuery } from "../../../../features/category/categoryApi";
 import { collectPreLeafCategories } from "../AddSlot/utils/addSlotUtils";
+import SlotInfoBanner from "./SlotInfoBanner";
 
 const PAGE_LIMIT = 20;
 
@@ -130,14 +131,28 @@ const SlotList = () => {
       render: (slot) => (
         <>
           <span className="sl-icon-cell">
-            <HiTag size={15} />
+            {slot.categoryImage ? (
+              <img
+                src={`${import.meta.env.VITE_API_ASSET_URL}${slot.categoryImage}`}
+                alt={slot.categoryName}
+                className="sl-cat-img"
+              />
+            ) : (
+              <HiTag size={15} />
+            )}
           </span>
           <span className="sl-primary-text">
             <span className="sl-name">{slot.categoryName}</span>
-            <SlotTypeBadge types={slot.slotType} />
           </span>
         </>
       ),
+    },
+    {
+      key: "slotType",
+      header: "Slot Type",
+      headerClassName: "d-none d-md-table-cell",
+      cellClassName: "d-none d-md-table-cell",
+      render: (slot) => <SlotTypeBadge types={slot.slotType} />,
     },
     {
       key: "date",
@@ -218,6 +233,8 @@ const SlotList = () => {
 
   return (
     <>
+      <SlotInfoBanner />
+
       <DataTable
         statPills={[
           { label: `${pagination?.total ?? 0} total`, navy: true },

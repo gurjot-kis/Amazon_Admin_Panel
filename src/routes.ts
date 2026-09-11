@@ -41,4 +41,8 @@ export const VENDOR_ROUTES = {
   slots: "/vendor/slots",
   addSlot: "/vendor/slots/add",
   editSlot: "/vendor/slots/:slotId/edit",
+
+  serviceList: "/vendor/services",
+  addService:"/vendor/services/add",
+  editService:"/vendor/services/:serviceId/edit"
 } as const;

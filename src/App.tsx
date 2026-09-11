@@ -30,6 +30,8 @@ import VendorDashboardPage from "./pages/vendor/VendorDashboardPage";
 import VendorLayout from "./layout/vendor/VendorLayout";
 import VendorSlotList from "./pages/vendor/vendorSlot/SlotList/SlotList";
 import AddSlot from "./pages/vendor/vendorSlot/AddSlot";
+import ServiceList from "./pages/vendor/vendorService/ServiceList";
+import AddService from "./pages/vendor/vendorService/AddService";
 
 function App() {
   return (
@@ -53,6 +55,10 @@ function App() {
             <Route path={VENDOR_ROUTES.slots} element={<VendorSlotList/>}/>
             <Route path={VENDOR_ROUTES.addSlot} element={<AddSlot/>}/>
             <Route path={VENDOR_ROUTES.editSlot} element={<AddSlot/>}/>
+
+            <Route path={VENDOR_ROUTES.serviceList} element={<ServiceList/>}/>
+            <Route path={VENDOR_ROUTES.addService} element={<AddService/>}/>
+            <Route path={VENDOR_ROUTES.editService} element={<ServiceList/>}/>
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>

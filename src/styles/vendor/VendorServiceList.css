@@ -1,0 +1,168 @@
+.vs-name {
+  font-weight: 500;
+  color: #1b3a5c;
+  font-size: 0.92rem;
+}
+
+.vs-category-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: #e8f0fb;
+  color: #1b3a5c;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.vs-status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.vs-status-badge--active {
+  background: #e6f9f0;
+  color: #1a7f4b;
+}
+
+.vs-status-badge--inactive {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.vs-name {
+  font-weight: 500;
+  color: #1b3a5c;
+  font-size: 0.92rem;
+}
+
+.vs-category-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: #e8f0fb;
+  color: #1b3a5c;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.vs-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.vs-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: #f0f4fa;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vs-icon-btn:hover {
+  background: #dce6f5;
+}
+
+.vs-icon-btn--danger:hover {
+  background: #fdecea;
+}
+.vs-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f0f4fa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.vs-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vs-thumb-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.vs-thumb ~ .vs-name {
+  vertical-align: middle;
+}
+
+.vs-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f0f4fa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.vs-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vs-thumb-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.vs-name {
+  font-weight: 500;
+  color: #1b3a5c;
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.vs-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.vs-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: #f0f4fa;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vs-icon-btn:hover {
+  background: #dce6f5;
+}
+
+.vs-icon-btn--danger:hover {
+  background: #fdecea;
+}

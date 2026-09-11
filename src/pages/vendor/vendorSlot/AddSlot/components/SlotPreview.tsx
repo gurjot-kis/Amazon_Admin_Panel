@@ -108,7 +108,7 @@ const SlotPreview: React.FC<SlotPreviewProps> = ({
         </div>
       </div>
 
-      <div className="as-payload-card">
+      {/* <div className="as-payload-card">
         <p className="as-preview-label">Request Payload</p>
         <pre className="as-payload-pre">
           {JSON.stringify(
@@ -128,7 +128,7 @@ const SlotPreview: React.FC<SlotPreviewProps> = ({
             2,
           )}
         </pre>
-      </div>
+      </div> */}
     </div>
   );
 };

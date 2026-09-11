@@ -1,20 +1,26 @@
 import { baseApi } from "../../store/api/baseApi";
 import type {
+  AddVendorServicesPayload,
+  AddVendorServicesResponse,
   AddVendorSlotPayload,
   AddVendorSlotResponse,
   CreateVendorPayload,
   GetVendorByIdResponse,
+  GetVendorServicesParams,
+  GetVendorServicesResponse,
   GetVendorSlotByIdResponse,
   GetVendorSlotsParams,
   GetVendorSlotsResponse,
   GetVendorsParams,
   GetVendorsResponse,
-  UpdateVendorAvailabilityPayload,
-  UpdateVendorPayload,
+  ToggleVendorServiceResponse,
+  UpdateVendorAvailabilityRequest,
+  UpdateVendorRequest,
   UpdateVendorResponse,
   UpdateVendorSlotAvailabilityResponse,
-  UpdateVendorStatusPayload,
-  UpdateVendorVerificationPayload,
+  UpdateVendorSlotRequest,
+  UpdateVendorStatusRequest,
+  UpdateVendorVerificationRequest,
 } from "./vendorTypes";
 
 export const vendorApi = baseApi.injectEndpoints({
@@ -86,13 +92,7 @@ export const vendorApi = baseApi.injectEndpoints({
       invalidatesTags: ["Vendor"],
     }),
 
-    updateVendor: builder.mutation<
-      UpdateVendorResponse,
-      {
-        userId: string;
-        payload: UpdateVendorPayload;
-      }
-    >({
+    updateVendor: builder.mutation<UpdateVendorResponse, UpdateVendorRequest>({
       query: ({ userId, payload }) => ({
         url: `/vendors/${userId}`,
         method: "PUT",
@@ -108,10 +108,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     updateVendorStatus: builder.mutation<
       UpdateVendorResponse,
-      {
-        userId: string;
-        payload: UpdateVendorStatusPayload;
-      }
+      UpdateVendorStatusRequest
     >({
       query: ({ userId, payload }) => ({
         url: `/vendors/${userId}/status`,
@@ -128,10 +125,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     updateVendorVerification: builder.mutation<
       UpdateVendorResponse,
-      {
-        userId: string;
-        payload: UpdateVendorVerificationPayload;
-      }
+      UpdateVendorVerificationRequest
     >({
       query: ({ userId, payload }) => ({
         url: `/vendors/${userId}/verify`,
@@ -148,10 +142,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     updateVendorAvailability: builder.mutation<
       UpdateVendorResponse,
-      {
-        userId: string;
-        payload: UpdateVendorAvailabilityPayload;
-      }
+      UpdateVendorAvailabilityRequest
     >({
       query: ({ userId, payload }) => ({
         url: `/vendors/${userId}/availability`,
@@ -236,7 +227,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     updateVendorSlot: builder.mutation<
       AddVendorSlotResponse,
-      { slotId: string; payload: AddVendorSlotPayload }
+      UpdateVendorSlotRequest
     >({
       query: ({ slotId, payload }) => ({
         url: `/vendor/vendor-slot/${slotId}`,
@@ -264,6 +255,101 @@ export const vendorApi = baseApi.injectEndpoints({
 
       invalidatesTags: ["VendorSlot"],
     }),
+
+    //vedor service
+    getVendorServices: builder.query<
+      GetVendorServicesResponse,
+      GetVendorServicesParams
+    >({
+      query: ({ page, limit, search, status }) => {
+        const queryParams = new URLSearchParams();
+
+        if (page !== undefined) {
+          queryParams.set("page", String(page));
+        }
+
+        if (limit !== undefined) {
+          queryParams.set("limit", String(limit));
+        }
+
+        if (search?.trim()) {
+          queryParams.set("search", search.trim());
+        }
+
+        if (status) {
+          queryParams.set("status", status);
+        }
+
+        const qs = queryParams.toString();
+
+        return {
+          url: `/vendor/service${qs ? `?${qs}` : ""}`,
+          method: "GET",
+        };
+      },
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      providesTags: ["VendorService"],
+    }),
+
+    getAllVendorServices: builder.query<GetVendorServicesResponse, void>({
+      query: () => ({
+        url: "/vendor/service/all-services",
+        method: "GET",
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      providesTags: ["VendorService"],
+    }),
+
+    toggleVendorService: builder.mutation<ToggleVendorServiceResponse, string>({
+      query: (serviceId) => ({
+        url: `/vendor/service/${serviceId}`,
+        method: "PATCH",
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["VendorService"],
+    }),
+
+    addVendorServices: builder.mutation<
+      AddVendorServicesResponse,
+      AddVendorServicesPayload
+    >({
+      query: (payload) => ({
+        url: "/vendor/service",
+        method: "POST",
+        body: payload,
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["VendorService"],
+    }),
+
+    deleteVendorService: builder.mutation<void, string>({
+      query: (service_id) => ({
+        url: `/vendor/service/${service_id}`,
+        method: "DELETE",
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["VendorService"],
+    }),
   }),
 });
 
@@ -282,4 +368,10 @@ export const {
   useAddVendorSlotMutation,
   useUpdateVendorSlotMutation,
   useUpdateVendorSlotAvailabilityMutation,
+  //vendor service
+  useGetVendorServicesQuery,
+  useGetAllVendorServicesQuery,
+  useToggleVendorServiceMutation,
+  useAddVendorServicesMutation,
+  useDeleteVendorServiceMutation,
 } = vendorApi;
