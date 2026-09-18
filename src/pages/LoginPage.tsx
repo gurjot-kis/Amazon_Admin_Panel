@@ -122,7 +122,7 @@ export default function LoginPage(): React.ReactElement {
             <LuShieldCheck size={28} />
           </div>
           <h2 className="login-brand-title">
-            <span>Urban</span>Clap
+            <span>Ever</span>Mart
           </h2>
           {/* <p className="login-brand-subtitle">
             Enter your credentials to access the admin portal.

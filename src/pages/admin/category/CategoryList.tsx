@@ -228,11 +228,13 @@ const CategoryList = () => {
   return (
     <>
       <DataTable
-        // title="Categories"
         statPills={[
           { label: `${pagination?.total ?? stats.total} total`, navy: true },
-          { label: `${stats.byLevel[2] ?? 0} sub-categories · this page` },
-          { label: `${stats.byLevel[3] ?? 0} services · this page` },
+          ...Object.entries(stats.byLevel)
+            .filter(([, count]) => count > 0)
+            .map(([level, count]) => ({
+              label: `${count} ${LEVEL_LABEL[Number(level)] ?? `Level ${level}`}${levelFilter === "all" && !search ? " · this page" : ""}`,
+            })),
         ]}
         columns={columns}
         data={categories}

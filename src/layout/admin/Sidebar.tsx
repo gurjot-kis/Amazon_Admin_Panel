@@ -10,7 +10,6 @@ import {
   LuShoppingBag,
   LuLogOut,
   LuX,
-  LuLifeBuoy,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -130,7 +129,7 @@ export default function Sidebar(): React.ReactElement {
         {/* Brand / Close Header */}
         <div className="sidebar-brand-header">
           <div className="sidebar-brand-logo">
-            <span className="sidebar-brand-accent">Urban</span>Clap
+            <span className="sidebar-brand-accent">Ever</span>Mart
           </div>
           <button
             type="button"
