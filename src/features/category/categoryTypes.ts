@@ -23,6 +23,7 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   pagination?: Pagination;
+  maxLevel?: number;
 }
 
 export type GetCategoriesResponse = ApiResponse<Category[]>;
@@ -41,14 +42,12 @@ export interface CategoryRow {
   isExpanded: boolean;
 }
 
-
 export interface FlatCategoryOption {
   _id: string;
   name: string;
   level: number;
   depth: number;
 }
-
 
 //Add Category Types
 export interface SlotConfig {
@@ -58,8 +57,17 @@ export interface SlotConfig {
 
 export interface FormState {
   name: string;
-  parent_id: string; 
+  parent_id: string;
   description: string;
   category_image: File | null;
   slotConfig: SlotConfig;
 }
+
+// Leaf category Types
+export interface LeafCategory {
+  _id: string;
+  parent_id: string;
+  name: string;
+}
+
+export type GetLeafCategoriesResponse = ApiResponse<LeafCategory[]>;

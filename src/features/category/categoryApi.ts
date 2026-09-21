@@ -2,6 +2,7 @@ import { baseApi } from "../../store/api/baseApi";
 import type {
   GetCategoriesParams,
   GetCategoriesResponse,
+  GetLeafCategoriesResponse,
 } from "./categoryTypes";
 
 export const categoryApi = baseApi.injectEndpoints({
@@ -31,6 +32,14 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       providesTags: ["Category"],
     }),
+    getLeafCategories: builder.query<GetLeafCategoriesResponse, void>({
+      query: () => ({
+        url: "/admin/category/leaf",
+        method: "GET",
+      }),
+      extraOptions: { requiresAuth: true },
+      providesTags: ["Category"],
+    }),
     upadteCategoryStatus: builder.mutation<unknown, string>({
       query: (categoryId) => ({
         url: `/admin/category/${categoryId}/status`,
@@ -41,7 +50,7 @@ export const categoryApi = baseApi.injectEndpoints({
     }),
     createCategory: builder.mutation<unknown, FormData>({
       query: (formData) => ({
-        url: "/admin/category",
+        url: "/admin/category/create",
         method: "POST",
         body: formData,
       }),
@@ -85,6 +94,7 @@ export const categoryApi = baseApi.injectEndpoints({
 export const {
   useGetCategoriesQuery,
   useGetActiveCategoriesQuery,
+  useGetLeafCategoriesQuery,
   useUpadteCategoryStatusMutation,
   useCreateCategoryMutation,
   useGetCategoryByIdQuery,

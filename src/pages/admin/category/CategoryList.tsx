@@ -91,6 +91,19 @@ const CategoryList = () => {
   const pagination = data?.pagination;
   const stats = useMemo(() => countAll(categories), [categories]);
 
+  const maxLevel = data?.maxLevel ?? 1;
+
+  const levelFilterOptions = useMemo(
+    () => [
+      { value: "all", label: "All levels" },
+      ...Array.from({ length: maxLevel }, (_, i) => i + 1).map((l) => ({
+        value: String(l),
+        label: `Level ${l}`,
+      })),
+    ],
+    [maxLevel],
+  );
+
   const handleToggleStatus = async (category: Category) => {
     setUpdatingId(category._id);
     try {
@@ -250,13 +263,7 @@ const CategoryList = () => {
               setLevelFilter(v === "all" ? "all" : Number(v));
               setPage(1);
             },
-            options: [
-              { value: "all", label: "All levels" },
-              { value: "1", label: "Level 1 (Main)" },
-              { value: "2", label: "Level 2 (Sub-category)" },
-              { value: "3", label: "Level 3 (Service)" },
-              { value: "4", label: "Level 4 (Sub-service)" },
-            ],
+            options: levelFilterOptions,
           },
         ]}
         addButtonLabel="Add Category"

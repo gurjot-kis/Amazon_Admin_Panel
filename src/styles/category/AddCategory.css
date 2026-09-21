@@ -253,6 +253,7 @@
 .cc-hint {
   font-size: var(--fs-12-5);
   color: var(--cc-muted);
+  margin-top: 5px;
 }
 
 .cc-count {
