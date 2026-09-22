@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  useGetLeafCategoriesQuery,
+  useGetCategoriesSelectListQuery,
   useGetCategoryByIdQuery,
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
@@ -126,7 +126,7 @@ const ParentCategorySelect: React.FC<ParentCategorySelectProps> = ({
             <input
               autoFocus
               type="text"
-              placeholder="Search leaf categories…"
+              placeholder="Search categories…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -152,7 +152,16 @@ const ParentCategorySelect: React.FC<ParentCategorySelectProps> = ({
                 role="option"
                 aria-selected={value === opt._id}
               >
+                {opt.depth > 0 && (
+                  <span className="cc-select-indent">
+                    {Array.from({ length: opt.depth }).map((_, i) => (
+                      <span key={i} className="cc-select-indent-line" />
+                    ))}
+                    <span className="cc-select-indent-dot" />
+                  </span>
+                )}
                 <span className="cc-select-option-label">{opt.name}</span>
+                <span className="cc-select-option-level">L{opt.level}</span>
                 {value === opt._id && (
                   <span className="cc-select-check">✓</span>
                 )}
@@ -187,10 +196,10 @@ const CategoryForm: React.FC = () => {
   const [isImageRemoved, setIsImageRemoved] = useState(false);
 
   const {
-    data: leafCategoriesRes,
+    data: selectListRes,
     isLoading: parentsLoading,
     isError: parentsError,
-  } = useGetLeafCategoriesQuery();
+  } = useGetCategoriesSelectListQuery();
 
   const { data: categoryDetailsRes, isLoading: isCategoryLoading } =
     useGetCategoryByIdQuery(currentCategoryId as string, {
@@ -203,6 +212,15 @@ const CategoryForm: React.FC = () => {
     useUpdateCategoryMutation();
 
   const isSubmitting = isCreating || isUpdating;
+
+  const parentOptions: FlatCategoryOption[] = useMemo(() => {
+    return (selectListRes?.data || []).map((item) => ({
+      _id: item._id,
+      name: item.name,
+      level: item.level,
+      depth: item.depth,
+    }));
+  }, [selectListRes]);
 
   useEffect(() => {
     if (isEditMode && categoryDetailsRes) {
@@ -223,15 +241,6 @@ const CategoryForm: React.FC = () => {
       }
     }
   }, [isEditMode, categoryDetailsRes]);
-
-  const parentOptions: FlatCategoryOption[] = useMemo(() => {
-    return (leafCategoriesRes?.data || []).map((item) => ({
-      _id: item._id,
-      name: item.name,
-      level: 0,
-      depth: 0,
-    }));
-  }, [leafCategoriesRes]);
 
   const selectedParent = useMemo(
     () => parentOptions.find((p) => p._id === form.parent_id) ?? null,
@@ -372,7 +381,6 @@ const CategoryForm: React.FC = () => {
           <fieldset className="cc-fieldset" disabled={isSubmitting}>
             <div className="row g-4 cc-body">
               <div className="col-12 col-lg-8">
-                {/* Section 01: Details */}
                 <section className="cc-card">
                   <header className="cc-card-header">
                     <span className="cc-card-index">01</span>
@@ -430,7 +438,6 @@ const CategoryForm: React.FC = () => {
                   </div>
                 </section>
 
-                {/* Section 02: Hierarchy */}
                 <section className="cc-card">
                   <header className="cc-card-header">
                     <span className="cc-card-index">02</span>
@@ -463,15 +470,15 @@ const CategoryForm: React.FC = () => {
                     )}
                     {!parentsLoading && !parentsError && selectedParent && (
                       <div className="cc-hint">
-                        Assigned under parent:{" "}
-                        <strong>{selectedParent.name}</strong> (ID:{" "}
-                        <code>{selectedParent._id}</code>)
+                        Assigned under: <strong>{selectedParent.name}</strong>{" "}
+                        <span className="cc-select-option-level">
+                          L{selectedParent.level}
+                        </span>
                       </div>
                     )}
                   </div>
                 </section>
 
-                {/* Section 03: Media */}
                 <section className="cc-card">
                   <header className="cc-card-header">
                     <span className="cc-card-index">03</span>
@@ -539,7 +546,6 @@ const CategoryForm: React.FC = () => {
                   )}
                 </section>
 
-                {/* Actions */}
                 <div className="cc-actions">
                   <button type="reset" className="btn cc-btn-ghost">
                     Cancel
@@ -561,7 +567,6 @@ const CategoryForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* RIGHT: live preview */}
               <div className="col-12 col-lg-4">
                 <div className="cc-sticky">
                   <div className="cc-preview-card">

@@ -71,3 +71,13 @@ export interface LeafCategory {
 }
 
 export type GetLeafCategoriesResponse = ApiResponse<LeafCategory[]>;
+
+
+export interface SelectCategory {
+  _id: string;
+  name: string;
+  level: number;
+  depth: number;
+}
+
+export type GetCategoriesSelectListResponse = ApiResponse<SelectCategory[]>;

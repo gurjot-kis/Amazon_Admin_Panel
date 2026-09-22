@@ -32,6 +32,7 @@ import VendorSlotList from "./pages/vendor/vendorSlot/SlotList/SlotList";
 import AddSlot from "./pages/vendor/vendorSlot/AddSlot";
 import ServiceList from "./pages/vendor/vendorService/ServiceList";
 import AddService from "./pages/vendor/vendorService/AddService";
+import VariantType from "./pages/admin/variant/VariantType";
 
 function App() {
   return (
@@ -49,16 +50,22 @@ function App() {
               path={VENDOR_ROUTES.dashboard}
               element={<VendorDashboardPage />}
             />
-            <Route path={VENDOR_ROUTES.profile} element={<VendorProfilePage />} />
-            <Route path={VENDOR_ROUTES.support} element={<VendorSupportPage />} />
+            <Route
+              path={VENDOR_ROUTES.profile}
+              element={<VendorProfilePage />}
+            />
+            <Route
+              path={VENDOR_ROUTES.support}
+              element={<VendorSupportPage />}
+            />
 
-            <Route path={VENDOR_ROUTES.slots} element={<VendorSlotList/>}/>
-            <Route path={VENDOR_ROUTES.addSlot} element={<AddSlot/>}/>
-            <Route path={VENDOR_ROUTES.editSlot} element={<AddSlot/>}/>
+            <Route path={VENDOR_ROUTES.slots} element={<VendorSlotList />} />
+            <Route path={VENDOR_ROUTES.addSlot} element={<AddSlot />} />
+            <Route path={VENDOR_ROUTES.editSlot} element={<AddSlot />} />
 
-            <Route path={VENDOR_ROUTES.serviceList} element={<ServiceList/>}/>
-            <Route path={VENDOR_ROUTES.addService} element={<AddService/>}/>
-            <Route path={VENDOR_ROUTES.editService} element={<ServiceList/>}/>
+            <Route path={VENDOR_ROUTES.serviceList} element={<ServiceList />} />
+            <Route path={VENDOR_ROUTES.addService} element={<AddService />} />
+            <Route path={VENDOR_ROUTES.editService} element={<ServiceList />} />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -83,6 +90,8 @@ function App() {
             <Route path={ROUTES.vendors} element={<VendorList />} />
             <Route path={ROUTES.vendorCreate} element={<AddVendor />} />
             <Route path={ROUTES.vendorEdit} element={<AddVendor />} />
+
+            <Route path={ROUTES.variantType} element={<VariantType />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

@@ -19,6 +19,8 @@ export const ROUTES = {
   productEdit: "/admin/products/:productId/edit",
   productDetails: "/admin/products/:productId/details",
 
+  variantType: "/admin/variant-type",
+
   orders: "/admin/orders",
   orderDetails: "/admin/orders/:orderId/details",
 

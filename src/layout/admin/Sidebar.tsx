@@ -20,6 +20,7 @@ import "../../styles/Sidebar.css";
 import { logout } from "../../features/auth/authSlice";
 import { baseApi } from "../../store/api/baseApi";
 import { useDispatch } from "react-redux";
+import { MdFormatListBulleted, MdTune } from "react-icons/md";
 
 interface NavItem {
   id: string;
@@ -44,26 +45,26 @@ const NAV_ITEMS: NavItem[] = [
     icon: <LuLayoutDashboard size={20} />,
   },
   {
-    id: "Vendors",
-    label: "Vendors",
-    path: ROUTES.vendors,
-    activePaths: [ROUTES.vendors],
-    icon: <LuStore size={20} />,
-  },
-  {
-    id: "Users",
-    label: "Users",
-    path: ROUTES.users,
-    activePaths: [ROUTES.users],
-    icon: <LuUsers size={20} />,
-  },
-  {
     id: "Profile",
     label: "Profile",
     path: ROUTES.profile,
     activePaths: [ROUTES.profile],
     icon: <LuUserRound size={20} />,
   },
+  // {
+  //   id: "Vendors",
+  //   label: "Vendors",
+  //   path: ROUTES.vendors,
+  //   activePaths: [ROUTES.vendors],
+  //   icon: <LuStore size={20} />,
+  // },
+  // {
+  //   id: "Users",
+  //   label: "Users",
+  //   path: ROUTES.users,
+  //   activePaths: [ROUTES.users],
+  //   icon: <LuUsers size={20} />,
+  // },
   {
     id: "Category",
     label: "Categories",
@@ -71,20 +72,34 @@ const NAV_ITEMS: NavItem[] = [
     activePaths: [ROUTES.categories, "/admin/sub-categories"],
     icon: <LuFolderTree size={20} />,
   },
-  {
-    id: "Product",
-    label: "Products",
-    path: ROUTES.products,
-    activePaths: [ROUTES.products],
-    icon: <LuPackage size={20} />,
+  { 
+    id: "variant-type",
+    label: "Variant Type",
+    path: ROUTES.variantType,
+    activePaths: [ROUTES.variantType, "/admin/variant-type"],
+    icon: <MdTune size={20} />,
   },
-  {
-    id: "Orders",
-    label: "Orders",
-    path: ROUTES.orders,
-    activePaths: [ROUTES.orders],
-    icon: <LuShoppingBag size={20} />,
-  },
+  // {
+  //   id: "variant-option",
+  //   label: "Variant Option",
+  //   path: ROUTES.categories,
+  //   activePaths: [ROUTES.categories, "/admin/sub-categories"],
+  //   icon: <MdFormatListBulleted size={20} />,
+  // },
+  // {
+  //   id: "Product",
+  //   label: "Products",
+  //   path: ROUTES.products,
+  //   activePaths: [ROUTES.products],
+  //   icon: <LuPackage size={20} />,
+  // },
+  // {
+  //   id: "Orders",
+  //   label: "Orders",
+  //   path: ROUTES.orders,
+  //   activePaths: [ROUTES.orders],
+  //   icon: <LuShoppingBag size={20} />,
+  // },
   // {
   //   id: "Support",
   //   label: "Support",
