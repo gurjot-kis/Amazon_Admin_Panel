@@ -1,0 +1,776 @@
+/* ── Page ──────────────────────────────────────────────── */
+.avo-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      1200px 480px at 100% -10%,
+      #e9f0ff 0%,
+      rgba(233, 240, 255, 0) 60%
+    ),
+    var(--color-bg, #f8fafc);
+  font-family: var(--font-body, sans-serif);
+  color: var(--color-ink, #0f172a);
+  padding: 40px 0 80px;
+  border-radius: var(--radius-10, 10px);
+}
+
+.avo-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+.avo-header {
+  margin-bottom: 28px;
+}
+
+.avo-eyebrow {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #1b3a5c;
+  margin: 0 0 6px;
+}
+
+.avo-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.avo-subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.925rem;
+}
+
+/* ── Fieldset ──────────────────────────────────────────── */
+.avo-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.avo-fieldset:disabled {
+  opacity: 0.65;
+}
+
+/* ── Cards ─────────────────────────────────────────────── */
+.avo-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+  padding: 26px 28px 28px;
+  margin-bottom: 20px;
+}
+
+.avo-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.avo-card-index {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1b3a5c;
+  background: #eff6ff;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin-top: 2px;
+}
+
+.avo-card-header h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: #0f172a;
+}
+
+.avo-card-header p {
+  margin: 0;
+  font-size: 0.835rem;
+  color: #94a3b8;
+}
+
+.avo-card-header code {
+  background: #f1f5f9;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.78rem;
+  color: #1b3a5c;
+}
+
+/* ── Fields ────────────────────────────────────────────── */
+.avo-field {
+  margin-bottom: 16px;
+}
+
+.avo-field:last-child {
+  margin-bottom: 0;
+}
+
+.avo-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 7px;
+}
+
+.avo-hint {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 5px 0 0;
+}
+
+.avo-error {
+  font-size: 0.76rem;
+  color: #ef4444;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+/* Two-column row */
+.avo-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 540px) {
+  .avo-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Inputs ────────────────────────────────────────────── */
+.avo-input-wrap {
+  position: relative;
+  display: block;
+}
+
+.avo-color-dot {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  z-index: 1;
+  /* checkerboard for transparent/white */
+  background-image:
+    linear-gradient(45deg, #cbd5e1 25%, transparent 25%),
+    linear-gradient(-45deg, #cbd5e1 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #cbd5e1 75%),
+    linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+  background-size: 6px 6px;
+  background-position:
+    0 0,
+    0 3px,
+    3px -3px,
+    -3px 0;
+}
+
+.avo-color-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+}
+
+/* override: actual color layered via inline style on the element */
+.avo-color-dot[style] {
+  background-image: none;
+}
+
+.avo-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #f8fafc;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.avo-input:focus {
+  border-color: #1b3a5c;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.1);
+}
+
+.avo-input.is-invalid {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.avo-input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.avo-input--has-dot {
+  padding-left: 36px;
+}
+
+.avo-input--sm {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.avo-input--sm.avo-input--has-dot {
+  padding-left: 34px;
+}
+
+/* ── Select ────────────────────────────────────────────── */
+.avo-select-wrap {
+  position: relative;
+}
+
+.avo-select {
+  width: 100%;
+  padding: 10px 38px 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #f8fafc;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+  font-family: inherit;
+}
+
+.avo-select:focus {
+  border-color: #1b3a5c;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.1);
+}
+
+.avo-select.is-invalid {
+  border-color: #ef4444;
+}
+
+.avo-select-chevron {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+/* ── Meta entries ──────────────────────────────────────── */
+.avo-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.avo-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.15s;
+}
+
+.avo-meta-row:focus-within {
+  border-color: #1b3a5c;
+  background: #ffffff;
+}
+
+.avo-meta-idx {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  flex-shrink: 0;
+  /* push down by label height only on first row */
+  margin-top: var(--avo-meta-top-offset, 8px);
+}
+
+.avo-meta-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .avo-meta-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.avo-meta-col-label {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px !important;
+}
+
+.avo-meta-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: #fee2e2;
+  color: #ef4444;
+  font-size: 0.7rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: var(--avo-meta-top-offset, 6px);
+  transition: background 0.15s;
+}
+.avo-meta-remove:hover {
+  background: #fecaca;
+}
+
+.avo-meta-row:first-child {
+  --avo-meta-top-offset: 26px;
+}
+
+.avo-meta-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px;
+  border: 1.5px dashed #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.avo-meta-empty p {
+  margin: 0;
+}
+
+.avo-meta-empty-icon {
+  font-size: 1.4rem;
+  color: #cbd5e1;
+}
+
+.avo-add-meta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px dashed #1b3a5c;
+  border-radius: 9px;
+  background: transparent;
+  color: #1b3a5c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-style 0.15s;
+  font-family: inherit;
+}
+
+.avo-add-meta-btn:hover {
+  background: #eff6ff;
+  border-style: solid;
+}
+
+.avo-add-meta-plus {
+  font-size: 1.1rem;
+  line-height: 1;
+  font-weight: 400;
+}
+
+/* ── Actions ───────────────────────────────────────────── */
+.avo-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.avo-btn-ghost {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #64748b;
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+  font-family: inherit;
+}
+
+.avo-btn-ghost:hover {
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.avo-btn-primary {
+  background: linear-gradient(135deg, #1b3a5c 0%, #0f2340 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -6px rgba(27, 58, 92, 0.5);
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s,
+    opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.avo-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -6px rgba(27, 58, 92, 0.55);
+}
+
+.avo-btn-primary:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Spinner ───────────────────────────────────────────── */
+.avo-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: avo-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes avo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Right column ──────────────────────────────────────── */
+.avo-sticky {
+  position: sticky;
+  top: 24px;
+}
+
+.avo-preview-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.07);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.avo-preview-label {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin: 0 0 14px;
+}
+
+.avo-preview-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.avo-preview-swatch-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  /* checkerboard */
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.avo-preview-swatch {
+  width: 100%;
+  height: 100%;
+}
+
+.avo-preview-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  color: #1b3a5c;
+}
+
+.avo-preview-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.avo-preview-label-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 3px;
+}
+
+.avo-preview-placeholder {
+  color: #cbd5e1;
+  font-weight: 400;
+}
+
+.avo-preview-value {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0 0 6px;
+}
+
+.avo-preview-value code {
+  font-size: 0.76rem;
+  background: #e2e8f0;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #334155;
+}
+
+.avo-preview-type-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #1b3a5c;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* Meta preview */
+.avo-preview-meta {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.avo-preview-meta-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 0 0 8px;
+}
+
+.avo-preview-meta-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.avo-preview-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.avo-preview-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.avo-preview-meta-key {
+  font-weight: 600;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.avo-preview-meta-val {
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avo-preview-meta-val--mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.76rem;
+}
+
+/* Payload */
+.avo-payload-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+.avo-payload-card .avo-preview-label {
+  margin: 0;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.avo-payload-pre {
+  margin: 0;
+  background: #0f172a;
+  color: #94a3b8;
+  font-family: ui-monospace, monospace;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  padding: 16px 18px 20px;
+  overflow-x: auto;
+}
+
+/* text input leaves room for the picker button on the right */
+.avo-input--with-picker {
+  padding-right: 38px;
+}
+
+.avo-input--has-dot.avo-input--with-picker {
+  padding-left: 36px;
+  padding-right: 38px;
+}
+
+/* the clickable label that wraps the hidden color input */
+.avo-color-picker-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  color: #1b3a5c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.avo-color-picker-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* hide the native color input — label click still opens the picker */
+.avo-color-picker-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+  .avo-sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .avo-title {
+    font-size: 1.5rem;
+  }
+
+  .avo-card {
+    padding: 18px;
+  }
+
+  .avo-actions {
+    flex-direction: column-reverse;
+  }
+
+  .avo-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

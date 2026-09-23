@@ -1,0 +1,135 @@
+/* ── Option cell ───────────────────────────────────────── */
+.vo-option-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vo-label-text {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* ── Color swatch ──────────────────────────────────────── */
+.vo-color-swatch-wrap {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #cbd5e1 25%, transparent 25%),
+    linear-gradient(-45deg, #cbd5e1 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #cbd5e1 75%),
+    linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+  background-size: 6px 6px;
+  background-position:
+    0 0,
+    0 3px,
+    3px -3px,
+    -3px 0px;
+  overflow: hidden;
+}
+
+.vo-color-swatch-wrap--lg {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.vo-color-swatch {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* ── Meta list wrapper ─────────────────────────────────── */
+.vo-meta-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  max-width: 340px;
+}
+
+/* ── Hex color badge ───────────────────────────────────── */
+.vo-meta-color {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 7px 2px 4px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Generic key:value badge ───────────────────────────── */
+.vo-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 140px;
+  overflow: hidden;
+}
+
+.vo-meta-key {
+  font-weight: 600;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.vo-meta-val {
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 80px;
+}
+
+.vo-meta-hex {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* ── +N more pill ──────────────────────────────────────── */
+.vo-meta-more {
+  display: inline-flex;
+  align-items: center;
+  background: #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .vo-meta-list {
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .vo-meta-list {
+    max-width: 160px;
+  }
+}

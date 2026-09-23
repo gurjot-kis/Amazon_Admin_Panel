@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LuLayoutDashboard,
@@ -10,6 +10,8 @@ import {
   LuShoppingBag,
   LuLogOut,
   LuX,
+  LuChevronDown,
+  LuListChecks,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -20,14 +22,23 @@ import "../../styles/Sidebar.css";
 import { logout } from "../../features/auth/authSlice";
 import { baseApi } from "../../store/api/baseApi";
 import { useDispatch } from "react-redux";
-import { MdFormatListBulleted, MdTune } from "react-icons/md";
+import { MdLayers, MdTune } from "react-icons/md";
 
-interface NavItem {
+interface NavSubItem {
   id: string;
   label: string;
   path: string;
   activePaths: string[];
+  icon?: React.ReactElement;
+}
+
+interface NavItem {
+  id: string;
+  label: string;
+  path?: string;
+  activePaths?: string[];
   icon: React.ReactElement;
+  children?: NavSubItem[];
 }
 
 interface StoredUser {
@@ -72,20 +83,27 @@ const NAV_ITEMS: NavItem[] = [
     activePaths: [ROUTES.categories, "/admin/sub-categories"],
     icon: <LuFolderTree size={20} />,
   },
-  { 
-    id: "variant-type",
-    label: "Variant Type",
-    path: ROUTES.variantType,
-    activePaths: [ROUTES.variantType, "/admin/variant-type"],
-    icon: <MdTune size={20} />,
+  {
+    id: "variants",
+    label: "Variants",
+    icon: <MdLayers size={20} />,
+    children: [
+      {
+        id: "variant-type",
+        label: "Variant Type",
+        path: ROUTES.variantType,
+        activePaths: [ROUTES.variantType, "/admin/variant-type"],
+        icon: <MdTune size={18} />,
+      },
+      {
+        id: "variant-option",
+        label: "Variant Option",
+        path: ROUTES.variantOption,
+        activePaths: [ROUTES.variantOption, "/admin/variant-option"],
+        icon: <LuListChecks size={18} />,
+      },
+    ],
   },
-  // {
-  //   id: "variant-option",
-  //   label: "Variant Option",
-  //   path: ROUTES.categories,
-  //   activePaths: [ROUTES.categories, "/admin/sub-categories"],
-  //   icon: <MdFormatListBulleted size={20} />,
-  // },
   // {
   //   id: "Product",
   //   label: "Products",
@@ -115,6 +133,25 @@ export default function Sidebar(): React.ReactElement {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   const { isSidebarOpen, setIsSidebarOpen } = useLayout();
+
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => {
+      if (item.children) {
+        const isChildActive = item.children.some((child) =>
+          child.activePaths.some((p) => pathname.startsWith(p)),
+        );
+        if (isChildActive) {
+          setOpenMenus((prev) => ({ ...prev, [item.id]: true }));
+        }
+      }
+    });
+  }, [pathname]);
+
+  const toggleSubMenu = (menuId: string) => {
+    setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
+  };
 
   const handleNavClick = (path: string) => {
     navigate(path);
@@ -185,7 +222,63 @@ export default function Sidebar(): React.ReactElement {
           <span className="sidebar-nav-heading">Main Navigation</span>
           <nav className="sidebar-nav-list">
             {NAV_ITEMS.map((item) => {
-              const isActive = item.activePaths.some((p) =>
+              if (item.children && item.children.length > 0) {
+                const isOpen = !!openMenus[item.id];
+                const isParentActive = item.children.some((child) =>
+                  child.activePaths.some((p) => pathname.startsWith(p)),
+                );
+
+                return (
+                  <div key={item.id} className="sidebar-dropdown-group">
+                    <button
+                      type="button"
+                      className={`sidebar-nav-item sidebar-parent-item ${
+                        isParentActive ? "sidebar-parent-active" : ""
+                      }`}
+                      onClick={() => toggleSubMenu(item.id)}
+                    >
+                      <span className="sidebar-nav-icon">{item.icon}</span>
+                      <span className="sidebar-nav-label">{item.label}</span>
+                      <LuChevronDown
+                        size={16}
+                        className={`sidebar-arrow-icon ${isOpen ? "sidebar-arrow-open" : ""}`}
+                      />
+                    </button>
+
+                    {isOpen && (
+                      <div className="sidebar-submenu-list">
+                        {item.children.map((child) => {
+                          const isChildActive = child.activePaths.some((p) =>
+                            pathname.startsWith(p),
+                          );
+                          return (
+                            <button
+                              key={child.id}
+                              type="button"
+                              className={`sidebar-submenu-item ${
+                                isChildActive
+                                  ? "sidebar-submenu-item-active"
+                                  : ""
+                              }`}
+                              onClick={() => handleNavClick(child.path)}
+                            >
+                              {child.icon && (
+                                <span className="sidebar-submenu-icon">
+                                  {child.icon}
+                                </span>
+                              )}
+                              <span>{child.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // Standard Item
+              const isActive = item.activePaths?.some((p) =>
                 pathname.startsWith(p),
               );
               return (
@@ -193,7 +286,7 @@ export default function Sidebar(): React.ReactElement {
                   key={item.id}
                   type="button"
                   className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""}`}
-                  onClick={() => handleNavClick(item.path)}
+                  onClick={() => item.path && handleNavClick(item.path)}
                 >
                   <span className="sidebar-nav-icon">{item.icon}</span>
                   <span className="sidebar-nav-label">{item.label}</span>

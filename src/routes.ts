@@ -21,6 +21,10 @@ export const ROUTES = {
 
   variantType: "/admin/variant-type",
 
+  variantOption: "/admin/variant-option",
+  addVariantOption: "/admin/variant-option/add",
+  editVariantOption: "/admin/variant-option/:id/edit",
+
   orders: "/admin/orders",
   orderDetails: "/admin/orders/:orderId/details",
 

@@ -33,6 +33,8 @@ import AddSlot from "./pages/vendor/vendorSlot/AddSlot";
 import ServiceList from "./pages/vendor/vendorService/ServiceList";
 import AddService from "./pages/vendor/vendorService/AddService";
 import VariantType from "./pages/admin/variant/VariantType";
+import VariantOption from "./pages/admin/variant/VariantOption";
+import AddVariantOption from "./pages/admin/variant/AddVariantOption";
 
 function App() {
   return (
@@ -92,6 +94,9 @@ function App() {
             <Route path={ROUTES.vendorEdit} element={<AddVendor />} />
 
             <Route path={ROUTES.variantType} element={<VariantType />} />
+            <Route path={ROUTES.variantOption} element={<VariantOption />} />
+            <Route path={ROUTES.addVariantOption} element={<AddVariantOption />} />
+            <Route path={ROUTES.editVariantOption} element={<AddVariantOption />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>
