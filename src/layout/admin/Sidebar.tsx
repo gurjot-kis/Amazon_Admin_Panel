@@ -104,13 +104,13 @@ const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
-  // {
-  //   id: "Product",
-  //   label: "Products",
-  //   path: ROUTES.products,
-  //   activePaths: [ROUTES.products],
-  //   icon: <LuPackage size={20} />,
-  // },
+  {
+    id: "Product",
+    label: "Products",
+    path: ROUTES.products,
+    activePaths: [ROUTES.products],
+    icon: <LuPackage size={20} />,
+  },
   // {
   //   id: "Orders",
   //   label: "Orders",

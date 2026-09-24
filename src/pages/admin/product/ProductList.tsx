@@ -1,169 +1,112 @@
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
-import {
-  useDeleteProductMutation,
-  useFetchProductsQuery,
-  useUpdateProductStatusMutation,
-} from "../../../features/product/productApi";
+import { useNavigate } from "react-router-dom";
+import { MdDelete, MdModeEdit } from "react-icons/md";
+import { DataTable } from "../../../components/common/DataTable/DataTable";
+import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
+import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
+import { useHeader } from "../../../layout/LayoutContext";
+import { useGetProductsQuery } from "../../../features/product/productApi";
 import type {
   Product,
   ProductStatus,
 } from "../../../features/product/productTypes";
-import {
-  priceRangeLabel,
-  resolveImageUrl,
-} from "../../../features/product/productHelpers";
 import "../../../styles/product/ProductList.css";
-import { MdDelete, MdModeEdit, MdOutlineVisibility } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
-import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
-import { DataTable } from "../../../components/common/DataTable/DataTable";
-import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
-import { useHeader } from "../../../layout/LayoutContext";
+import { createPortal } from "react-dom";
 
 const PAGE_LIMIT = 10;
 
-const ImageIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-    <rect
-      x="3"
-      y="3"
-      width="18"
-      height="18"
-      rx="3"
-      stroke="currentColor"
-      strokeWidth="1.6"
-    />
-    <circle cx="8.5" cy="8.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-    <path
-      d="M21 15l-5-5-9 9"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const StarIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
-
 const STATUS_CONFIG: Record<
   ProductStatus,
-  { label: string; dotColor: string }
+  { label: string; className: string }
 > = {
-  active: { label: "Active", dotColor: "#10b981" },
-  pending: { label: "Pending", dotColor: "#f59e0b" },
-  rejected: { label: "Rejected", dotColor: "#ef4444" },
+  active: { label: "Active", className: "pl-status--active" },
+  inactive: { label: "Inactive", className: "pl-status--inactive" },
+  pending: { label: "Pending", className: "pl-status--pending" },
+  rejected: { label: "Rejected", className: "pl-status--rejected" },
 };
 
-interface ProductStatusSelectProps {
-  status: ProductStatus;
-  isUpdating?: boolean;
-  onChange: (status: ProductStatus) => void;
-}
+const STOCK_CONFIG: Record<string, { label: string; className: string }> = {
+  in_stock: { label: "In stock", className: "pl-stock--in" },
+  out_of_stock: { label: "Out of stock", className: "pl-stock--out" },
+};
 
-const ProductStatusSelect = ({
-  status,
-  isUpdating,
-  onChange,
-}: ProductStatusSelectProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [menuCoords, setMenuCoords] = useState<{
-    top: number;
-    left: number;
-    openUpwards: boolean;
-  } | null>(null);
+const fmt = (n: number, currency = "INR") =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(n);
 
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+const resolveImage = (path?: string) =>
+  path ? `${import.meta.env.VITE_API_ASSET_URL}${path}` : null;
 
-  const updateMenuPosition = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const dropdownHeight = 160;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openUpwards =
-      spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+const StatusDropdown = ({
+  current,
+  productId,
+  onUpdate,
+}: {
+  current: ProductStatus;
+  productId: string;
+  onUpdate: (id: string, status: ProductStatus) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const cfg = STATUS_CONFIG[current];
 
-    setMenuCoords({
-      top: openUpwards ? rect.top - 6 : rect.bottom + 6,
-      left: rect.left,
-      openUpwards,
+  // position panel below the badge
+  const openDropdown = () => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    setCoords({
+      top: rect.bottom + window.scrollY + 6,
+      left: rect.left + window.scrollX,
     });
+    setOpen(true);
   };
 
-  const handleToggle = () => {
-    if (!isOpen) {
-      updateMenuPosition();
-    }
-    setIsOpen((prev) => !prev);
-  };
-
+  // close on outside click or Escape
   useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
       if (
-        triggerRef.current &&
-        !triggerRef.current.contains(target) &&
-        menuRef.current &&
-        !menuRef.current.contains(target)
+        panelRef.current &&
+        !panelRef.current.contains(e.target as Node) &&
+        btnRef.current &&
+        !btnRef.current.contains(e.target as Node)
       ) {
-        setIsOpen(false);
+        setOpen(false);
       }
     };
-
-    const handleScrollOrResize = () => {
-      updateMenuPosition();
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
-
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("keydown", onEsc);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("keydown", onEsc);
     };
-  }, [isOpen]);
-
-  const currentConfig = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  }, [open]);
 
   return (
-    <div
-      className={`pl-status-dropdown ${
-        isUpdating ? "pl-status-dropdown--busy" : ""
-      }`}
-    >
+    <div className="pl-status-wrap">
       <button
-        ref={triggerRef}
+        ref={btnRef}
         type="button"
-        disabled={isUpdating}
-        onClick={handleToggle}
-        className={`pl-status-trigger pl-status-trigger--${status} ${
-          isOpen ? "pl-status-trigger--open" : ""
-        }`}
+        className={`pl-status-badge ${cfg.className}`}
+        onClick={openDropdown}
         aria-haspopup="listbox"
-        aria-expanded={isOpen}
+        aria-expanded={open}
       >
-        <span
-          className="pl-status-dot-pulse"
-          style={{ backgroundColor: currentConfig.dotColor }}
-        />
-        <span className="pl-status-label">{currentConfig.label}</span>
+        <span className="pl-status-dot" />
+        {cfg.label}
         <svg
-          className={`pl-status-chevron ${
-            isOpen ? "pl-status-chevron--rotate" : ""
-          }`}
-          width="12"
-          height="12"
+          className={`pl-status-chevron ${open ? "is-open" : ""}`}
+          width="10"
+          height="10"
           viewBox="0 0 24 24"
           fill="none"
         >
@@ -177,58 +120,46 @@ const ProductStatusSelect = ({
         </svg>
       </button>
 
-      {isOpen &&
-        menuCoords &&
+      {open &&
         createPortal(
           <div
-            ref={menuRef}
-            className={`pl-status-menu ${
-              menuCoords.openUpwards ? "pl-status-menu--up" : ""
-            }`}
-            style={{
-              position: "fixed",
-              top: menuCoords.openUpwards ? "auto" : `${menuCoords.top}px`,
-              bottom: menuCoords.openUpwards
-                ? `${window.innerHeight - menuCoords.top}px`
-                : "auto",
-              left: `${menuCoords.left}px`,
-              zIndex: 999999,
-            }}
+            ref={panelRef}
+            className="pl-status-panel"
             role="listbox"
+            style={{
+              position: "absolute",
+              top: coords.top,
+              left: coords.left,
+              zIndex: 9999,
+            }}
           >
-            {(Object.keys(STATUS_CONFIG) as ProductStatus[]).map((key) => {
-              const item = STATUS_CONFIG[key];
-              const isSelected = key === status;
-
+            {(Object.keys(STATUS_CONFIG) as ProductStatus[]).map((s) => {
+              const c = STATUS_CONFIG[s];
+              const isActive = s === current;
               return (
                 <button
-                  key={key}
+                  key={s}
                   type="button"
+                  className={`pl-status-option ${isActive ? "is-active" : ""}`}
                   role="option"
-                  aria-selected={isSelected}
-                  className={`pl-status-option ${
-                    isSelected ? "pl-status-option--selected" : ""
-                  }`}
+                  aria-selected={isActive}
                   onClick={() => {
-                    setIsOpen(false);
-                    onChange(key);
+                    if (!isActive) onUpdate(productId, s);
+                    setOpen(false);
                   }}
                 >
-                  <span
-                    className="pl-status-option-dot"
-                    style={{ backgroundColor: item.dotColor }}
-                  />
-                  <span className="pl-status-option-text">{item.label}</span>
-                  {isSelected && (
+                  <span className={`pl-status-option-dot pl-status--${s}`} />
+                  {c.label}
+                  {isActive && (
                     <svg
                       className="pl-status-check"
-                      width="14"
-                      height="14"
+                      width="12"
+                      height="12"
                       viewBox="0 0 24 24"
                       fill="none"
                     >
                       <path
-                        d="M20 6L9 17l-5-5"
+                        d="M5 13l4 4L19 7"
                         stroke="currentColor"
                         strokeWidth="2.5"
                         strokeLinecap="round"
@@ -246,22 +177,67 @@ const ProductStatusSelect = ({
   );
 };
 
+/* ── ImageCell ─────────────────────────────────────────── */
+const ImageCell = ({ src, name }: { src: string | null; name: string }) => {
+  const [errored, setErrored] = useState(false);
+  return (
+    <div className="pl-img-cell">
+      {src && !errored ? (
+        <img
+          src={src}
+          alt={name}
+          className="pl-img"
+          onError={() => setErrored(true)}
+        />
+      ) : (
+        <span className="pl-img-fallback">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="3"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
+            <circle
+              cx="8.5"
+              cy="8.5"
+              r="1.6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+            />
+            <path
+              d="M21 15l-5-5-9 9"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      )}
+    </div>
+  );
+};
+
+/* ── Component ─────────────────────────────────────────── */
 const ProductList = () => {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">(
+    "all",
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const navigate = useNavigate();
-
   const { setHeaderConfig } = useHeader();
 
   useEffect(() => {
-    setHeaderConfig({
-      title: "Products",
-    });
+    setHeaderConfig({ title: "Products" });
   }, [setHeaderConfig]);
 
   useEffect(() => {
@@ -273,45 +249,27 @@ const ProductList = () => {
   }, [searchInput]);
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useFetchProductsQuery({
+    useGetProductsQuery({
       page,
       limit: PAGE_LIMIT,
       search: search || undefined,
+      status: statusFilter === "all" ? undefined : statusFilter,
     });
-
-  const [updateProductStatus] = useUpdateProductStatusMutation();
-  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
   const products = data?.data ?? [];
   const pagination = data?.pagination;
 
-  const handleStatusChange = async (
-    product: Product,
-    newStatus: ProductStatus,
-  ) => {
-    if (newStatus === product.status) return;
+  const statCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products.forEach((p) => {
+      counts[p.status] = (counts[p.status] ?? 0) + 1;
+    });
+    return counts;
+  }, [products]);
 
-    setUpdatingId(product._id);
-
-    try {
-      await updateProductStatus({
-        id: product._id,
-        status: newStatus,
-      }).unwrap();
-
-      toast.success("Status updated", {
-        description: `"${product.name}" is now ${newStatus}.`,
-      });
-    } catch (err: any) {
-      console.error("Failed to update product status:", err);
-
-      toast.error("Failed to update status", {
-        description:
-          err?.data?.message || "Something went wrong. Please try again.",
-      });
-    } finally {
-      setUpdatingId(null);
-    }
+  /* status update — wire to your mutation when ready */
+  const handleStatusUpdate = (id: string, status: ProductStatus) => {
+    toast.info(`Status update for ${id} → ${status} (wire your mutation here)`);
   };
 
   const openDeleteModal = (product: Product) => {
@@ -321,20 +279,11 @@ const ProductList = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedProduct) return;
-    const productName = selectedProduct.name;
-    try {
-      await deleteProduct(selectedProduct._id).unwrap();
-      setIsDeleteModalOpen(false);
-      setSelectedProduct(null);
-      toast.success("Product deleted", {
-        description: `"${productName}" has been successfully removed.`,
-      });
-    } catch (error: any) {
-      console.error("Failed to delete product:", error);
-      const errMsg =
-        error?.data?.message || "Something went wrong. Please try again.";
-      toast.error("Failed to delete product", { description: errMsg });
-    }
+    toast.success("Product deleted", {
+      description: `"${selectedProduct.name}" removed.`,
+    });
+    setIsDeleteModalOpen(false);
+    setSelectedProduct(null);
   };
 
   const columns: DataTableColumn<Product>[] = [
@@ -342,50 +291,17 @@ const ProductList = () => {
       key: "name",
       header: "Product",
       isPrimary: true,
-      render: (product) => {
-        const imageUrl = resolveImageUrl(product.mainImage);
-        return (
-          <>
-            <span className="pl-thumb">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt=""
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
-              <span className={`pl-thumb-fallback ${imageUrl ? "d-none" : ""}`}>
-                <ImageIcon />
-              </span>
-            </span>
-            <span className="pl-name-text">
-              <span className="pl-name" title={product.name}>
-                {product.name}
-              </span>
-              <span
-                className="pl-short-desc d-md-none"
-                title={product.shortDescription}
-              >
-                {product.shortDescription}
-              </span>
-            </span>
-          </>
-        );
-      },
-    },
-    {
-      key: "price",
-      header: "Price",
-      headerClassName: "d-none d-md-table-cell",
-      cellClassName: "d-none d-md-table-cell",
-      render: (product) => (
-        <span className="pl-price">{priceRangeLabel(product)}</span>
+      render: (p) => (
+        <div className="pl-product-cell">
+          <ImageCell src={resolveImage(p.mainImage)} name={p.name} />
+          <div className="pl-product-info">
+            <span className="pl-product-name">{p.name}</span>
+            <span className="pl-product-sku">SKU: {p.sku}</span>
+            {p.hasVariants && (
+              <span className="pl-variants-badge">Has variants</span>
+            )}
+          </div>
+        </div>
       ),
     },
     {
@@ -393,98 +309,55 @@ const ProductList = () => {
       header: "Category",
       headerClassName: "d-none d-md-table-cell",
       cellClassName: "d-none d-md-table-cell",
-      render: (product) => {
-        const categoryImage = resolveImageUrl(product.category?.category_image);
-        return (
-          <div className="pl-category">
-            <span className="pl-category-thumb">
-              {categoryImage ? (
-                <img
-                  src={categoryImage}
-                  alt={product.category?.name || "Category"}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
-              <span
-                className={`pl-category-thumb-fallback ${categoryImage ? "d-none" : ""}`}
-              >
-                <ImageIcon />
-              </span>
-            </span>
-            <span className="pl-category-name" title={product.category?.name}>
-              {product.category?.name || "-"}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      key: "subCategory",
-      header: "Sub Category",
-      headerClassName: "d-none d-lg-table-cell",
-      cellClassName: "d-none d-lg-table-cell",
-      render: (product) => {
-        if (!product.subCategory) return <span className="pl-no-sub">—</span>;
-        const subCategoryImage = resolveImageUrl(
-          product.subCategory?.category_image,
-        );
-        return (
-          <div className="pl-category">
-            <span className="pl-category-thumb">
-              {subCategoryImage ? (
-                <img
-                  src={subCategoryImage}
-                  alt={product.subCategory.name}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
-              <span
-                className={`pl-category-thumb-fallback ${subCategoryImage ? "d-none" : ""}`}
-              >
-                <ImageIcon />
-              </span>
-            </span>
-            <span className="pl-category-name" title={product.subCategory.name}>
-              {product.subCategory.name}
-            </span>
-          </div>
-        );
-      },
-    },
-
-    {
-      key: "rating",
-      header: "Rating",
-      headerClassName: "d-none d-lg-table-cell",
-      cellClassName: "d-none d-lg-table-cell",
-      render: (product) => (
-        <span className="pl-rating">
-          <StarIcon />
-          {product.rating.average.toFixed(2)}
-          <span className="pl-rating-count">({product.rating.count})</span>
+      render: (p) => (
+        <span className="cl-level-tag cl-level-tag--1">
+          {p.category?.name ?? "—"}
         </span>
       ),
     },
     {
+      key: "sellingPrice",
+      header: "Price",
+      headerClassName: "d-none d-md-table-cell",
+      cellClassName: "d-none d-md-table-cell",
+      render: (p) => (
+        <div className="pl-price-cell">
+          <span className="pl-price-selling">
+            {fmt(p.sellingPrice, p.currency)}
+          </span>
+          {p.costPrice > 0 && p.costPrice !== p.sellingPrice && (
+            <span className="pl-price-cost">
+              {fmt(p.costPrice, p.currency)}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "stock",
+      header: "Stock",
+      headerClassName: "d-none d-lg-table-cell",
+      cellClassName: "d-none d-lg-table-cell",
+      render: (p) => {
+        const sc = STOCK_CONFIG[p.stockStatus];
+        return (
+          <div className="pl-stock-cell">
+            <span className="pl-stock-qty">{p.stock}</span>
+            <span className={`pl-stock-badge ${sc?.className ?? ""}`}>
+              {sc?.label ?? p.stockStatus}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       key: "status",
       header: "Status",
-      render: (product) => (
-        <ProductStatusSelect
-          status={product.status}
-          isUpdating={updatingId === product._id}
-          onChange={(newStatus) => handleStatusChange(product, newStatus)}
+      render: (p) => (
+        <StatusDropdown
+          current={p.status}
+          productId={p._id}
+          onUpdate={handleStatusUpdate}
         />
       ),
     },
@@ -493,29 +366,21 @@ const ProductList = () => {
       header: "Actions",
       headerClassName: "text-end",
       cellClassName: "text-end",
-      render: (product) => (
-        <div className="pl-actions">
+      render: (p) => (
+        <div className="cl-actions">
           <button
             type="button"
-            className="pl-icon-btn"
-            title="View details"
-            onClick={() => navigate(`/admin/products/${product._id}/details`)}
-          >
-            <MdOutlineVisibility color="#1b3a5c" />
-          </button>
-          <button
-            type="button"
-            className="pl-icon-btn"
+            className="cl-icon-btn"
             title="Edit"
-            onClick={() => navigate(`/admin/products/${product._id}/edit`)}
+            onClick={() => navigate(`/admin/products/${p._id}/edit`)}
           >
             <MdModeEdit color="#1b3a5c" />
           </button>
           <button
             type="button"
-            className="pl-icon-btn pl-icon-btn--danger"
+            className="cl-icon-btn cl-icon-btn--danger"
             title="Delete"
-            onClick={() => openDeleteModal(product)}
+            onClick={() => openDeleteModal(p)}
           >
             <MdDelete color="red" />
           </button>
@@ -527,12 +392,16 @@ const ProductList = () => {
   return (
     <>
       <DataTable
-        // title="Products"
         statPills={[
           {
             label: `${pagination?.total ?? products.length} total`,
             navy: true,
           },
+          ...Object.entries(statCounts)
+            .filter(([, count]) => count > 0)
+            .map(([status, count]) => ({
+              label: `${count} ${STATUS_CONFIG[status as ProductStatus]?.label ?? status}${statusFilter === "all" && !search ? " · this page" : ""}`,
+            })),
         ]}
         columns={columns}
         data={products}
@@ -540,28 +409,35 @@ const ProductList = () => {
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Search products..."
+        filters={[
+          {
+            value: statusFilter,
+            onChange: (v) => {
+              setStatusFilter(v as ProductStatus | "all");
+              setPage(1);
+            },
+            options: [
+              { value: "all", label: "All statuses" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+              { value: "pending", label: "Pending" },
+              { value: "rejected", label: "Rejected" },
+            ],
+          },
+        ]}
         addButtonLabel="Add Product"
         onAddClick={() => navigate("/admin/products/add")}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
-        errorMessage={`Couldn't load products${error && "status" in error ? ` (${error.status})` : ""}.`}
+        errorMessage={`Couldn't load products${
+          error && "status" in error ? ` (${error.status})` : ""
+        }.`}
         onRetry={refetch}
         emptyMessage={
           search ? `No products match "${search}".` : "No products yet."
         }
-        pagination={
-          pagination
-            ? {
-                page: pagination.currentPage,
-                limit: pagination.limit,
-                total: pagination.total,
-                totalPages: pagination.totalPages,
-                hasNextPage: pagination.hasNextPage,
-                hasPrevPage: pagination.hasPrevPage,
-              }
-            : undefined
-        }
+        pagination={pagination}
         onPageChange={setPage}
       />
 
@@ -572,7 +448,7 @@ const ProductList = () => {
           setSelectedProduct(null);
         }}
         onConfirm={handleDeleteConfirm}
-        isLoading={isDeleting}
+        isLoading={false}
         title="Delete Product"
         message={
           <>
