@@ -3,6 +3,7 @@ import type {
   GetCategoriesParams,
   GetCategoriesResponse,
   GetCategoriesSelectListResponse,
+  GetLeafCategoriesParams,
   GetLeafCategoriesResponse,
 } from "./categoryTypes";
 
@@ -25,14 +26,33 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       providesTags: ["Category"],
     }),
-    getLeafCategories: builder.query<GetLeafCategoriesResponse, void>({
-      query: () => ({
-        url: "/admin/category/leaf",
-        method: "GET",
-      }),
-      extraOptions: { requiresAuth: true },
+
+    getLeafCategories: builder.query<
+      GetLeafCategoriesResponse,
+      GetLeafCategoriesParams
+    >({
+      query: ({ search } = {}) => {
+        const params = new URLSearchParams();
+
+        if (search?.trim()) {
+          params.set("search", search.trim());
+        }
+
+        const qs = params.toString();
+
+        return {
+          url: `/admin/category/leaf${qs ? `?${qs}` : ""}`,
+          method: "GET",
+        };
+      },
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
       providesTags: ["Category"],
     }),
+
     getCategoryById: builder.query<unknown, string>({
       query: (categoryId) => ({
         url: `/admin/category/${categoryId}`,
@@ -41,6 +61,7 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       providesTags: ["Category"],
     }),
+
     getCategoriesSelectList: builder.query<
       GetCategoriesSelectListResponse,
       void
@@ -52,6 +73,7 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       providesTags: ["Category"],
     }),
+
     createCategory: builder.mutation<unknown, FormData>({
       query: (formData) => ({
         url: "/admin/category/create",
@@ -61,6 +83,7 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       invalidatesTags: ["Category"],
     }),
+
     upadteCategoryStatus: builder.mutation<unknown, string>({
       query: (categoryId) => ({
         url: `/admin/category/${categoryId}/status`,
@@ -69,6 +92,7 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       invalidatesTags: ["Category"],
     }),
+    
     updateCategory: builder.mutation<
       unknown,
       { categoryId: string; formData: FormData }

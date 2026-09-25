@@ -81,3 +81,6 @@ export interface SelectCategory {
 }
 
 export type GetCategoriesSelectListResponse = ApiResponse<SelectCategory[]>;
+export interface GetLeafCategoriesParams {
+  search?: string;
+}
