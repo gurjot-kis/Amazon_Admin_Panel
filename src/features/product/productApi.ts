@@ -8,6 +8,7 @@ import type {
   GetProductsResponse,
   Product,
   ProductDetails,
+  ProductStatus,
   UpdateProductPayload,
 } from "./productTypes";
 
@@ -241,6 +242,39 @@ export const productApi = baseApi.injectEndpoints({
 
       invalidatesTags: ["Product"],
     }),
+
+    updateProductStatus: builder.mutation<
+      ApiResponse<Product>,
+      {
+        productId: string;
+        status: ProductStatus;
+      }
+    >({
+      query: ({ productId, status }) => ({
+        url: `/admin/product/${productId}/status`,
+        method: "PATCH",
+        body: { status },
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["Product"],
+    }),
+
+    deleteProduct: builder.mutation<ApiResponse<null>, string>({
+      query: (productId) => ({
+        url: `/admin/product/${productId}/delete`,
+        method: "DELETE",
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["Product"],
+    }),
   }),
 });
 
@@ -249,4 +283,6 @@ export const {
   useGetProductByIdQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
+  useUpdateProductStatusMutation,
+  useDeleteProductMutation,
 } = productApi;

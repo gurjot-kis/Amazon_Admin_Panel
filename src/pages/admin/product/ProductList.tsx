@@ -1,3 +1,5 @@
+// ProductList.tsx — full updated file
+
 import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +8,11 @@ import { DataTable } from "../../../components/common/DataTable/DataTable";
 import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
 import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
 import { useHeader } from "../../../layout/LayoutContext";
-import { useGetProductsQuery } from "../../../features/product/productApi";
+import {
+  useGetProductsQuery,
+  useUpdateProductStatusMutation,
+  useDeleteProductMutation,
+} from "../../../features/product/productApi";
 import type {
   Product,
   ProductStatus,
@@ -26,11 +32,6 @@ const STATUS_CONFIG: Record<
   rejected: { label: "Rejected", className: "pl-status--rejected" },
 };
 
-const STOCK_CONFIG: Record<string, { label: string; className: string }> = {
-  in_stock: { label: "In stock", className: "pl-stock--in" },
-  out_of_stock: { label: "Out of stock", className: "pl-stock--out" },
-};
-
 const fmt = (n: number, currency = "INR") =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -45,10 +46,12 @@ const StatusDropdown = ({
   current,
   productId,
   onUpdate,
+  isUpdating,
 }: {
   current: ProductStatus;
   productId: string;
   onUpdate: (id: string, status: ProductStatus) => void;
+  isUpdating: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -56,9 +59,8 @@ const StatusDropdown = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const cfg = STATUS_CONFIG[current];
 
-  // position panel below the badge
   const openDropdown = () => {
-    if (!btnRef.current) return;
+    if (!btnRef.current || isUpdating) return;
     const rect = btnRef.current.getBoundingClientRect();
     setCoords({
       top: rect.bottom + window.scrollY + 6,
@@ -67,7 +69,6 @@ const StatusDropdown = ({
     setOpen(true);
   };
 
-  // close on outside click or Escape
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -96,28 +97,35 @@ const StatusDropdown = ({
       <button
         ref={btnRef}
         type="button"
-        className={`pl-status-badge ${cfg.className}`}
+        className={`pl-status-badge ${cfg.className} ${isUpdating ? "is-updating" : ""}`}
         onClick={openDropdown}
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={isUpdating}
       >
-        <span className="pl-status-dot" />
+        {isUpdating ? (
+          <span className="pl-status-spinner" />
+        ) : (
+          <span className="pl-status-dot" />
+        )}
         {cfg.label}
-        <svg
-          className={`pl-status-chevron ${open ? "is-open" : ""}`}
-          width="10"
-          height="10"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path
-            d="M6 9l6 6 6-6"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {!isUpdating && (
+          <svg
+            className={`pl-status-chevron ${open ? "is-open" : ""}`}
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
       </button>
 
       {open &&
@@ -232,9 +240,14 @@ const ProductList = () => {
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  // Track which product's status is being updated for per-row loading state
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
+
+  const [updateProductStatus] = useUpdateProductStatusMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
   useEffect(() => {
     setHeaderConfig({ title: "Products" });
@@ -267,9 +280,20 @@ const ProductList = () => {
     return counts;
   }, [products]);
 
-  /* status update — wire to your mutation when ready */
-  const handleStatusUpdate = (id: string, status: ProductStatus) => {
-    toast.info(`Status update for ${id} → ${status} (wire your mutation here)`);
+  const handleStatusUpdate = async (id: string, status: ProductStatus) => {
+    setUpdatingStatusId(id);
+    try {
+      await updateProductStatus({ productId: id, status }).unwrap();
+      toast.success("Status updated", {
+        description: `Product marked as ${STATUS_CONFIG[status].label}.`,
+      });
+    } catch (err: any) {
+      toast.error("Failed to update status", {
+        description: err?.data?.message ?? "Something went wrong.",
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const openDeleteModal = (product: Product) => {
@@ -279,11 +303,18 @@ const ProductList = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedProduct) return;
-    toast.success("Product deleted", {
-      description: `"${selectedProduct.name}" removed.`,
-    });
-    setIsDeleteModalOpen(false);
-    setSelectedProduct(null);
+    try {
+      await deleteProduct(selectedProduct._id).unwrap();
+      toast.success("Product deleted", {
+        description: `"${selectedProduct.name}" removed.`,
+      });
+      setIsDeleteModalOpen(false);
+      setSelectedProduct(null);
+    } catch (err: any) {
+      toast.error("Failed to delete product", {
+        description: err?.data?.message ?? "Something went wrong.",
+      });
+    }
   };
 
   const columns: DataTableColumn<Product>[] = [
@@ -296,11 +327,31 @@ const ProductList = () => {
           <ImageCell src={resolveImage(p.mainImage)} name={p.name} />
           <div className="pl-product-info">
             <span className="pl-product-name">{p.name}</span>
-            <span className="pl-product-sku">SKU: {p.sku}</span>
-            {p.hasVariants && (
-              <span className="pl-variants-badge">Has variants</span>
-            )}
           </div>
+        </div>
+      ),
+    },
+    {
+      key: "sku",
+      header: "SKU",
+      headerClassName: "d-none d-md-table-cell",
+      cellClassName: "d-none d-md-table-cell",
+      render: (p) => (
+        <div className="pl-sku-cell">
+          <span className="pl-sku-badge">{p.sku}</span>
+          {p.hasVariants && (
+            <span className="pl-variants-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 6h16M4 12h10M4 18h7"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Variants
+            </span>
+          )}
         </div>
       ),
     },
@@ -325,30 +376,8 @@ const ProductList = () => {
           <span className="pl-price-selling">
             {fmt(p.sellingPrice, p.currency)}
           </span>
-          {p.costPrice > 0 && p.costPrice !== p.sellingPrice && (
-            <span className="pl-price-cost">
-              {fmt(p.costPrice, p.currency)}
-            </span>
-          )}
         </div>
       ),
-    },
-    {
-      key: "stock",
-      header: "Stock",
-      headerClassName: "d-none d-lg-table-cell",
-      cellClassName: "d-none d-lg-table-cell",
-      render: (p) => {
-        const sc = STOCK_CONFIG[p.stockStatus];
-        return (
-          <div className="pl-stock-cell">
-            <span className="pl-stock-qty">{p.stock}</span>
-            <span className={`pl-stock-badge ${sc?.className ?? ""}`}>
-              {sc?.label ?? p.stockStatus}
-            </span>
-          </div>
-        );
-      },
     },
     {
       key: "status",
@@ -358,6 +387,7 @@ const ProductList = () => {
           current={p.status}
           productId={p._id}
           onUpdate={handleStatusUpdate}
+          isUpdating={updatingStatusId === p._id}
         />
       ),
     },
@@ -448,7 +478,7 @@ const ProductList = () => {
           setSelectedProduct(null);
         }}
         onConfirm={handleDeleteConfirm}
-        isLoading={false}
+        isLoading={isDeleting}
         title="Delete Product"
         message={
           <>

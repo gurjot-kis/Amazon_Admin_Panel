@@ -22,7 +22,6 @@ import {
   AlertCircle,
   ChevronDown,
   Image as ImageIcon,
-  Loader2,
 } from "lucide-react";
 
 import {
@@ -42,8 +41,8 @@ import type {
 } from "../../../features/product/productTypes";
 import "../../../styles/product/AddProduct.css";
 import { useHeader } from "../../../layout/LayoutContext";
+import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
 
-/* ── Asset URL Helper ──────────────────────────────────── */
 const ASSET_BASE_URL = (import.meta.env.VITE_API_ASSET_URL || "").replace(
   /\/+$/,
   "",
@@ -51,7 +50,6 @@ const ASSET_BASE_URL = (import.meta.env.VITE_API_ASSET_URL || "").replace(
 
 export const getImageUrl = (path?: string | null): string => {
   if (!path) return "";
-  // Return directly if it's a blob object URL or full HTTP/HTTPS URL
   if (
     path.startsWith("blob:") ||
     path.startsWith("data:") ||
@@ -64,7 +62,6 @@ export const getImageUrl = (path?: string | null): string => {
   return `${ASSET_BASE_URL}${cleanPath}`;
 };
 
-/* ── helpers ───────────────────────────────────────────── */
 const uid = () => Math.random().toString(36).slice(2, 9);
 const MAX_IMAGE_MB = 5;
 const CURRENCIES = ["INR", "USD", "EUR", "GBP", "AED"];
@@ -77,7 +74,6 @@ const validateImageFile = (file: File): string | null => {
   return null;
 };
 
-/* ── types ─────────────────────────────────────────────── */
 interface LeafCategory {
   _id: string;
   parent_id?: string;
@@ -113,6 +109,7 @@ interface FormState {
   hasVariants: boolean;
   variantTypes: string[];
   variants: VariantRow[];
+  status?: string;
 }
 
 const INITIAL: FormState = {
@@ -443,7 +440,6 @@ const AddProduct: React.FC = () => {
     setHeaderConfig({ title: isEditMode ? "Edit Product" : "Add Product" });
   }, [setHeaderConfig, isEditMode]);
 
-  /* ── API Operations ── */
   const { data: productData, isLoading: isFetchingProduct } =
     useGetProductByIdQuery(activeProductId as string, {
       skip: !isEditMode || !activeProductId,
@@ -461,7 +457,6 @@ const AddProduct: React.FC = () => {
     [variantTypesData],
   );
 
-  /* ── Populate Form State in Edit Mode ── */
   useEffect(() => {
     if (isEditMode && productData?.data) {
       const prod = productData.data;
@@ -515,6 +510,7 @@ const AddProduct: React.FC = () => {
         hasVariants: prod.hasVariants || false,
         variantTypes: resolvedVariantTypes,
         variants: populatedVariants,
+        status: prod.status ? prod.status : "Pending",
       });
 
       if (prod.mainImage) {
@@ -526,67 +522,58 @@ const AddProduct: React.FC = () => {
     }
   }, [isEditMode, productData]);
 
-useEffect(() => {
-  setForm((p) => {
-    // Guard 1: variants not enabled or no types selected → clear variants
-    if (!p.hasVariants || p.variantTypes.length === 0) {
-      return { ...p, variants: [] };
-    }
+  useEffect(() => {
+    setForm((p) => {
+      if (!p.hasVariants || p.variantTypes.length === 0) {
+        return { ...p, variants: [] };
+      }
 
-    // Guard 2: every existing row already has a combination entry for
-    // every selected type → data came from populate effect, don't touch it
-    // NOTE: use p.variantTypes here, NOT form.variantTypes (stale closure)
-    const alreadySynced =
-      p.variants.length > 0 &&
-      p.variants.every((row) =>
-        p.variantTypes.every((vtId) =>           // ← p.variantTypes not form.variantTypes
-          row.combination.some(
-            (c) => c.variant_type_id === vtId,   // ← removed !== "" check, just check existence
+      const alreadySynced =
+        p.variants.length > 0 &&
+        p.variants.every((row) =>
+          p.variantTypes.every((vtId) =>
+            row.combination.some((c) => c.variant_type_id === vtId),
           ),
-        ),
-      );
+        );
 
-    if (alreadySynced) return p;
+      if (alreadySynced) return p;
 
-    // No variants yet → seed one empty row
-    if (p.variants.length === 0) {
+      if (p.variants.length === 0) {
+        return {
+          ...p,
+          variants: [
+            {
+              id: uid(),
+              combination: p.variantTypes.map((vtId) => ({
+                variant_type_id: vtId,
+                variant_option_id: "",
+              })),
+              sku: "",
+              costPrice: "",
+              sellingPrice: "",
+              price: "",
+              stock: "",
+              images: [],
+              imagePreviews: [],
+            },
+          ],
+        };
+      }
+
       return {
         ...p,
-        variants: [
-          {
-            id: uid(),
-            combination: p.variantTypes.map((vtId) => ({  // ← p.variantTypes
-              variant_type_id: vtId,
-              variant_option_id: "",
-            })),
-            sku: "",
-            costPrice: "",
-            sellingPrice: "",
-            price: "",
-            stock: "",
-            images: [],
-            imagePreviews: [],
-          },
-        ],
-      };
-    }
-
-    // User added/removed a type after load → re-sync combination arrays
-    return {
-      ...p,
-      variants: p.variants.map((row) => ({
-        ...row,
-        combination: p.variantTypes.map((vtId) => ({    // ← p.variantTypes
-          variant_type_id: vtId,
-          variant_option_id:
-            row.combination.find((c) => c.variant_type_id === vtId)
-              ?.variant_option_id ?? "",
+        variants: p.variants.map((row) => ({
+          ...row,
+          combination: p.variantTypes.map((vtId) => ({
+            variant_type_id: vtId,
+            variant_option_id:
+              row.combination.find((c) => c.variant_type_id === vtId)
+                ?.variant_option_id ?? "",
+          })),
         })),
-      })),
-    };
-  });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [form.hasVariants, form.variantTypes.join(",")]);
+      };
+    });
+  }, [form.hasVariants, form.variantTypes.join(",")]);
 
   const set = (field: keyof FormState, value: any) =>
     setForm((p) => ({ ...p, [field]: value }));
@@ -774,7 +761,6 @@ useEffect(() => {
           r.combination.every((c) => c.variant_option_id),
         )));
 
-  /* ── Submit Handler (Create / Update) ── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({
@@ -857,21 +843,10 @@ useEffect(() => {
 
   if (isEditMode && isFetchingProduct) {
     return (
-      <div className="ap-wrapper">
-        <div
-          className="ap-container"
-          style={{ textAlign: "center", padding: "100px 0" }}
-        >
-          <Loader2
-            className="ap-spinner-inline"
-            size={32}
-            style={{ margin: "0 auto 12px" }}
-          />
-          <p style={{ color: "var(--ap-text-muted)", fontSize: "0.9rem" }}>
-            Loading product details...
-          </p>
-        </div>
-      </div>
+      <FullScreenLoader
+        title="Loading Product"
+        subtitle="Getting everything ready...."
+      />
     );
   }
 
@@ -1523,8 +1498,10 @@ useEffect(() => {
               </div>
 
               {/* ── RIGHT: LIVE PREVIEW & AUDIT ── */}
+              {/* ── RIGHT: LIVE PREVIEW & AUDIT ── */}
               <div className="ap-col-sidebar">
                 <div className="ap-sticky-stack">
+                  {/* Live Preview Card */}
                   <div className="ap-preview-card">
                     <div className="ap-preview-header">
                       <div className="ap-flex-align">
@@ -1536,80 +1513,283 @@ useEffect(() => {
                       </span>
                     </div>
 
-                    <div className="ap-preview-display">
-                      <div className="ap-preview-thumb">
-                        {mainPreview ? (
-                          <img
-                            src={getImageUrl(mainPreview)}
-                            alt="Live display"
-                          />
-                        ) : (
-                          <div className="ap-preview-empty">
-                            <UploadCloud size={24} />
-                            <span>No image</span>
-                          </div>
+                    {/* Thumbnail */}
+                    <div className="ap-preview-thumb">
+                      {mainPreview ? (
+                        <img
+                          src={getImageUrl(mainPreview)}
+                          alt="Live display"
+                        />
+                      ) : (
+                        <div className="ap-preview-empty">
+                          <UploadCloud size={28} />
+                          <span>No image yet</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="ap-preview-content">
+                      {/* Name */}
+                      <h4 className="ap-preview-title">
+                        {form.name || (
+                          <span className="ap-preview-ph">Product name</span>
+                        )}
+                      </h4>
+
+                      {/* SKU */}
+                      <p className="ap-preview-sku-line">
+                        SKU: <span>{form.sku || "—"}</span>
+                      </p>
+
+                      {/* Category */}
+                      {form.category_id && (
+                        <p className="ap-preview-meta-line">
+                          <span className="ap-preview-meta-key">Category</span>
+                          <span className="ap-preview-meta-val">
+                            {/* show name if found, else id */}
+                            Selected ✓
+                          </span>
+                        </p>
+                      )}
+
+                      {/* Short description */}
+                      {form.short_description && (
+                        <p className="ap-preview-short-desc">
+                          {form.short_description}
+                        </p>
+                      )}
+
+                      {/* Pricing row */}
+                      <div className="ap-preview-pricing">
+                        <div className="ap-main-price">
+                          {form.currency}{" "}
+                          {form.sellingPrice
+                            ? Number(form.sellingPrice).toLocaleString("en-IN")
+                            : "0"}
+                        </div>
+                        {form.price &&
+                          Number(form.price) > Number(form.sellingPrice) && (
+                            <div className="ap-mrp-price">
+                              {form.currency}{" "}
+                              {Number(form.price).toLocaleString("en-IN")}
+                            </div>
+                          )}
+                        {form.price &&
+                          form.sellingPrice &&
+                          Number(form.price) > Number(form.sellingPrice) && (
+                            <span className="ap-preview-discount-badge">
+                              {Math.round(
+                                ((Number(form.price) -
+                                  Number(form.sellingPrice)) /
+                                  Number(form.price)) *
+                                  100,
+                              )}
+                              % OFF
+                            </span>
+                          )}
+                      </div>
+
+                      {/* Tags row */}
+                      <div className="ap-preview-tags-row">
+                        <span className="ap-preview-tag-pill ap-tag-pending">
+                          {form.status ? form.status : "Pending"}
+                        </span>
+                        {form.hasVariants && (
+                          <span className="ap-preview-tag-pill ap-tag-variant">
+                            Has variants
+                          </span>
+                        )}
+                        {!form.hasVariants && form.stock && (
+                          <span
+                            className={`ap-preview-tag-pill ${
+                              Number(form.stock) > 0
+                                ? "ap-tag-instock"
+                                : "ap-tag-outstock"
+                            }`}
+                          >
+                            {Number(form.stock) > 0
+                              ? `${form.stock} in stock`
+                              : "Out of stock"}
+                          </span>
                         )}
                       </div>
 
-                      <div className="ap-preview-content">
-                        <h4 className="ap-preview-title">
-                          {form.name || "Product Name"}
-                        </h4>
-                        <p className="ap-preview-sku-line">
-                          SKU: <span>{form.sku || "—"}</span>
-                        </p>
-
-                        <div className="ap-preview-pricing">
-                          <div className="ap-main-price">
-                            {form.currency}{" "}
-                            {form.sellingPrice
-                              ? Number(form.sellingPrice).toFixed(2)
-                              : "0.00"}
-                          </div>
-                          {form.price &&
-                            Number(form.price) > Number(form.sellingPrice) && (
-                              <div className="ap-mrp-price">
-                                {form.currency} {Number(form.price).toFixed(2)}
-                              </div>
-                            )}
+                      {/* Featured images strip */}
+                      {featuredPreviews.length > 0 && (
+                        <div className="ap-preview-gallery-strip">
+                          {featuredPreviews.slice(0, 4).map((src, i) => (
+                            <div key={i} className="ap-preview-gallery-dot">
+                              <img src={getImageUrl(src)} alt="" />
+                            </div>
+                          ))}
+                          {featuredPreviews.length > 4 && (
+                            <div className="ap-preview-gallery-dot ap-preview-gallery-more">
+                              +{featuredPreviews.length - 4}
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
+
+                      {/* Variant summary */}
+                      {form.hasVariants && form.variants.length > 0 && (
+                        <div className="ap-preview-variant-summary">
+                          <span className="ap-preview-variant-count">
+                            {form.variants.length} variant
+                            {form.variants.length > 1 ? "s" : ""} configured
+                          </span>
+                          <div className="ap-preview-variant-dots">
+                            {form.variants.slice(0, 5).map((_, i) => (
+                              <span
+                                key={i}
+                                className={`ap-preview-vdot ${
+                                  form.variants[i].combination.every(
+                                    (c) => c.variant_option_id,
+                                  )
+                                    ? "is-complete"
+                                    : "is-incomplete"
+                                }`}
+                              />
+                            ))}
+                            {form.variants.length > 5 && (
+                              <span className="ap-preview-vdot-more">
+                                +{form.variants.length - 5}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Financial & Margin Overview */}
+                  {/* Margin Overview */}
                   {(form.costPrice || form.sellingPrice || form.price) && (
                     <div className="ap-metrics-card">
-                      <h4 className="ap-metrics-title">Margin Overview</h4>
+                      <h4 className="ap-metrics-title">Price Breakdown</h4>
+
                       <div className="ap-metric-row">
-                        <span className="ap-metric-label">
-                          Estimated Markup
-                        </span>
+                        <span className="ap-metric-label">Cost price</span>
                         <span className="ap-metric-val ap-font-mono">
-                          {marginVal ? `${marginVal}%` : "—"}
+                          {form.costPrice
+                            ? `${form.currency} ${Number(form.costPrice).toLocaleString("en-IN")}`
+                            : "—"}
                         </span>
                       </div>
                       <div className="ap-metric-row">
-                        <span className="ap-metric-label">Gross Margin</span>
+                        <span className="ap-metric-label">Selling price</span>
                         <span className="ap-metric-val ap-font-mono">
+                          {form.sellingPrice
+                            ? `${form.currency} ${Number(form.sellingPrice).toLocaleString("en-IN")}`
+                            : "—"}
+                        </span>
+                      </div>
+                      <div className="ap-metric-row">
+                        <span className="ap-metric-label">MRP</span>
+                        <span className="ap-metric-val ap-font-mono">
+                          {form.price
+                            ? `${form.currency} ${Number(form.price).toLocaleString("en-IN")}`
+                            : "—"}
+                        </span>
+                      </div>
+
+                      <div className="ap-metric-divider" />
+
+                      <div className="ap-metric-row">
+                        <span className="ap-metric-label">Gross margin</span>
+                        <span
+                          className={`ap-metric-val ap-font-mono ${
+                            marginVal && Number(marginVal) > 0
+                              ? "ap-metric-positive"
+                              : "ap-metric-negative"
+                          }`}
+                        >
                           {form.sellingPrice && form.costPrice
                             ? `${form.currency} ${(
                                 Number(form.sellingPrice) -
                                 Number(form.costPrice)
-                              ).toFixed(2)}`
+                              ).toLocaleString("en-IN")}`
                             : "—"}
                         </span>
                       </div>
+                      <div className="ap-metric-row">
+                        <span className="ap-metric-label">Margin %</span>
+                        <span
+                          className={`ap-metric-val ap-font-mono ${
+                            marginVal && Number(marginVal) > 0
+                              ? "ap-metric-positive"
+                              : "ap-metric-negative"
+                          }`}
+                        >
+                          {marginVal ? `${marginVal}%` : "—"}
+                        </span>
+                      </div>
+
                       <div className="ap-metric-progress">
                         <div
                           className="ap-metric-bar"
                           style={{
-                            width: `${Math.min(Math.max(Number(marginVal || 0), 0), 100)}%`,
+                            width: `${Math.min(
+                              Math.max(Number(marginVal || 0), 0),
+                              100,
+                            )}%`,
                           }}
                         />
                       </div>
+                      <p className="ap-metric-hint">
+                        {Number(marginVal) > 30
+                          ? "✓ Healthy margin"
+                          : Number(marginVal) > 10
+                            ? "⚠ Low margin"
+                            : "✗ Review pricing"}
+                      </p>
                     </div>
                   )}
+
+                  {/* Readiness checklist */}
+                  <div className="ap-checklist-card">
+                    <h4 className="ap-checklist-title">Readiness</h4>
+                    <ul className="ap-checklist">
+                      {[
+                        { label: "Product name", done: !!form.name.trim() },
+                        {
+                          label: "Category selected",
+                          done: !!form.category_id,
+                        },
+                        { label: "SKU set", done: !!form.sku.trim() },
+                        {
+                          label: "Main image uploaded",
+                          done: !!form.mainImage,
+                        },
+                        {
+                          label: "Pricing complete",
+                          done:
+                            !!form.costPrice &&
+                            !!form.sellingPrice &&
+                            !!form.price,
+                        },
+                        {
+                          label: form.hasVariants
+                            ? "Variants configured"
+                            : "Stock entered",
+                          done: form.hasVariants
+                            ? form.variants.length > 0 &&
+                              form.variants.every((r) =>
+                                r.combination.every((c) => c.variant_option_id),
+                              )
+                            : !!form.stock,
+                        },
+                      ].map(({ label, done }) => (
+                        <li key={label} className={done ? "done" : ""}>
+                          {done ? (
+                            <CheckCircle2 size={15} color="#16a34a" />
+                          ) : (
+                            <AlertCircle size={15} color="#cbd5e1" />
+                          )}
+                          {label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>

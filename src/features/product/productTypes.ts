@@ -122,62 +122,43 @@ export interface ProductVariantCombinationDetails {
 export interface ProductVariant {
   _id: string;
   product_id: string;
-
   combination: ProductVariantCombinationDetails[];
-
   sku: string;
-
   costPrice: number;
   sellingPrice: number;
   price: number;
-
   stock: number;
   stockStatus: StockStatus;
-
   images: string[];
 
   status: "active" | "inactive";
-
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ProductDetails {
   _id: string;
-
   category_id: ProductCategoryDetails;
-
   name: string;
   description: string;
   short_description: string;
-
   mainImage: string;
   featuredImages: string[];
-
   sku: string;
   currency: string;
-
   costPrice: number;
   sellingPrice: number;
   price: number;
-
   stock: number;
   stockStatus: StockStatus;
-
   status: ProductStatus;
-
   user_id: string;
   role: "SuperAdmin" | "User" | "Vendor";
-
   hasVariants: boolean;
-
   variantTypes: ProductVariantType[];
-
   createdAt: string;
   updatedAt: string;
-
   slug: string;
-
   variants: ProductVariant[];
 }
 
@@ -188,24 +169,20 @@ export interface UpdateProductPayload {
   name?: string;
   description?: string;
   short_description?: string;
-
   category_id?: string;
-
   sku?: string;
   currency?: string;
-
   costPrice?: number;
   sellingPrice?: number;
   price?: number;
-
   stock?: number;
-
   mainImage?: File | string;
   featuredImages?: File[];
-
   hasVariants?: boolean;
-
   variantTypes?: string[];
-
   variants?: CreateProductVariant[];
+}
+
+export interface UpdateProductStatusPayload {
+  status: ProductStatus;
 }
