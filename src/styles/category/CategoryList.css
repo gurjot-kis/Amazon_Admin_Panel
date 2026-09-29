@@ -104,6 +104,10 @@
   color: #c94b4b;
 }
 
+.cl-icon-btn--info:hover {
+  border-color: #2563EB;
+  color: #2563EB;
+}
 @media (max-width: 767px) {
   .cl-thumb {
     width: 30px;

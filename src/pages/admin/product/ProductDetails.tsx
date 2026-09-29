@@ -1,368 +1,725 @@
-// import { useState } from "react";
-// import { useNavigate, useParams, Link } from "react-router-dom";
-// import { useGetProductByIdQuery } from "../../../features/product/productApi";
-// import "../../../styles/product/ProductDetails.css";
-// import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
+import React, { useState, useMemo } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type { SerializedError } from "@reduxjs/toolkit";
+import {
+  useGetProductByIdQuery,
+  useUpdateProductStatusMutation,
+} from "../../../features/product/productApi";
+import "../../../styles/product/ProductDetails.css";
+import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
 
-// // ── Icons ────────────────────────────────────────────────────────────────────
-// const Icon = {
-//   Back: () => (
-//     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-//       <path
-//         d="M19 12H5M12 19l-7-7 7-7"
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//       />
-//     </svg>
-//   ),
-//   Edit: () => (
-//     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-//       <path
-//         d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//       />
-//       <path
-//         d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//       />
-//     </svg>
-//   ),
-//   Clock: () => (
-//     <svg
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="1.8"
-//     >
-//       <circle cx="12" cy="12" r="10" />
-//       <polyline
-//         points="12 6 12 12 16 14"
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//       />
-//     </svg>
-//   ),
-//   Star: () => (
-//     <svg viewBox="0 0 24 24" fill="currentColor">
-//       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-//     </svg>
-//   ),
-//   Check: () => (
-//     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-//       <polyline
-//         points="20 6 9 17 4 12"
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//       />
-//     </svg>
-//   ),
-//   Tag: () => (
-//     <svg
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="1.8"
-//     >
-//       <path
-//         d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
-//         strokeLinejoin="round"
-//       />
-//       <line x1="7" y1="7" x2="7.01" y2="7" strokeLinecap="round" />
-//     </svg>
-//   ),
-//   Layers: () => (
-//     <svg
-//       viewBox="0 0 24 24"
-//       fill="none"
-//       stroke="currentColor"
-//       strokeWidth="1.8"
-//     >
-//       <polygon points="12 2 2 7 12 12 22 7 12 2" />
-//       <polyline points="2 17 12 22 22 17" />
-//       <polyline points="2 12 12 17 22 12" />
-//     </svg>
-//   ),
-//   Spinner: () => (
-//     <svg viewBox="0 0 24 24" fill="none" className="pdp-spin">
-//       <circle
-//         cx="12"
-//         cy="12"
-//         r="9"
-//         stroke="currentColor"
-//         strokeWidth="2.5"
-//         strokeLinecap="round"
-//         strokeDasharray="42 100"
-//       />
-//     </svg>
-//   ),
-// };
+const ASSET_BASE_URL = (import.meta.env.VITE_API_ASSET_URL || "").replace(
+  /\/$/,
+  "",
+);
 
-// export default function ProductDetails() {
-//   const { productId } = useParams<{ productId: string }>();
-//   const navigate = useNavigate();
-//   const API_ASSET_URL = import.meta.env.VITE_API_ASSET_URL || "";
+export const resolveImageUrl = (path?: string | null): string => {
+  if (!path) return "https://placehold.co/600x450?text=No+Image";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${ASSET_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+};
 
-//   const {
-//     data: productResponse,
-//     isLoading,
-//     isError,
-//   } = useGetProductByIdQuery(productId as string, { skip: !productId });
+const getErrorMessage = (
+  err: FetchBaseQueryError | SerializedError | undefined,
+): string => {
+  if (!err) return "An unexpected error occurred.";
+  if ("data" in err && typeof err.data === "object" && err.data !== null) {
+    return (
+      (err.data as { message?: string }).message ||
+      "Failed to load product details."
+    );
+  }
+  if ("message" in err && typeof err.message === "string") {
+    return err.message;
+  }
+  return "The requested product could not be found or an error occurred.";
+};
 
-//   const product = productResponse?.data;
-
-//   const getAssetUrl = (path?: string | null) => {
-//     if (!path) return "";
-//     if (path.startsWith("http://") || path.startsWith("https://")) return path;
-//     return `${API_ASSET_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-//   };
-
-//   // Gallery state
-//   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-//   const [selectedVariantKey, setSelectedVariantKey] = useState<string | null>(
-//     null,
-//   );
-
-//   if (isLoading) {
-//     return (
-//       <FullScreenLoader
-//         title="Loading Product Details"
-//         subtitle="Getting things ready for you!"
-//       />
-//     );
-//   }
-
-//   if (isError || !product) {
-//     return (
-//       <div className="pdp-loader-screen">
-//         <h3>Product Not Found</h3>
-//         <p>The requested catalog item could not be retrieved.</p>
-//         <button
-//           onClick={() => navigate(-1)}
-//           className="pdp-btn pdp-btn--secondary"
-//         >
-//           <Icon.Back /> Return to Catalog
-//         </button>
-//       </div>
-//     );
-//   }
-
-//   // Aggregate all gallery images
-//   const allImages = [
-//     getAssetUrl(product.mainImage),
-//     ...(product.images || []).map((img: string) => getAssetUrl(img)),
-//   ].filter(Boolean);
-
-//   const activeImage = selectedImage || allImages[0] || "";
-//   const selectedVariant =
-//     product.variants?.find(
-//       (v: { key: string }) => v.key === selectedVariantKey,
-//     ) || product.variants?.[0];
-
-//   const activePrice = selectedVariant
-//     ? selectedVariant.price
-//     : product.basePrice;
-
-//   return (
-//     <div className="pdp-wrapper">
-//       {/* ── Top Bar / Breadcrumb ────────────────────────────────────── */}
-//       <header className="pdp-navbar">
-//         <div className="pdp-nav-left">
-//           <button
-//             onClick={() => navigate(-1)}
-//             className="pdp-back-btn"
-//             aria-label="Go back"
-//           >
-//             <Icon.Back />
-//           </button>
-//           <nav className="pdp-breadcrumbs">
-//             <span>Catalog</span>
-//             <span className="pdp-sep">/</span>
-//             <span>{product.category_name || "Category"}</span>
-//             {product.sub_category_name && (
-//               <>
-//                 <span className="pdp-sep">/</span>
-//                 <span>{product.sub_category_name}</span>
-//               </>
-//             )}
-//           </nav>
-//         </div>
-//         <div className="pdp-nav-right">
-//           <span
-//             className={`pdp-status-badge pdp-status-badge--${product.status}`}
-//           >
-//             {product.status}
-//           </span>
-//           <Link
-//             to={`/admin/products/${product._id}/edit`}
-//             className="pdp-btn pdp-btn--primary"
-//           >
-//             <Icon.Edit /> Edit Product
-//           </Link>
-//         </div>
-//       </header>
-
-//       {/* ── Main Layout ────────────────────────────────────────────── */}
-//       <div className="pdp-grid">
-//         {/* ── Left Column: Media Gallery ── */}
-//         <section className="pdp-gallery-card">
-//           <div className="pdp-main-stage">
-//             <img
-//               src={activeImage}
-//               alt={product.name}
-//               className="pdp-main-img"
-//             />
-//           </div>
-//           {allImages.length > 1 && (
-//             <div className="pdp-thumbnail-strip">
-//               {allImages.map((img, idx) => (
-//                 <button
-//                   key={idx}
-//                   onClick={() => setSelectedImage(img)}
-//                   className={`pdp-thumb-btn ${activeImage === img ? "pdp-thumb-btn--active" : ""}`}
-//                 >
-//                   <img src={img} alt={`View ${idx + 1}`} />
-//                 </button>
-//               ))}
-//             </div>
-//           )}
-//         </section>
-
-//         {/* ── Right Column: Product Info & Actions ── */}
-//         <section className="pdp-info-card">
-//           <div className="pdp-meta-row">
-//             <span className="pdp-sku">SLUG: {product.slug}</span>
-//             {product.rating && (
-//               <div className="pdp-rating-pill">
-//                 <Icon.Star />
-//                 <span className="pdp-rating-score">
-//                   {product.rating.average}
-//                 </span>
-//                 <span className="pdp-rating-count">
-//                   ({product.rating.count})
-//                 </span>
-//               </div>
-//             )}
-//           </div>
-
-//           <h1 className="pdp-title">{product.name}</h1>
-//           <p className="pdp-short-desc">{product.shortDescription}</p>
-
-//           <div className="pdp-price-box">
-//             <div className="pdp-price-main">
-//               <span className="pdp-currency">₹</span>
-//               <span className="pdp-amount">
-//                 {activePrice?.toLocaleString()}
-//               </span>
-//             </div>
-//             {selectedVariant && selectedVariant.costPrice && (
-//               <span className="pdp-cost-price">
-//                 Cost: ₹{selectedVariant.costPrice}
-//               </span>
-//             )}
-//           </div>
-
-//           {/* Variants Selector */}
-//           {product.variants && product.variants.length > 0 && (
-//             <div className="pdp-variants-container">
-//               <label className="pdp-section-label">
-//                 {product.variantLabel || "Select Option"}
-//               </label>
-//               <div className="pdp-variant-chips">
-//                 {product.variants.map((variant) => {
-//                   const isSelected =
-//                     (selectedVariantKey || product.variants[0].key) ===
-//                     variant.key;
-//                   return (
-//                     <button
-//                       key={variant.key}
-//                       onClick={() => {
-//                         setSelectedVariantKey(variant.key);
-//                         if (variant.image)
-//                           setSelectedImage(getAssetUrl(variant.image));
-//                       }}
-//                       className={`pdp-variant-chip ${isSelected ? "pdp-variant-chip--active" : ""}`}
-//                     >
-//                       {variant.image && (
-//                         <img
-//                           src={getAssetUrl(variant.image)}
-//                           alt={variant.label}
-//                           className="pdp-chip-thumb"
-//                         />
-//                       )}
-//                       <span className="pdp-chip-label">{variant.label}</span>
-//                       <span className="pdp-chip-price">₹{variant.price}</span>
-//                     </button>
-//                   );
-//                 })}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Quick Specs Highlight */}
-//           <div className="pdp-specs-strip">
-//             <div className="pdp-spec-node">
-//               <Icon.Clock />
-//               <div>
-//                 <small>Duration</small>
-//                 <strong>
-//                   {product.durationMinutes
-//                     ? `${product.durationMinutes} mins`
-//                     : "Instant"}
-//                 </strong>
-//               </div>
-//             </div>
-//             <div className="pdp-spec-node">
-//               <Icon.Layers />
-//               <div>
-//                 <small>Max Quantity</small>
-//                 <strong>{product.maxQuantity || "Unlimited"}</strong>
-//               </div>
-//             </div>
-//             <div className="pdp-spec-node">
-//               <Icon.Tag />
-//               <div>
-//                 <small>Base Price</small>
-//                 <strong>₹{product.basePrice}</strong>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* What's Included */}
-//           {product.includes && product.includes.length > 0 && (
-//             <div className="pdp-includes-section">
-//               <label className="pdp-section-label">Package Inclusions</label>
-//               <div className="pdp-includes-grid">
-//                 {product.includes.map((inc: string, i: number) => (
-//                   <div key={i} className="pdp-include-pill">
-//                     <Icon.Check />
-//                     <span>{inc}</span>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Description Body */}
-//           <div className="pdp-description-section">
-//             <label className="pdp-section-label">Detailed Information</label>
-//             <div className="pdp-description-body">
-//               <p>{product.description}</p>
-//             </div>
-//           </div>
-//         </section>
-//       </div>
-//     </div>
-//   );
-// }
-
-import React from 'react'
-
-const ProductDetails = () => {
-  return (
-    <div>ProductDetails</div>
-  )
+interface GalleryAsset {
+  url: string;
+  source: "main" | "featured" | "variant";
+  label?: string;
+  variantId?: string;
 }
 
-export default ProductDetails
+const ProductDetails: React.FC = () => {
+  const { productId } = useParams<{ productId: string }>();
+  const navigate = useNavigate();
+
+  const {
+    data: response,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetProductByIdQuery(productId || "");
+  const [updateStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateProductStatusMutation();
+
+  const product = response?.data;
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | "all">(
+    "all",
+  );
+
+  // 1. Collect all variant images across all variants
+  const variantMediaAssets = useMemo<GalleryAsset[]>(() => {
+    if (!product || !product.hasVariants || !Array.isArray(product.variants)) {
+      return [];
+    }
+
+    const assets: GalleryAsset[] = [];
+    const seen = new Set<string>();
+
+    product.variants.forEach((v) => {
+      const comboLabel = v.combination
+        ?.map((c) => c.variant_option_id?.value)
+        .filter(Boolean)
+        .join(" / ");
+
+      if (Array.isArray(v.images) && v.images.length > 0) {
+        v.images.forEach((vImg, idx) => {
+          if (vImg && !seen.has(vImg)) {
+            seen.add(vImg);
+            assets.push({
+              url: vImg,
+              source: "variant",
+              label: comboLabel
+                ? `${comboLabel} #${idx + 1}`
+                : `Variant #${idx + 1}`,
+              variantId: v._id,
+            });
+          }
+        });
+      }
+    });
+
+    return assets;
+  }, [product]);
+
+  // 2. Base images (mainImage + featuredImages), used only when no variant images exist
+  const baseMediaAssets = useMemo<GalleryAsset[]>(() => {
+    if (!product) return [];
+    const assets: GalleryAsset[] = [];
+    const seen = new Set<string>();
+
+    if (product.mainImage) {
+      seen.add(product.mainImage);
+      assets.push({
+        url: product.mainImage,
+        source: "main",
+        label: "Main Image",
+      });
+    }
+
+    if (Array.isArray(product.featuredImages)) {
+      product.featuredImages.forEach((img, idx) => {
+        if (img && !seen.has(img)) {
+          seen.add(img);
+          assets.push({
+            url: img,
+            source: "featured",
+            label: `Featured #${idx + 1}`,
+          });
+        }
+      });
+    }
+
+    return assets;
+  }, [product]);
+
+  // 3. Conditional Rule:
+  // If variant images exist -> show variant images ONLY (main image is excluded)
+  // If no variant images exist -> fallback to baseMediaAssets (mainImage + featuredImages)
+  const allMediaAssets = useMemo<GalleryAsset[]>(() => {
+    if (variantMediaAssets.length > 0) {
+      return variantMediaAssets;
+    }
+    return baseMediaAssets;
+  }, [variantMediaAssets, baseMediaAssets]);
+
+  // 4. Handle variant filtering when a variant row is clicked
+  const displayedGallery = useMemo(() => {
+    if (selectedVariantId === "all") return allMediaAssets;
+    const filtered = allMediaAssets.filter(
+      (asset) => asset.variantId === selectedVariantId,
+    );
+    return filtered.length > 0 ? filtered : allMediaAssets;
+  }, [allMediaAssets, selectedVariantId]);
+
+  // 5. Active Previewed Image:
+  // Defaults to the first image of the resolved set (which will be the 1st variant image if variant images exist)
+  const currentImage = useMemo(() => {
+    if (
+      activeImage &&
+      displayedGallery.some((item) => item.url === activeImage)
+    ) {
+      return activeImage;
+    }
+    return displayedGallery[0]?.url || "";
+  }, [activeImage, displayedGallery]);
+
+  // Aggregate stock across variants if present
+  const totalStock = useMemo(() => {
+    if (!product) return 0;
+    if (product.hasVariants && product.variants?.length) {
+      return product.variants.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+    }
+    return product.stock || 0;
+  }, [product]);
+
+  const formatCurrency = (val: number = 0, currency: string = "INR") => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency || "INR",
+      maximumFractionDigits: 2,
+    }).format(val);
+  };
+
+  const calculateMargin = (cost: number = 0, selling: number = 0) => {
+    if (!cost || !selling || selling <= 0) return 0;
+    return (((selling - cost) / selling) * 100).toFixed(1);
+  };
+
+  const calculateDiscount = (mrp: number = 0, selling: number = 0) => {
+    if (!mrp || mrp <= selling) return 0;
+    return Math.round(((mrp - selling) / mrp) * 100);
+  };
+
+  const handleStatusToggle = async () => {
+    if (!product) return;
+    const nextStatus = product.status === "active" ? "inactive" : "active";
+    try {
+      await updateStatus({
+        productId: product._id,
+        status: nextStatus,
+      }).unwrap();
+    } catch (err) {
+      console.error("Failed to change product status:", err);
+    }
+  };
+
+  const handleVariantSelect = (variantId: string) => {
+    const isClearing = selectedVariantId === variantId;
+    setSelectedVariantId(isClearing ? "all" : variantId);
+
+    if (!isClearing) {
+      const firstTargetImg = allMediaAssets.find(
+        (asset) => asset.variantId === variantId,
+      );
+      if (firstTargetImg) {
+        setActiveImage(firstTargetImg.url);
+      }
+    }
+  };
+
+  const handleImageError = (
+    e: React.SyntheticEvent<HTMLImageElement, Event>,
+  ) => {
+    e.currentTarget.src =
+      "https://placehold.co/600x450?text=Preview+Unavailable";
+  };
+
+  if (isLoading) {
+    return (
+      <FullScreenLoader
+        title="Loading Product Details"
+        subtitle="Getting things ready for you!"
+      />
+    );
+  }
+
+  if (isError || !product) {
+    return (
+      <div className="pro-detail-center-screen">
+        <div className="pro-detail-alert-box">
+          <div className="pro-detail-alert-icon">✦</div>
+          <h2 className="pro-detail-alert-title">Unable to Retrieve Record</h2>
+          <p className="pro-detail-alert-desc">{getErrorMessage(error)}</p>
+          <div className="pro-detail-alert-btns">
+            <button
+              className="pro-detail-btn pro-detail-btn-ghost"
+              onClick={() => navigate(-1)}
+            >
+              Return to Catalog
+            </button>
+            <button
+              className="pro-detail-btn pro-detail-btn-solid"
+              onClick={() => refetch()}
+            >
+              Retry Request
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pro-detail-canvas">
+      {/* Top Banner Navigation */}
+      <header className="pro-detail-top-nav">
+        <div className="pro-detail-nav-left">
+          <div className="pro-detail-breadcrumbs">
+            <Link to="/admin" className="pro-detail-breadcrumb-item">
+              Dashboard
+            </Link>
+            <span className="pro-detail-breadcrumb-sep">/</span>
+            <Link to="/admin/products" className="pro-detail-breadcrumb-item">
+              Products
+            </Link>
+            <span className="pro-detail-breadcrumb-sep">/</span>
+            <span className="pro-detail-breadcrumb-active">{product.name}</span>
+          </div>
+
+          <div className="pro-detail-title-cluster">
+            <h1 className="pro-detail-product-name">{product.name}</h1>
+            <span
+              className={`pro-detail-status-pill pro-detail-pill-${product.status}`}
+            >
+              <span className="pro-detail-status-dot"></span>
+              {product.status}
+            </span>
+            <span
+              className={`pro-detail-stock-chip pro-detail-stock-${product.stockStatus}`}
+            >
+              {product.stockStatus.replace("_", " ")}
+            </span>
+          </div>
+
+          <div className="pro-detail-quick-meta">
+            <span className="pro-detail-meta-tag">
+              SKU: <strong>{product.sku || "N/A"}</strong>
+            </span>
+            <span className="pro-detail-meta-tag">
+              Slug: <code>{product.slug}</code>
+            </span>
+            <span className="pro-detail-meta-tag">
+              ID: <code>{product._id}</code>
+            </span>
+          </div>
+        </div>
+
+        <div className="pro-detail-nav-right">
+          <button
+            type="button"
+            className={`pro-detail-btn ${
+              product.status === "active"
+                ? "pro-detail-btn-outline-danger"
+                : "pro-detail-btn-outline-success"
+            }`}
+            onClick={handleStatusToggle}
+            disabled={isUpdatingStatus}
+          >
+            {isUpdatingStatus
+              ? "Updating..."
+              : product.status === "active"
+                ? "Deactivate Product"
+                : "Publish Product"}
+          </button>
+          <Link
+            to={`/admin/products/${product._id}/edit`}
+            className="pro-detail-btn pro-detail-btn-solid"
+          >
+            Edit Record
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Responsive Grid */}
+      <main className="pro-detail-layout-grid">
+        {/* Left Column: Visuals, Copy, and Variant Matrix */}
+        <section className="pro-detail-primary-pane">
+          {/* Media Showcase Card */}
+          <div className="pro-detail-card pro-detail-media-showcase">
+            <div className="pro-detail-stage-img-wrap">
+              <img
+                src={resolveImageUrl(currentImage)}
+                alt={product.name}
+                className="pro-detail-stage-img"
+                onError={handleImageError}
+              />
+              <div className="pro-detail-stage-overlay">
+                <span className="pro-detail-asset-count">
+                  {displayedGallery.length}{" "}
+                  {displayedGallery.length === 1 ? "Asset" : "Assets"}
+                </span>
+              </div>
+            </div>
+
+            {/* Gallery Thumbnail Strip */}
+            {displayedGallery.length > 1 && (
+              <div className="pro-detail-reel">
+                {displayedGallery.map((item, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    title={item.label}
+                    className={`pro-detail-reel-item ${
+                      currentImage === item.url ? "is-selected" : ""
+                    }`}
+                    onClick={() => setActiveImage(item.url)}
+                  >
+                    <img
+                      src={resolveImageUrl(item.url)}
+                      alt={item.label || `Asset ${index + 1}`}
+                      onError={handleImageError}
+                    />
+                    {item.source === "variant" && (
+                      <span className="pro-detail-thumb-indicator">
+                        Variant
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Description & Narrative Card */}
+          <div className="pro-detail-card">
+            <div className="pro-detail-section-header">
+              <h2 className="pro-detail-section-heading">
+                Catalog Description
+              </h2>
+              <span className="pro-detail-field-badge">Public Facing</span>
+            </div>
+
+            {product.short_description && (
+              <div className="pro-detail-highlight-desc">
+                {product.short_description}
+              </div>
+            )}
+
+            <div className="pro-detail-prose-body">
+              {product.description ? (
+                <p>{product.description}</p>
+              ) : (
+                <span className="pro-detail-empty-text">
+                  No long description provided for this listing.
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Variants Matrix Card */}
+          {product.hasVariants && (
+            <div className="pro-detail-card">
+              <div className="pro-detail-section-header">
+                <div>
+                  <h2 className="pro-detail-section-heading">Variant Matrix</h2>
+                  <p className="pro-detail-section-sub">
+                    Configured dimensions:{" "}
+                    {product.variantTypes?.map((vt) => vt.name).join(" × ")}
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "center",
+                  }}
+                >
+                  {selectedVariantId !== "all" && (
+                    <button
+                      type="button"
+                      className="pro-detail-btn-reset-filter"
+                      onClick={() => setSelectedVariantId("all")}
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                  <span className="pro-detail-counter-pill">
+                    {product.variants?.length || 0} Combinations
+                  </span>
+                </div>
+              </div>
+
+              <div className="pro-detail-table-scroller">
+                <table className="pro-detail-matrix-table">
+                  <thead>
+                    <tr>
+                      <th>Preview</th>
+                      <th>Attributes</th>
+                      <th>SKU</th>
+                      <th>Cost</th>
+                      <th>Selling Price</th>
+                      <th>List Price</th>
+                      <th>Gross Margin</th>
+                      <th>Inventory</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {product.variants?.map((v) => {
+                      const combinationTitle = v.combination
+                        .map(
+                          (c) =>
+                            `${c.variant_type_id?.name}: ${c.variant_option_id?.value}`,
+                        )
+                        .join(" | ");
+                      const margin = calculateMargin(
+                        v.costPrice,
+                        v.sellingPrice,
+                      );
+                      const isSelected = selectedVariantId === v._id;
+
+                      return (
+                        <tr
+                          key={v._id}
+                          className={isSelected ? "is-row-highlight" : ""}
+                          onClick={() => handleVariantSelect(v._id)}
+                        >
+                          <td style={{ width: "70px" }}>
+                            {v.images && v.images.length > 0 ? (
+                              <div className="pro-detail-table-thumb-wrap">
+                                <img
+                                  src={resolveImageUrl(v.images[0])}
+                                  alt="Variant"
+                                  className="pro-detail-table-thumb"
+                                  onError={handleImageError}
+                                />
+                                {v.images.length > 1 && (
+                                  <span className="pro-detail-table-thumb-count">
+                                    +{v.images.length - 1}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div
+                                className="pro-detail-table-thumb-wrap pro-detail-placeholder-box"
+                                title="No Image Available"
+                              >
+                                <svg
+                                  className="pro-detail-gallery-svg"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <rect
+                                    x="3"
+                                    y="3"
+                                    width="18"
+                                    height="18"
+                                    rx="3"
+                                    ry="3"
+                                  />
+                                  <circle cx="8.5" cy="8.5" r="1.5" />
+                                  <polyline points="21 15 16 10 5 21" />
+                                </svg>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="pro-detail-combo-name">
+                              {combinationTitle || "Default"}
+                            </span>
+                            <span className="pro-detail-combo-sub">
+                              {v.stockStatus.replace("_", " ")}
+                            </span>
+                          </td>
+                          <td>
+                            <code className="pro-detail-code-badge">
+                              {v.sku}
+                            </code>
+                          </td>
+                          <td>
+                            {formatCurrency(v.costPrice, product.currency)}
+                          </td>
+                          <td>
+                            <strong className="pro-detail-price-main">
+                              {formatCurrency(v.sellingPrice, product.currency)}
+                            </strong>
+                          </td>
+                          <td>
+                            <span className="pro-detail-strike-price">
+                              {formatCurrency(v.price, product.currency)}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="pro-detail-margin-chip">
+                              {margin}%
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={`pro-detail-qty-indicator ${
+                                v.stock > 10
+                                  ? "in-stock"
+                                  : v.stock > 0
+                                    ? "low-stock"
+                                    : "out-of-stock"
+                              }`}
+                            >
+                              {v.stock} units
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={`pro-detail-status-pill pro-detail-pill-${v.status}`}
+                            >
+                              <span className="pro-detail-status-dot"></span>
+                              {v.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Right Sidebar: Commercials, Categorization & System Traces */}
+        <aside className="pro-detail-secondary-pane">
+          {/* Revenue & Profitability Breakdown */}
+          <div className="pro-detail-card pro-detail-finance-panel">
+            <h2 className="pro-detail-section-heading">Financials & Pricing</h2>
+
+            <div className="pro-detail-price-lead-box">
+              <span className="pro-detail-metric-caption">
+                Baseline Selling Price
+              </span>
+              <div className="pro-detail-lead-pricing">
+                <span className="pro-detail-figure-main">
+                  {formatCurrency(product.sellingPrice, product.currency)}
+                </span>
+                {product.price > product.sellingPrice && (
+                  <span className="pro-detail-figure-discount">
+                    -{calculateDiscount(product.price, product.sellingPrice)}%
+                  </span>
+                )}
+              </div>
+              <span className="pro-detail-figure-mrp">
+                MRP: {formatCurrency(product.price, product.currency)}
+              </span>
+            </div>
+
+            <div className="pro-detail-kpi-grid">
+              <div className="pro-detail-kpi-box">
+                <span className="pro-detail-kpi-label">Cost Price</span>
+                <span className="pro-detail-kpi-val">
+                  {formatCurrency(product.costPrice, product.currency)}
+                </span>
+              </div>
+              <div className="pro-detail-kpi-box">
+                <span className="pro-detail-kpi-label">Gross Margin</span>
+                <span className="pro-detail-kpi-val text-green">
+                  {calculateMargin(product.costPrice, product.sellingPrice)}%
+                </span>
+              </div>
+            </div>
+
+            <div className="pro-detail-summary-line">
+              <span>Currency Used</span>
+              <strong>{product.currency}</strong>
+            </div>
+          </div>
+
+          {/* Logistics & Taxonomy Card */}
+          <div className="pro-detail-card">
+            <h2 className="pro-detail-section-heading">
+              Categorization & Stock
+            </h2>
+
+            {product.category_id && (
+              <div className="pro-detail-category-card">
+                {product.category_id.category_image && (
+                  <img
+                    src={resolveImageUrl(product.category_id.category_image)}
+                    alt={product.category_id.name}
+                    className="pro-detail-category-thumb"
+                    onError={handleImageError}
+                  />
+                )}
+                <div>
+                  <span className="pro-detail-metric-caption">
+                    Primary Category
+                  </span>
+                  <div className="pro-detail-cat-name">
+                    {product.category_id.name}
+                  </div>
+                  <code className="pro-detail-sub-id">
+                    {product.category_id._id}
+                  </code>
+                </div>
+              </div>
+            )}
+
+            <div className="pro-detail-inventory-metrics">
+              <div className="pro-detail-metric-row">
+                <span className="pro-detail-metric-label">
+                  Aggregated Stock
+                </span>
+                <span className="pro-detail-metric-value">
+                  {totalStock} units
+                </span>
+              </div>
+              <div className="pro-detail-metric-row">
+                <span className="pro-detail-metric-label">
+                  Inventory Condition
+                </span>
+                <span className="pro-detail-metric-value capitalize">
+                  {product.stockStatus.replace("_", " ")}
+                </span>
+              </div>
+              <div className="pro-detail-metric-row">
+                <span className="pro-detail-metric-label">
+                  Variant Supported
+                </span>
+                <span className="pro-detail-metric-value">
+                  {product.hasVariants ? "Yes (Multi-SKU)" : "Single SKU"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Audit Trail & Meta */}
+          <div className="pro-detail-card">
+            <h2 className="pro-detail-section-heading">System Audit Details</h2>
+            <div className="pro-detail-audit-list">
+              <div className="pro-detail-audit-row">
+                <span>Created By</span>
+                <strong>
+                  {product.role} ({product.user_id.slice(-6)})
+                </strong>
+              </div>
+              <div className="pro-detail-audit-row">
+                <span>Created At</span>
+                <strong>
+                  {new Date(product.createdAt).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </strong>
+              </div>
+              <div className="pro-detail-audit-row">
+                <span>Last Updated</span>
+                <strong>
+                  {new Date(product.updatedAt).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  );
+};
+
+export default ProductDetails;

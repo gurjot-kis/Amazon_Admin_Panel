@@ -7,6 +7,7 @@ import {
   MdKeyboardArrowDown,
   MdCheck,
   MdClose,
+  MdCategory,
 } from "react-icons/md";
 import {
   Layers,
@@ -209,7 +210,11 @@ const LeafCategoryDropdown = ({
         >
           {selectedCategory ? (
             <>
-              <span style={{ color: "#4f46e5" }}>📁</span>
+              <MdCategory
+                size={18}
+                color="#4f46e5"
+                style={{ marginRight: "6px" }}
+              />
               {selectedCategory.name}
             </>
           ) : value ? (
@@ -407,6 +412,7 @@ const ImageDropzone = ({
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) onFile(f);
+            e.target.value = "";
           }}
         />
       </div>
@@ -786,9 +792,9 @@ const AddProduct: React.FC = () => {
       price: Number(form.price),
       stock: form.stock ? Number(form.stock) : 0,
       mainImage: form.mainImage!,
-      featuredImages: form.hasVariants
-        ? []
-        : (form.featuredImages.filter((f) => f instanceof File) as File[]),
+      featuredImages: form.featuredImages.filter(
+        (f) => f instanceof File,
+      ) as File[],
       hasVariants: form.hasVariants,
       variantTypes: form.hasVariants ? form.variantTypes : [],
       variants: form.hasVariants
@@ -867,34 +873,6 @@ const AddProduct: React.FC = () => {
                 ? "Update product details and variations."
                 : "Fill in the details to list a new product."}
             </p>
-          </div>
-          <div className="ap-header-actions">
-            <button
-              type="button"
-              className="ap-btn ap-btn-secondary"
-              onClick={() => navigate("/admin/products")}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="ap-btn ap-btn-primary"
-              disabled={!isFormValid || isSubmitting}
-              onClick={handleSubmit}
-            >
-              {isSubmitting ? (
-                <span className="ap-spinner-inline" />
-              ) : (
-                <CheckCircle2 size={16} />
-              )}
-              {isSubmitting
-                ? isEditMode
-                  ? "Updating…"
-                  : "Creating…"
-                : isEditMode
-                  ? "Update Product"
-                  : "Create Product"}
-            </button>
           </div>
         </header>
 
@@ -1179,50 +1157,49 @@ const AddProduct: React.FC = () => {
                       onRemove={removeMainImage}
                     />
 
-                    {/* Gallery Images (when no variants) */}
-                    {!form.hasVariants && (
-                      <div className="ap-field" style={{ marginTop: 20 }}>
-                        <label className="ap-label">
-                          Gallery images{" "}
-                          <span className="ap-muted">(up to 6)</span>
-                        </label>
-                        <div className="ap-gallery-grid">
-                          {featuredPreviews.map((src, i) => (
-                            <div key={i} className="ap-gallery-thumb">
-                              <img src={getImageUrl(src)} alt="Gallery item" />
-                              <button
-                                type="button"
-                                className="ap-gallery-remove"
-                                onClick={() => removeFeatured(i)}
-                              >
-                                <X size={12} />
-                              </button>
-                            </div>
-                          ))}
-                          {featuredPreviews.length < 6 && (
+                    {/* Gallery Images (shared across product, with or without variants) */}
+                    <div className="ap-field" style={{ marginTop: 20 }}>
+                      <label className="ap-label">
+                        Gallery images{" "}
+                        <span className="ap-muted">(up to 6)</span>
+                      </label>
+                      <div className="ap-gallery-grid">
+                        {featuredPreviews.map((src, i) => (
+                          <div key={i} className="ap-gallery-thumb">
+                            <img src={getImageUrl(src)} alt="Gallery item" />
                             <button
                               type="button"
-                              className="ap-gallery-add-card"
-                              onClick={() => featuredRef.current?.click()}
+                              className="ap-gallery-remove"
+                              onClick={() => removeFeatured(i)}
                             >
-                              <Plus size={20} />
-                              <span>Add Photo</span>
+                              <X size={12} />
                             </button>
-                          )}
-                        </div>
-                        <input
-                          ref={featuredRef}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          hidden
-                          onChange={(e) => {
-                            if (e.target.files)
-                              handleFeaturedImages(e.target.files);
-                          }}
-                        />
+                          </div>
+                        ))}
+                        {featuredPreviews.length < 6 && (
+                          <button
+                            type="button"
+                            className="ap-gallery-add-card"
+                            onClick={() => featuredRef.current?.click()}
+                          >
+                            <Plus size={20} />
+                            <span>Add Photo</span>
+                          </button>
+                        )}
                       </div>
-                    )}
+                      <input
+                        ref={featuredRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        hidden
+                        onChange={(e) => {
+                          if (e.target.files)
+                            handleFeaturedImages(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    </div>
                   </div>
                 </section>
 
@@ -1332,17 +1309,17 @@ const AddProduct: React.FC = () => {
                                       );
                                     })}
                                   </div>
-
-                                  <button
-                                    type="button"
-                                    className="ap-variant-del-btn"
-                                    onClick={() => removeVariantRow(row.id)}
-                                    disabled={form.variants.length === 1}
-                                    title="Delete item"
-                                    style={{ marginLeft: "auto" }}
-                                  >
-                                    <MdDelete size={17} />
-                                  </button>
+                                  {form.variants.length > 1 && (
+                                    <button
+                                      type="button"
+                                      className="ap-variant-del-btn"
+                                      onClick={() => removeVariantRow(row.id)}
+                                      title="Delete item"
+                                      style={{ marginLeft: "auto" }}
+                                    >
+                                      <MdDelete size={17} />
+                                    </button>
+                                  )}
                                 </div>
 
                                 <div className="ap-variant-inputs-grid">
@@ -1430,8 +1407,8 @@ const AddProduct: React.FC = () => {
 
                                 <div className="ap-variant-media-row">
                                   <label className="ap-variant-media-label">
-                                    <ImageIcon size={13} /> Variant Media (up to
-                                    5 images)
+                                    <ImageIcon size={13} /> Variant Media
+                                    (optional, up to 5 images)
                                   </label>
                                   <div className="ap-gallery-grid ap-gallery-grid-compact">
                                     {row.imagePreviews.map((src, i) => (
@@ -1476,6 +1453,7 @@ const AddProduct: React.FC = () => {
                                           row.id,
                                           e.target.files,
                                         );
+                                      e.target.value = "";
                                     }}
                                   />
                                 </div>
@@ -1794,6 +1772,35 @@ const AddProduct: React.FC = () => {
               </div>
             </div>
           </fieldset>
+
+          <div className="ap-bottom-actions-dock">
+            <button
+              type="button"
+              className="ap-btn ap-btn-secondary"
+              onClick={() => navigate("/admin/products")}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="ap-btn ap-btn-primary"
+              disabled={!isFormValid || isSubmitting}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? (
+                <span className="ap-spinner-inline" />
+              ) : (
+                <CheckCircle2 size={16} />
+              )}
+              {isSubmitting
+                ? isEditMode
+                  ? "Updating…"
+                  : "Creating…"
+                : isEditMode
+                  ? "Update Product"
+                  : "Create Product"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

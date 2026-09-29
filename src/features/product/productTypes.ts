@@ -100,6 +100,7 @@ export interface CreateProductPayload {
 export interface ProductCategoryDetails {
   _id: string;
   name: string;
+  category_image: string;
 }
 
 export interface ProductVariantType {
@@ -163,7 +164,6 @@ export interface ProductDetails {
 }
 
 export type GetProductByIdResponse = ApiResponse<ProductDetails>;
-
 
 export interface UpdateProductPayload {
   name?: string;

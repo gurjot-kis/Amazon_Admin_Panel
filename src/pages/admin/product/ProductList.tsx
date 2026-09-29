@@ -19,6 +19,7 @@ import type {
 } from "../../../features/product/productTypes";
 import "../../../styles/product/ProductList.css";
 import { createPortal } from "react-dom";
+import { FiEye } from "react-icons/fi";
 
 const PAGE_LIMIT = 10;
 
@@ -398,6 +399,14 @@ const ProductList = () => {
       cellClassName: "text-end",
       render: (p) => (
         <div className="cl-actions">
+          <button
+            type="button"
+            className="cl-icon-btn cl-icon-btn--info"
+            title="Details"
+            onClick={()=> navigate(`/admin/products/${p._id}/details`)}
+          >
+            <FiEye color="#2563EB" />
+          </button>
           <button
             type="button"
             className="cl-icon-btn"
