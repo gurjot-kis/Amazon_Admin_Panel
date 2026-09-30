@@ -76,8 +76,7 @@ export const productApi = baseApi.injectEndpoints({
             formData.append("mainImage", data.mainImage);
           }
 
-          // Featured images (only when no variants)
-          if (!data.hasVariants && data.featuredImages?.length) {
+          if (data.featuredImages?.length) {
             data.featuredImages.forEach((file) => {
               formData.append("featuredImages", file);
             });
@@ -190,6 +189,11 @@ export const productApi = baseApi.injectEndpoints({
             formData.append("featuredImages", file);
           });
         }
+
+        formData.append(
+          "existingFeaturedImages",
+          JSON.stringify((data as any).existingFeaturedImages ?? []),
+        );
 
         if (data.hasVariants !== undefined) {
           formData.append("hasVariants", String(data.hasVariants));

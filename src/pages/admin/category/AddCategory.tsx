@@ -7,19 +7,16 @@ import {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
 } from "../../../features/category/categoryApi";
-import type { FlatCategoryOption } from "../../../features/category/categoryTypes";
+import type {
+  ExtendedFormState,
+  FlatCategoryOption,
+} from "../../../features/category/categoryTypes";
 import "../../../styles/category/AddCategory.css";
 import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
 
-export interface ExtendedFormState {
-  name: string;
-  parent_id: string;
-  description: string;
-  category_image: File | null;
-}
-
 const initialState: ExtendedFormState = {
   name: "",
+  category_type: "standard_commerce",
   parent_id: "",
   description: "",
   category_image: null,
@@ -219,6 +216,7 @@ const CategoryForm: React.FC = () => {
       name: item.name,
       level: item.level,
       depth: item.depth,
+      category_type: item.category_type,
     }));
   }, [selectListRes]);
 
@@ -229,6 +227,7 @@ const CategoryForm: React.FC = () => {
         setIsImageRemoved(false);
         setForm({
           name: responseData.name || "",
+          category_type: responseData.category_type || "standard_commerce",
           parent_id: responseData.parent_id || "",
           description: responseData.description || "",
           category_image: null,
@@ -300,7 +299,8 @@ const CategoryForm: React.FC = () => {
   const buildFormData = (): FormData => {
     const fd = new FormData();
     fd.append("name", form.name.trim());
-    if (form.parent_id) fd.append("parent_id", form.parent_id);
+    fd.append("category_type", form.category_type);
+    fd.append("parent_id", form.parent_id || "");
     fd.append("description", form.description.trim());
     if (form.category_image) {
       fd.append("category_image", form.category_image);
@@ -391,6 +391,61 @@ const CategoryForm: React.FC = () => {
                   </header>
 
                   <div className="cc-field">
+                    <label>Category Type</label>
+                    <div className="cc-type-compact-grid">
+                      <div
+                        className={`cc-type-compact-card ${
+                          form.category_type === "quick_commerce"
+                            ? "is-active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setForm((p) => ({
+                            ...p,
+                            category_type: "quick_commerce",
+                          }))
+                        }
+                      >
+                        <span className="cc-type-compact-icon">⚡</span>
+                        <div className="cc-type-compact-content">
+                          <p className="cc-type-compact-title">
+                            Quick Store / Instant
+                          </p>
+                          <p className="cc-type-compact-subtitle">
+                            Groceries, snacks, quick daily items
+                          </p>
+                        </div>
+                        <span className="cc-type-compact-check">✓</span>
+                      </div>
+
+                      <div
+                        className={`cc-type-compact-card ${
+                          form.category_type === "standard_commerce"
+                            ? "is-active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          setForm((p) => ({
+                            ...p,
+                            category_type: "standard_commerce",
+                          }))
+                        }
+                      >
+                        <span className="cc-type-compact-icon">📦</span>
+                        <div className="cc-type-compact-content">
+                          <p className="cc-type-compact-title">
+                            Standard E-Commerce
+                          </p>
+                          <p className="cc-type-compact-subtitle">
+                            Fashion, shoes, electronics, apparel
+                          </p>
+                        </div>
+                        <span className="cc-type-compact-check">✓</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="cc-field">
                     <label htmlFor="cc-name">Category name</label>
                     <input
                       id="cc-name"
@@ -455,9 +510,16 @@ const CategoryForm: React.FC = () => {
                     <ParentCategorySelect
                       options={parentOptions}
                       value={form.parent_id}
-                      onChange={(id) =>
-                        setForm((p) => ({ ...p, parent_id: id }))
-                      }
+                      onChange={(id) => {
+                        const parent = parentOptions.find((p) => p._id === id);
+                        setForm((p) => ({
+                          ...p,
+                          parent_id: id,
+                          ...(parent?.category_type
+                            ? { category_type: parent.category_type }
+                            : {}),
+                        }));
+                      }}
                       loading={parentsLoading}
                       errored={parentsError}
                       disabledOptionId={currentCategoryId}
@@ -589,6 +651,13 @@ const CategoryForm: React.FC = () => {
                           {form.description ||
                             "Category description will appear here as you type."}
                         </p>
+                        <div className="cc-tile-tags">
+                          <span className="cc-tag">
+                            {form.category_type === "quick_commerce"
+                              ? "⚡ Quick Store"
+                              : "📦 E-Commerce"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>

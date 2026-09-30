@@ -10,12 +10,13 @@ import type {
 export const categoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCategories: builder.query<GetCategoriesResponse, GetCategoriesParams>({
-      query: ({ page, limit, search, level }) => {
+      query: ({ page, limit, search, level, category_type }) => {
         const params = new URLSearchParams();
         if (page !== undefined) params.set("page", String(page));
         if (limit !== undefined) params.set("limit", String(limit));
         if (search?.trim()) params.set("search", search.trim());
         if (level !== undefined) params.set("level", String(level));
+        if (category_type) params.set("category_type", category_type);
 
         const qs = params.toString();
         return {
@@ -92,7 +93,7 @@ export const categoryApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       invalidatesTags: ["Category"],
     }),
-    
+
     updateCategory: builder.mutation<
       unknown,
       { categoryId: string; formData: FormData }

@@ -1,6 +1,9 @@
+export type CategoryType = "quick_commerce" | "standard_commerce";
+
 export interface Category {
   _id: string;
   name: string;
+  category_type: CategoryType;
   level: number;
   description?: string;
   category_image?: string;
@@ -33,6 +36,7 @@ export interface GetCategoriesParams {
   limit?: number;
   search?: string;
   level?: number;
+  category_type?: CategoryType;
 }
 
 export interface CategoryRow {
@@ -47,6 +51,15 @@ export interface FlatCategoryOption {
   name: string;
   level: number;
   depth: number;
+  category_type?: CategoryType;
+}
+
+export interface ExtendedFormState {
+  name: string;
+  category_type: CategoryType;
+  parent_id: string;
+  description: string;
+  category_image: File | null;
 }
 
 //Add Category Types
@@ -72,12 +85,12 @@ export interface LeafCategory {
 
 export type GetLeafCategoriesResponse = ApiResponse<LeafCategory[]>;
 
-
 export interface SelectCategory {
   _id: string;
   name: string;
   level: number;
   depth: number;
+  category_type: CategoryType;
 }
 
 export type GetCategoriesSelectListResponse = ApiResponse<SelectCategory[]>;

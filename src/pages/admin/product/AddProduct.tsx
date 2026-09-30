@@ -75,6 +75,10 @@ const validateImageFile = (file: File): string | null => {
   return null;
 };
 
+const blockBadNumberKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+};
+
 interface LeafCategory {
   _id: string;
   parent_id?: string;
@@ -751,6 +755,27 @@ const AddProduct: React.FC = () => {
       (touched.mainImage && !form.mainImage ? "Main image is required." : ""),
   };
 
+  const pricingOk = (c: string, s: string, m: string) => {
+    const cost = Number(c);
+    const sell = Number(s);
+    const mrp = Number(m);
+    return cost >= 0 && sell >= 0 && mrp >= 0 && cost <= sell && sell <= mrp;
+  };
+
+  const productPricingOk = pricingOk(
+    form.costPrice,
+    form.sellingPrice,
+    form.price,
+  );
+
+  const variantsPricingOk = form.variants.every((r) =>
+    pricingOk(
+      r.costPrice || form.costPrice,
+      r.sellingPrice || form.sellingPrice,
+      r.price || form.price,
+    ),
+  );
+
   const isFormValid =
     !!form.name.trim() &&
     !!form.category_id &&
@@ -760,12 +785,17 @@ const AddProduct: React.FC = () => {
     !!form.price &&
     !!form.mainImage &&
     !mainImageError &&
+    productPricingOk &&
     (!form.hasVariants ||
       (form.variantTypes.length > 0 &&
         form.variants.length > 0 &&
-        form.variants.every((r) =>
-          r.combination.every((c) => c.variant_option_id),
-        )));
+        variantsPricingOk &&
+        form.variants.every(
+          (r) =>
+            r.sku.trim() && r.combination.every((c) => c.variant_option_id),
+        ) &&
+        new Set(form.variants.map((r) => r.sku.trim().toUpperCase())).size ===
+          form.variants.length));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -795,6 +825,9 @@ const AddProduct: React.FC = () => {
       featuredImages: form.featuredImages.filter(
         (f) => f instanceof File,
       ) as File[],
+      existingFeaturedImages: form.featuredImages.filter(
+        (f): f is string => typeof f === "string",
+      ),
       hasVariants: form.hasVariants,
       variantTypes: form.hasVariants ? form.variantTypes : [],
       variants: form.hasVariants
@@ -1042,6 +1075,8 @@ const AddProduct: React.FC = () => {
                             id="pro-cost"
                             type="number"
                             min="0"
+                            step="0.01"
+                            onKeyDown={blockBadNumberKeys}
                             className={`ap-input ${errors.costPrice ? "is-invalid" : ""}`}
                             placeholder="0.00"
                             value={form.costPrice}
@@ -1068,6 +1103,8 @@ const AddProduct: React.FC = () => {
                             id="pro-selling"
                             type="number"
                             min="0"
+                            step="0.01"
+                            onKeyDown={blockBadNumberKeys}
                             className={`ap-input ${errors.sellingPrice ? "is-invalid" : ""}`}
                             placeholder="0.00"
                             value={form.sellingPrice}
@@ -1096,6 +1133,8 @@ const AddProduct: React.FC = () => {
                             id="pro-price"
                             type="number"
                             min="0"
+                            step="0.01"
+                            onKeyDown={blockBadNumberKeys}
                             className={`ap-input ${errors.price ? "is-invalid" : ""}`}
                             placeholder="0.00"
                             value={form.price}
@@ -1111,6 +1150,16 @@ const AddProduct: React.FC = () => {
                       </div>
                     </div>
 
+                    {form.costPrice &&
+                      form.sellingPrice &&
+                      form.price &&
+                      !productPricingOk && (
+                        <p className="ap-error-msg">
+                          <AlertCircle size={13} /> Cost ≤ Selling price ≤ MRP
+                          is required.
+                        </p>
+                      )}
+
                     {!form.hasVariants && (
                       <div className="ap-row-2">
                         <div className="ap-field">
@@ -1121,6 +1170,8 @@ const AddProduct: React.FC = () => {
                             id="pro-stock"
                             type="number"
                             min="0"
+                            step="0.01"
+                            onKeyDown={blockBadNumberKeys}
                             className="ap-input"
                             placeholder="0"
                             value={form.stock}
@@ -1343,6 +1394,9 @@ const AddProduct: React.FC = () => {
                                     <label>Cost</label>
                                     <input
                                       type="number"
+                                      min="0"
+                                      step="0.01"
+                                      onKeyDown={blockBadNumberKeys}
                                       className="ap-input ap-input-sm"
                                       placeholder="0.00"
                                       value={row.costPrice}
@@ -1359,6 +1413,9 @@ const AddProduct: React.FC = () => {
                                     <label>Selling</label>
                                     <input
                                       type="number"
+                                      min="0"
+                                      step="0.01"
+                                      onKeyDown={blockBadNumberKeys}
                                       className="ap-input ap-input-sm"
                                       placeholder="0.00"
                                       value={row.sellingPrice}
@@ -1375,6 +1432,9 @@ const AddProduct: React.FC = () => {
                                     <label>MRP</label>
                                     <input
                                       type="number"
+                                      min="0"
+                                      step="0.01"
+                                      onKeyDown={blockBadNumberKeys}
                                       className="ap-input ap-input-sm"
                                       placeholder="0.00"
                                       value={row.price}
@@ -1391,6 +1451,9 @@ const AddProduct: React.FC = () => {
                                     <label>Stock</label>
                                     <input
                                       type="number"
+                                      min="0"
+                                      step="0.01"
+                                      onKeyDown={blockBadNumberKeys}
                                       className="ap-input ap-input-sm"
                                       placeholder="Qty"
                                       value={row.stock}

@@ -5,7 +5,10 @@ import {
   useGetCategoriesQuery,
   useUpadteCategoryStatusMutation,
 } from "../../../features/category/categoryApi";
-import type { Category } from "../../../features/category/categoryTypes";
+import type {
+  Category,
+  CategoryType,
+} from "../../../features/category/categoryTypes";
 import {
   countAll,
   LEVEL_LABEL,
@@ -49,6 +52,7 @@ const ImageIcon = () => (
 const CategoryList = () => {
   const [page, setPage] = useState(1);
   const [levelFilter, setLevelFilter] = useState<number | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<CategoryType | "all">("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -81,6 +85,7 @@ const CategoryList = () => {
       limit: PAGE_LIMIT,
       search: search || undefined,
       level: levelFilter === "all" ? undefined : levelFilter,
+      category_type: typeFilter === "all" ? undefined : typeFilter,
     });
 
   const [updateCategoryStatus] = useUpadteCategoryStatusMutation();
@@ -103,6 +108,12 @@ const CategoryList = () => {
     ],
     [maxLevel],
   );
+
+  const typeFilterOptions = [
+    { value: "all", label: "All types" },
+    { value: "quick_commerce", label: "⚡ Quick Store" },
+    { value: "standard_commerce", label: "📦 Standard" },
+  ];
 
   const handleToggleStatus = async (category: Category) => {
     setUpdatingId(category._id);
@@ -174,6 +185,23 @@ const CategoryList = () => {
               </span>
             </span>
           </>
+        );
+      },
+    },
+    {
+      key: "category_type",
+      header: "Type",
+      render: (category) => {
+        const isQuick = category.category_type === "quick_commerce";
+        return (
+          <span
+            className={`cl-type-badge ${
+              isQuick ? "cl-type-badge--quick" : "cl-type-badge--standard"
+            }`}
+          >
+            <span className="cl-type-badge-icon">{isQuick ? "⚡" : "📦"}</span>
+            <span>{isQuick ? "Quick Store" : "Standard"}</span>
+          </span>
         );
       },
     },
@@ -264,6 +292,14 @@ const CategoryList = () => {
               setPage(1);
             },
             options: levelFilterOptions,
+          },
+          {
+            value: String(typeFilter),
+            onChange: (v) => {
+              setTypeFilter(v as any);
+              setPage(1);
+            },
+            options: typeFilterOptions,
           },
         ]}
         addButtonLabel="Add Category"

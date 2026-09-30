@@ -1243,7 +1243,6 @@
   font-weight: var(--fw-medium);
 }
 
-
 .cc-select-indent {
   display: inline-flex;
   align-items: center;
@@ -1291,4 +1290,100 @@
 .cc-select-option.is-selected .cc-select-option-level {
   background: var(--cc-primary);
   color: #fff;
+}
+
+/* Compact Modern Segmented Cards */
+.cc-type-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cc-type-compact-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-12, 12px);
+  border: 1.5px solid var(--cc-border);
+  background: #fbfbfe;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.cc-type-compact-card:hover {
+  border-color: #d1cef2;
+  background: #ffffff;
+}
+
+.cc-type-compact-card.is-active {
+  border-color: var(--cc-primary);
+  background: linear-gradient(180deg, #f7f6ff 0%, #ffffff 100%);
+  box-shadow: 0 4px 14px -6px rgba(108, 92, 231, 0.22);
+}
+
+.cc-type-compact-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f0fa;
+  border-radius: var(--radius-10, 10px);
+  flex: none;
+  transition: background 0.18s ease;
+}
+
+.cc-type-compact-card.is-active .cc-type-compact-icon {
+  background: var(--cc-primary);
+  color: #ffffff;
+}
+
+.cc-type-compact-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-type-compact-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold, 600);
+  color: var(--cc-ink);
+  line-height: 1.25;
+}
+
+.cc-type-compact-subtitle {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: var(--cc-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-type-compact-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cc-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10.5px;
+  color: transparent;
+  flex: none;
+}
+
+.cc-type-compact-card.is-active .cc-type-compact-check {
+  border-color: var(--cc-primary);
+  background: var(--cc-primary);
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .cc-type-compact-grid {
+    grid-template-columns: 1fr;
+  }
 }
