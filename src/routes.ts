@@ -35,6 +35,10 @@ export const ROUTES = {
   vendorCreate: "/admin/vendors/add",
   vendorEdit: "admin/vendors/:vendorId/edit",
 
+  cartSettings: "/admin/cart-settings",
+  addCartSettings: "/admin/cart-settings/add",
+  editCartSettings: "/admin/cart-settings/:id/edit",
+
   support: "/admin/support",
   //Worked by kshitish end
 } as const;

@@ -12,6 +12,7 @@ import {
   LuX,
   LuChevronDown,
   LuListChecks,
+  LuShoppingCart,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -110,6 +111,13 @@ const NAV_ITEMS: NavItem[] = [
     path: ROUTES.products,
     activePaths: [ROUTES.products],
     icon: <LuPackage size={20} />,
+  },
+  {
+    id: "CartSettings",
+    label: "Cart Settings",
+    path: ROUTES.products,
+    activePaths: [ROUTES.products],
+    icon: <LuShoppingCart size={20} />,
   },
   // {
   //   id: "Orders",

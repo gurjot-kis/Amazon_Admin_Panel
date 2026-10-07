@@ -35,6 +35,8 @@ import AddService from "./pages/vendor/vendorService/AddService";
 import VariantType from "./pages/admin/variant/VariantType";
 import VariantOption from "./pages/admin/variant/VariantOption";
 import AddVariantOption from "./pages/admin/variant/AddVariantOption";
+import CartSettingsList from "./pages/admin/cart-settings/CartSettingsList";
+import CreateCartSettings from "./pages/admin/cart-settings/CreateCartSettings";
 
 function App() {
   return (
@@ -97,6 +99,10 @@ function App() {
             <Route path={ROUTES.variantOption} element={<VariantOption />} />
             <Route path={ROUTES.addVariantOption} element={<AddVariantOption />} />
             <Route path={ROUTES.editVariantOption} element={<AddVariantOption />} />
+
+            <Route path={ROUTES.cartSettings} element={<CartSettingsList />} />
+            <Route path={ROUTES.addCartSettings} element={<CreateCartSettings />} />
+            <Route path={ROUTES.editCartSettings} element={<CreateCartSettings />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>
