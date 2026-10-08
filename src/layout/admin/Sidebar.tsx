@@ -115,8 +115,8 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: "CartSettings",
     label: "Cart Settings",
-    path: ROUTES.products,
-    activePaths: [ROUTES.products],
+    path: ROUTES.cartSettings,
+    activePaths: [ROUTES.cartSettings],
     icon: <LuShoppingCart size={20} />,
   },
   // {

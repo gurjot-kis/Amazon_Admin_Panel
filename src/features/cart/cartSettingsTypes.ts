@@ -1,4 +1,5 @@
 export interface CartSettings {
+  _id: string;
   cart_settings_id: string;
   handling_charge: number;
   delivery_charge: number;
