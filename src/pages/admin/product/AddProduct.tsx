@@ -1,3 +1,4 @@
+// AddProduct.tsx
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ import {
   AlertCircle,
   ChevronDown,
   Image as ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 
 import {
@@ -56,9 +58,8 @@ export const getImageUrl = (path?: string | null): string => {
     path.startsWith("data:") ||
     path.startsWith("http://") ||
     path.startsWith("https://")
-  ) {
+  )
     return path;
-  }
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${ASSET_BASE_URL}${cleanPath}`;
 };
@@ -79,6 +80,8 @@ const blockBadNumberKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
   if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
 };
 
+// ── Types ──────────────────────────────────────────────────────────────────────
+
 interface LeafCategory {
   _id: string;
   parent_id?: string;
@@ -94,6 +97,14 @@ interface VariantRow {
   sellingPrice: string;
   price: string;
   stock: string;
+  // fallback images — used only when imageGroupTypeId is null
+  images: (File | string)[];
+  imagePreviews: string[];
+}
+
+interface VariantImageGroup {
+  optionId: string;
+  typeId: string;
   images: (File | string)[];
   imagePreviews: string[];
 }
@@ -113,6 +124,14 @@ interface FormState {
   featuredImages: (File | string)[];
   hasVariants: boolean;
   variantTypes: string[];
+  // For the image group type (e.g. Color): flat list of selected optionIds
+  // { [colorTypeId]: ["whiteBlueId", "blackWhiteId"] }
+  selectedOptions: Record<string, string[]>;
+  imageGroupTypeId: string | null;
+  // For non-image-group types (e.g. Size): selected per color option
+  // { [sizeTypeId]: { [colorOptionId]: ["6id", "7id"] } }
+  perGroupOptions: Record<string, Record<string, string[]>>;
+  variantImageGroups: Record<string, VariantImageGroup>;
   variants: VariantRow[];
   status?: string;
 }
@@ -132,9 +151,16 @@ const INITIAL: FormState = {
   featuredImages: [],
   hasVariants: false,
   variantTypes: [],
+  selectedOptions: {},
+  imageGroupTypeId: null,
+  perGroupOptions: {},
+  variantImageGroups: {},
   variants: [],
 };
 
+// ── Toggle option for non-image-group types (e.g. Size per Color) ─────────────
+
+// ── LeafCategoryDropdown ───────────────────────────────────────────────────────
 const LeafCategoryDropdown = ({
   value,
   onChange,
@@ -153,9 +179,7 @@ const LeafCategoryDropdown = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search.trim());
-    }, 250);
+    const handler = setTimeout(() => setDebouncedSearch(search.trim()), 250);
     return () => clearTimeout(handler);
   }, [search]);
 
@@ -163,17 +187,17 @@ const LeafCategoryDropdown = ({
     data: catResponse,
     isLoading,
     isFetching,
-  } = useGetLeafCategoriesQuery({
-    search: debouncedSearch,
-  });
+  } = useGetLeafCategoriesQuery({ search: debouncedSearch });
 
-  const categories: LeafCategory[] = useMemo(() => {
-    return Array.isArray(catResponse?.data) ? catResponse.data : [];
-  }, [catResponse]);
+  const categories: LeafCategory[] = useMemo(
+    () => (Array.isArray(catResponse?.data) ? catResponse.data : []),
+    [catResponse],
+  );
 
-  const selectedCategory = useMemo(() => {
-    return categories.find((cat) => cat._id === value);
-  }, [categories, value]);
+  const selectedCategory = useMemo(
+    () => categories.find((cat) => cat._id === value),
+    [categories, value],
+  );
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -191,9 +215,7 @@ const LeafCategoryDropdown = ({
 
   const handleOpen = () => {
     setIsOpen((prev) => {
-      if (!prev) {
-        setTimeout(() => searchInputRef.current?.focus(), 80);
-      }
+      if (!prev) setTimeout(() => searchInputRef.current?.focus(), 80);
       return !prev;
     });
   };
@@ -217,7 +239,7 @@ const LeafCategoryDropdown = ({
               <MdCategory
                 size={18}
                 color="#4f46e5"
-                style={{ marginRight: "6px" }}
+                style={{ marginRight: 6 }}
               />
               {selectedCategory.name}
             </>
@@ -227,7 +249,6 @@ const LeafCategoryDropdown = ({
             "Select leaf category..."
           )}
         </span>
-
         <div className="cat-dd-trigger-actions">
           {value && (
             <button
@@ -238,7 +259,6 @@ const LeafCategoryDropdown = ({
                 onChange("");
                 setSearch("");
               }}
-              title="Clear selection"
             >
               <MdClose size={13} />
             </button>
@@ -265,7 +285,6 @@ const LeafCategoryDropdown = ({
             />
             {isFetching && <span className="cat-dd-loader" />}
           </div>
-
           <div className="cat-dd-list">
             {isLoading ? (
               <div className="cat-dd-state-msg">Loading categories...</div>
@@ -299,7 +318,16 @@ const LeafCategoryDropdown = ({
   );
 };
 
-const VariantOptionSelect = ({ typeId, value, onChange }) => {
+// ── VariantOptionChips — multi-select chips for one type's options ─────────────
+const VariantOptionChips = ({
+  typeId,
+  selectedOptionIds,
+  onToggle,
+}: {
+  typeId: string;
+  selectedOptionIds: string[];
+  onToggle: (optionId: string) => void;
+}) => {
   const { data, isLoading } = useGetVariantOptionsByTypeQuery(
     { variantTypeId: typeId, status: "active" },
     { skip: !typeId },
@@ -313,32 +341,97 @@ const VariantOptionSelect = ({ typeId, value, onChange }) => {
     return [];
   }, [data]);
 
+  if (isLoading)
+    return (
+      <span className="ap-muted" style={{ fontSize: "0.8rem" }}>
+        Loading options…
+      </span>
+    );
+  if (options.length === 0)
+    return (
+      <span className="ap-muted" style={{ fontSize: "0.8rem" }}>
+        No active options found
+      </span>
+    );
+
   return (
-    <div className="ap-select-box" style={{ minWidth: 140 }}>
-      <select
-        className="ap-select"
-        style={{ height: 32, padding: "0 28px 0 10px", fontSize: "0.8rem" }}
-        value={value} // ← always bind value, even while loading
-        onChange={(e) => onChange(e.target.value)}
-        disabled={isLoading}
-      >
-        {/* Only show placeholder when nothing is selected */}
-        {!value && (
-          <option value="">{isLoading ? "Loading..." : "Choose Option"}</option>
-        )}
-        {/* Always render a ghost option for the current value while loading */}
-        {isLoading && value && <option value={value}>Loading...</option>}
-        {options.map((o: any) => (
-          <option key={o._id} value={o._id}>
+    <div className="ap-chip-list">
+      {options.map((o: any) => {
+        const active = selectedOptionIds.includes(o._id);
+        return (
+          <button
+            type="button"
+            key={o._id}
+            className={`ap-filter-chip ap-filter-chip-sm ${active ? "is-selected" : ""}`}
+            onClick={() => onToggle(o._id)}
+          >
+            {active && <CheckCircle2 size={11} />}
             {o.label || o.value}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="ap-select-arrow" size={14} />
+          </button>
+        );
+      })}
     </div>
   );
 };
 
+// ── VariantOptionLabel — resolves an optionId to its display value ─────────────
+const VariantOptionLabel = ({
+  typeId,
+  optionId,
+}: {
+  typeId: string;
+  optionId: string;
+}) => {
+  const { data } = useGetVariantOptionsByTypeQuery(
+    { variantTypeId: typeId, status: "active" },
+    { skip: !typeId },
+  );
+  const options = useMemo(() => {
+    const raw = (data as any)?.data;
+    if (Array.isArray(raw?.variantOptions)) return raw.variantOptions;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+  }, [data]);
+  const found = options.find((o: any) => o._id === optionId);
+  return <span>{found ? found.label || found.value : "…"}</span>;
+};
+
+// ── VariantComboPill — read-only label for a combination entry ─────────────────
+const VariantComboPill = ({
+  typeId,
+  optionId,
+  typeName,
+}: {
+  typeId: string;
+  optionId: string;
+  typeName: string;
+}) => {
+  const { data } = useGetVariantOptionsByTypeQuery(
+    { variantTypeId: typeId, status: "active" },
+    { skip: !typeId },
+  );
+  const options = useMemo(() => {
+    const raw = (data as any)?.data;
+    if (Array.isArray(raw?.variantOptions)) return raw.variantOptions;
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw?.data)) return raw.data;
+    return [];
+  }, [data]);
+  const found = options.find((o: any) => o._id === optionId);
+  const label = found ? found.label || found.value : "…";
+
+  return (
+    <div className="ap-variant-combo-pill">
+      <span className="ap-combo-type-name">{typeName}:</span>
+      <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#334155" }}>
+        {label}
+      </span>
+    </div>
+  );
+};
+
+// ── ImageDropzone ──────────────────────────────────────────────────────────────
 const ImageDropzone = ({
   label,
   preview,
@@ -429,6 +522,7 @@ const ImageDropzone = ({
   );
 };
 
+// ── Main Component ─────────────────────────────────────────────────────────────
 const AddProduct: React.FC = () => {
   const { id: paramId, productId: paramProductId } = useParams<{
     id?: string;
@@ -443,6 +537,7 @@ const AddProduct: React.FC = () => {
   const [mainPreview, setMainPreview] = useState<string | null>(null);
   const [mainImageError, setMainImageError] = useState<string | null>(null);
   const [featuredPreviews, setFeaturedPreviews] = useState<string[]>([]);
+  const [combosGenerated, setCombosGenerated] = useState(false);
   const featuredRef = useRef<HTMLInputElement>(null);
 
   const { setHeaderConfig } = useHeader();
@@ -467,9 +562,14 @@ const AddProduct: React.FC = () => {
     [variantTypesData],
   );
 
+  // ── Populate form in edit mode ──────────────────────────────────────────────
   useEffect(() => {
     if (isEditMode && productData?.data) {
       const prod = productData.data;
+
+      const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
+        typeof vt === "object" ? vt._id : vt,
+      );
 
       const populatedVariants: VariantRow[] = (prod.variants || []).map(
         (v) => ({
@@ -491,14 +591,116 @@ const AddProduct: React.FC = () => {
             v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
           price: v.price !== undefined ? String(v.price) : "",
           stock: v.stock !== undefined ? String(v.stock) : "",
-          images: v.images || [],
-          imagePreviews: (v.images || []).map((img) => getImageUrl(img)),
+          images: [],
+          imagePreviews: [],
         }),
       );
 
-      const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
-        typeof vt === "object" ? vt._id : vt,
-      );
+      // Reconstruct selectedOptions from existing variants
+      const reconstructedSelectedOptions: Record<string, string[]> = {};
+
+      populatedVariants.forEach((row) => {
+        row.combination.forEach((c) => {
+          if (!reconstructedSelectedOptions[c.variant_type_id]) {
+            reconstructedSelectedOptions[c.variant_type_id] = [];
+          }
+
+          if (
+            !reconstructedSelectedOptions[c.variant_type_id].includes(
+              c.variant_option_id,
+            )
+          ) {
+            reconstructedSelectedOptions[c.variant_type_id].push(
+              c.variant_option_id,
+            );
+          }
+        });
+      });
+
+      // Detect imageGroupTypeId: pick the type with the most selected options
+      let detectedImageGroupTypeId: string | null = null;
+      let maxOptions = 0;
+
+      for (const typeId of resolvedVariantTypes) {
+        const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
+
+        if (count > maxOptions) {
+          maxOptions = count;
+          detectedImageGroupTypeId = typeId;
+        }
+      }
+
+      // NEW: Reconstruct perGroupOptions from existing variants
+      const reconstructedPerGroupOptions: Record<
+        string,
+        Record<string, string[]>
+      > = {};
+
+      if (detectedImageGroupTypeId) {
+        const otherTypeIds = resolvedVariantTypes.filter(
+          (id) => id !== detectedImageGroupTypeId,
+        );
+
+        populatedVariants.forEach((row) => {
+          const groupOptId = row.combination.find(
+            (c) => c.variant_type_id === detectedImageGroupTypeId,
+          )?.variant_option_id;
+
+          if (!groupOptId) return;
+
+          otherTypeIds.forEach((typeId) => {
+            const optId = row.combination.find(
+              (c) => c.variant_type_id === typeId,
+            )?.variant_option_id;
+
+            if (!optId) return;
+
+            if (!reconstructedPerGroupOptions[typeId]) {
+              reconstructedPerGroupOptions[typeId] = {};
+            }
+
+            if (!reconstructedPerGroupOptions[typeId][groupOptId]) {
+              reconstructedPerGroupOptions[typeId][groupOptId] = [];
+            }
+
+            if (
+              !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
+            ) {
+              reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
+            }
+          });
+        });
+      }
+
+      // Reconstruct image groups
+      const reconstructedImageGroups: Record<string, VariantImageGroup> = {};
+
+      if (detectedImageGroupTypeId) {
+        const optionIds =
+          reconstructedSelectedOptions[detectedImageGroupTypeId] ?? [];
+
+        optionIds.forEach((optionId) => {
+          const matchingApiVariant = (prod.variants || []).find((v) =>
+            v.combination.some((c) => {
+              const cOptId =
+                typeof c.variant_option_id === "object"
+                  ? (c.variant_option_id as any)._id
+                  : c.variant_option_id;
+
+              return cOptId === optionId;
+            }),
+          );
+
+          const images: string[] = matchingApiVariant?.images || [];
+
+          reconstructedImageGroups[optionId] = {
+            optionId,
+            typeId: detectedImageGroupTypeId!,
+            images,
+            imagePreviews: images.map((img) => getImageUrl(img)),
+          };
+        });
+      }
 
       setForm({
         name: prod.name || "",
@@ -519,77 +721,260 @@ const AddProduct: React.FC = () => {
         featuredImages: prod.featuredImages || [],
         hasVariants: prod.hasVariants || false,
         variantTypes: resolvedVariantTypes,
+        selectedOptions: reconstructedSelectedOptions,
+
+        // NEW: Restore per-group option selections in edit mode
+        perGroupOptions: reconstructedPerGroupOptions,
+
+        imageGroupTypeId: detectedImageGroupTypeId,
+        variantImageGroups: reconstructedImageGroups,
         variants: populatedVariants,
-        status: prod.status ? prod.status : "Pending",
+        status: prod.status || "pending",
       });
 
       if (prod.mainImage) {
         setMainPreview(getImageUrl(prod.mainImage));
       }
+
       if (prod.featuredImages?.length) {
         setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
+      }
+
+      if (populatedVariants.length > 0) {
+        setCombosGenerated(true);
       }
     }
   }, [isEditMode, productData]);
 
+  // ── Reset selectedOptions when variantTypes changes ────────────────────────
   useEffect(() => {
     setForm((p) => {
-      if (!p.hasVariants || p.variantTypes.length === 0) {
-        return { ...p, variants: [] };
-      }
-
-      const alreadySynced =
-        p.variants.length > 0 &&
-        p.variants.every((row) =>
-          p.variantTypes.every((vtId) =>
-            row.combination.some((c) => c.variant_type_id === vtId),
-          ),
-        );
-
-      if (alreadySynced) return p;
-
-      if (p.variants.length === 0) {
-        return {
-          ...p,
-          variants: [
-            {
-              id: uid(),
-              combination: p.variantTypes.map((vtId) => ({
-                variant_type_id: vtId,
-                variant_option_id: "",
-              })),
-              sku: "",
-              costPrice: "",
-              sellingPrice: "",
-              price: "",
-              stock: "",
-              images: [],
-              imagePreviews: [],
-            },
-          ],
-        };
-      }
-
+      const cleaned: Record<string, string[]> = {};
+      p.variantTypes.forEach((typeId) => {
+        cleaned[typeId] = p.selectedOptions[typeId] ?? [];
+      });
+      const keysChanged =
+        JSON.stringify(Object.keys(cleaned).sort()) !==
+        JSON.stringify(Object.keys(p.selectedOptions).sort());
       return {
         ...p,
-        variants: p.variants.map((row) => ({
-          ...row,
-          combination: p.variantTypes.map((vtId) => ({
-            variant_type_id: vtId,
-            variant_option_id:
-              row.combination.find((c) => c.variant_type_id === vtId)
-                ?.variant_option_id ?? "",
-          })),
-        })),
+        selectedOptions: cleaned,
+        variants: keysChanged ? [] : p.variants,
       };
     });
-  }, [form.hasVariants, form.variantTypes.join(",")]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.variantTypes.join(",")]);
 
+  const togglePerGroupOption = (
+    typeId: string,
+    groupOptionId: string, // e.g. whiteBlueId
+    optionId: string, // e.g. size6Id
+  ) => {
+    setForm((p) => {
+      const typeMap = p.perGroupOptions[typeId] ?? {};
+      const current = typeMap[groupOptionId] ?? [];
+      const next = current.includes(optionId)
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId];
+      return {
+        ...p,
+        perGroupOptions: {
+          ...p.perGroupOptions,
+          [typeId]: { ...typeMap, [groupOptionId]: next },
+        },
+        variants: [], // stale, need regenerate
+      };
+    });
+    setCombosGenerated(false);
+  };
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const set = (field: keyof FormState, value: any) =>
     setForm((p) => ({ ...p, [field]: value }));
 
   const touch = (field: string) => setTouched((p) => ({ ...p, [field]: true }));
 
+  const toggleOption = (typeId: string, optionId: string) => {
+    setForm((p) => {
+      const current = p.selectedOptions[typeId] ?? [];
+      const next = current.includes(optionId)
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId];
+      return {
+        ...p,
+        selectedOptions: { ...p.selectedOptions, [typeId]: next },
+        variants: [],
+      };
+    });
+    setCombosGenerated(false);
+  };
+
+  // ── Updated handleImageGroupTypeChange ────────────────────────────────────────
+  const handleImageGroupTypeChange = (typeId: string) => {
+    setForm((p) => {
+      const optionIds = p.selectedOptions[typeId] ?? [];
+      const newGroups: Record<string, VariantImageGroup> = {};
+      optionIds.forEach((optionId) => {
+        newGroups[optionId] = p.variantImageGroups[optionId] ?? {
+          optionId,
+          typeId,
+          images: [],
+          imagePreviews: [],
+        };
+      });
+      // Reset perGroupOptions — other types now need per-group-option selections
+      return {
+        ...p,
+        imageGroupTypeId: typeId,
+        variantImageGroups: newGroups,
+        perGroupOptions: {},
+        variants: [],
+      };
+    });
+    setCombosGenerated(false);
+  };
+
+  // ── Updated generateCombinations ───────────────────────────────────────────────
+  const generateCombinations = () => {
+    if (!form.imageGroupTypeId) {
+      // Original flat logic when no image group type set
+      for (const typeId of form.variantTypes) {
+        if (!form.selectedOptions[typeId]?.length) {
+          toast.error(
+            "Select at least one option for each variant type before generating.",
+          );
+          return;
+        }
+      }
+      let combos: { variant_type_id: string; variant_option_id: string }[][] = [
+        [],
+      ];
+      for (const typeId of form.variantTypes) {
+        const optionIds = form.selectedOptions[typeId];
+        combos = combos.flatMap((existing) =>
+          optionIds.map((optionId) => [
+            ...existing,
+            { variant_type_id: typeId, variant_option_id: optionId },
+          ]),
+        );
+      }
+      _applyGeneratedCombos(combos);
+      return;
+    }
+
+    // Image group type selected (e.g. Color)
+    const groupTypeId = form.imageGroupTypeId;
+    const groupOptionIds = form.selectedOptions[groupTypeId] ?? [];
+
+    if (!groupOptionIds.length) {
+      toast.error("Select at least one option for the image group type.");
+      return;
+    }
+
+    // Non-group types (e.g. Size)
+    const otherTypeIds = form.variantTypes.filter((id) => id !== groupTypeId);
+
+    // Validate: every group option must have at least one selection for every other type
+    for (const groupOptId of groupOptionIds) {
+      for (const typeId of otherTypeIds) {
+        const selected = form.perGroupOptions[typeId]?.[groupOptId] ?? [];
+        if (!selected.length) {
+          toast.error(
+            "Select at least one size/option for every color before generating.",
+          );
+          return;
+        }
+      }
+    }
+
+    // Build combos: for each color option, cross with its own size selections
+    const allCombos: {
+      variant_type_id: string;
+      variant_option_id: string;
+    }[][] = [];
+
+    for (const groupOptId of groupOptionIds) {
+      // Start with the group option itself (e.g. Color: White-Blue)
+      let combos: { variant_type_id: string; variant_option_id: string }[][] = [
+        [{ variant_type_id: groupTypeId, variant_option_id: groupOptId }],
+      ];
+
+      // Cross with each other type's selections FOR THIS group option
+      for (const typeId of otherTypeIds) {
+        const optionIds = form.perGroupOptions[typeId]?.[groupOptId] ?? [];
+        combos = combos.flatMap((existing) =>
+          optionIds.map((optionId) => [
+            ...existing,
+            { variant_type_id: typeId, variant_option_id: optionId },
+          ]),
+        );
+      }
+
+      allCombos.push(...combos);
+    }
+
+    _applyGeneratedCombos(allCombos);
+  };
+
+  const _applyGeneratedCombos = (
+    combos: { variant_type_id: string; variant_option_id: string }[][],
+  ) => {
+    const makeComboKey = (
+      combination: { variant_type_id: string; variant_option_id: string }[],
+    ) =>
+      combination
+        .map((c) => `${c.variant_type_id}_${c.variant_option_id}`)
+        .sort()
+        .join("|");
+
+    const existingMap = new Map(
+      form.variants.map((r) => [makeComboKey(r.combination), r]),
+    );
+
+    const newRows: VariantRow[] = combos.map((combination) => {
+      const key = makeComboKey(combination);
+      return (
+        existingMap.get(key) ?? {
+          id: uid(),
+          combination,
+          sku: "",
+          costPrice: "",
+          sellingPrice: "",
+          price: "",
+          stock: "",
+          images: [],
+          imagePreviews: [],
+        }
+      );
+    });
+
+    setForm((p) => {
+      const igTypeId = p.imageGroupTypeId;
+      if (!igTypeId) return { ...p, variants: newRows };
+
+      const optionIds = p.selectedOptions[igTypeId] ?? [];
+      const updatedGroups = { ...p.variantImageGroups };
+      optionIds.forEach((optionId) => {
+        if (!updatedGroups[optionId]) {
+          updatedGroups[optionId] = {
+            optionId,
+            typeId: igTypeId,
+            images: [],
+            imagePreviews: [],
+          };
+        }
+      });
+      Object.keys(updatedGroups).forEach((optId) => {
+        if (!optionIds.includes(optId)) delete updatedGroups[optId];
+      });
+
+      return { ...p, variants: newRows, variantImageGroups: updatedGroups };
+    });
+
+    setCombosGenerated(true);
+  };
+
+  // ── Main image ─────────────────────────────────────────────────────────────
   const handleMainImage = (file: File) => {
     const err = validateImageFile(file);
     if (err) {
@@ -607,6 +992,7 @@ const AddProduct: React.FC = () => {
     setMainImageError(null);
   };
 
+  // ── Featured images ────────────────────────────────────────────────────────
   const handleFeaturedImages = (files: FileList) => {
     const valid: File[] = [];
     const previews: string[] = [];
@@ -631,68 +1017,12 @@ const AddProduct: React.FC = () => {
     setFeaturedPreviews((p) => p.filter((_, i) => i !== idx));
   };
 
-  const addVariantRow = () => {
-    setForm((p) => ({
-      ...p,
-      variants: [
-        ...p.variants,
-        {
-          id: uid(),
-          combination: form.variantTypes.map((vtId) => ({
-            variant_type_id: vtId,
-            variant_option_id: "",
-          })),
-          sku: "",
-          costPrice: "",
-          sellingPrice: "",
-          price: "",
-          stock: "",
-          images: [],
-          imagePreviews: [],
-        },
-      ],
-    }));
-  };
-
-  const updateVariantRow = (
-    rowId: string,
-    field: keyof Omit<
-      VariantRow,
-      "id" | "combination" | "images" | "imagePreviews"
-    >,
-    value: string,
-  ) => {
-    setForm((p) => ({
-      ...p,
-      variants: p.variants.map((r) =>
-        r.id === rowId ? { ...r, [field]: value } : r,
-      ),
-    }));
-  };
-
-  const updateVariantOption = (
-    rowId: string,
-    typeId: string,
+  // ── Variant image group handlers ───────────────────────────────────────────
+  const handleVariantGroupImages = (
     optionId: string,
+    typeId: string,
+    files: FileList,
   ) => {
-    setForm((p) => ({
-      ...p,
-      variants: p.variants.map((r) =>
-        r.id === rowId
-          ? {
-              ...r,
-              combination: r.combination.map((c) =>
-                c.variant_type_id === typeId
-                  ? { ...c, variant_option_id: optionId }
-                  : c,
-              ),
-            }
-          : r,
-      ),
-    }));
-  };
-
-  const handleVariantImages = (rowId: string, files: FileList) => {
     const valid: File[] = [];
     const previews: string[] = [];
     Array.from(files).forEach((f) => {
@@ -701,7 +1031,57 @@ const AddProduct: React.FC = () => {
         previews.push(URL.createObjectURL(f));
       }
     });
+    setForm((p) => {
+      const existing = p.variantImageGroups[optionId] ?? {
+        optionId,
+        typeId,
+        images: [],
+        imagePreviews: [],
+      };
+      return {
+        ...p,
+        variantImageGroups: {
+          ...p.variantImageGroups,
+          [optionId]: {
+            ...existing,
+            images: [...existing.images, ...valid].slice(0, 5),
+            imagePreviews: [...existing.imagePreviews, ...previews].slice(0, 5),
+          },
+        },
+      };
+    });
+  };
 
+  const removeVariantGroupImage = (optionId: string, imgIdx: number) => {
+    setForm((p) => {
+      const existing = p.variantImageGroups[optionId];
+      if (!existing) return p;
+      return {
+        ...p,
+        variantImageGroups: {
+          ...p.variantImageGroups,
+          [optionId]: {
+            ...existing,
+            images: existing.images.filter((_, i) => i !== imgIdx),
+            imagePreviews: existing.imagePreviews.filter(
+              (_, i) => i !== imgIdx,
+            ),
+          },
+        },
+      };
+    });
+  };
+
+  // ── Fallback per-row image handlers (when imageGroupTypeId is null) ────────
+  const handleVariantRowImages = (rowId: string, files: FileList) => {
+    const valid: File[] = [];
+    const previews: string[] = [];
+    Array.from(files).forEach((f) => {
+      if (!validateImageFile(f)) {
+        valid.push(f);
+        previews.push(URL.createObjectURL(f));
+      }
+    });
     setForm((p) => ({
       ...p,
       variants: p.variants.map((r) =>
@@ -716,7 +1096,7 @@ const AddProduct: React.FC = () => {
     }));
   };
 
-  const removeVariantImage = (rowId: string, imgIdx: number) => {
+  const removeVariantRowImage = (rowId: string, imgIdx: number) => {
     setForm((p) => ({
       ...p,
       variants: p.variants.map((r) =>
@@ -731,6 +1111,23 @@ const AddProduct: React.FC = () => {
     }));
   };
 
+  // ── Variant row field update ───────────────────────────────────────────────
+  const updateVariantRow = (
+    rowId: string,
+    field: keyof Omit<
+      VariantRow,
+      "id" | "_id" | "combination" | "images" | "imagePreviews"
+    >,
+    value: string,
+  ) => {
+    setForm((p) => ({
+      ...p,
+      variants: p.variants.map((r) =>
+        r.id === rowId ? { ...r, [field]: value } : r,
+      ),
+    }));
+  };
+
   const removeVariantRow = (rowId: string) => {
     setForm((p) => ({
       ...p,
@@ -738,6 +1135,7 @@ const AddProduct: React.FC = () => {
     }));
   };
 
+  // ── Validation ─────────────────────────────────────────────────────────────
   const errors = {
     name: touched.name && !form.name.trim() ? "Product name is required." : "",
     category_id:
@@ -756,9 +1154,9 @@ const AddProduct: React.FC = () => {
   };
 
   const pricingOk = (c: string, s: string, m: string) => {
-    const cost = Number(c);
-    const sell = Number(s);
-    const mrp = Number(m);
+    const cost = Number(c),
+      sell = Number(s),
+      mrp = Number(m);
     return cost >= 0 && sell >= 0 && mrp >= 0 && cost <= sell && sell <= mrp;
   };
 
@@ -797,6 +1195,7 @@ const AddProduct: React.FC = () => {
         new Set(form.variants.map((r) => r.sku.trim().toUpperCase())).size ===
           form.variants.length));
 
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({
@@ -831,16 +1230,28 @@ const AddProduct: React.FC = () => {
       hasVariants: form.hasVariants,
       variantTypes: form.hasVariants ? form.variantTypes : [],
       variants: form.hasVariants
-        ? form.variants.map((r) => ({
-            _id: r._id,
-            combination: r.combination,
-            sku: r.sku || undefined,
-            costPrice: r.costPrice ? Number(r.costPrice) : undefined,
-            sellingPrice: r.sellingPrice ? Number(r.sellingPrice) : undefined,
-            price: r.price ? Number(r.price) : undefined,
-            stock: r.stock ? Number(r.stock) : 0,
-            images: r.images,
-          }))
+        ? form.variants.map((r) => {
+            // Resolve images: grouped or per-row fallback
+            let images: (File | string)[] = r.images ?? [];
+            if (form.imageGroupTypeId) {
+              const groupOptId = r.combination.find(
+                (c) => c.variant_type_id === form.imageGroupTypeId,
+              )?.variant_option_id;
+              if (groupOptId && form.variantImageGroups[groupOptId]) {
+                images = form.variantImageGroups[groupOptId].images;
+              }
+            }
+            return {
+              _id: r._id,
+              combination: r.combination,
+              sku: r.sku || undefined,
+              costPrice: r.costPrice ? Number(r.costPrice) : undefined,
+              sellingPrice: r.sellingPrice ? Number(r.sellingPrice) : undefined,
+              price: r.price ? Number(r.price) : undefined,
+              stock: r.stock ? Number(r.stock) : 0,
+              images,
+            };
+          })
         : [],
     };
 
@@ -850,13 +1261,11 @@ const AddProduct: React.FC = () => {
           productId: activeProductId,
           data: basePayload as UpdateProductPayload,
         }).unwrap();
-
         toast.success("Product updated successfully", {
           description: `"${basePayload.name}" has been updated.`,
         });
       } else {
         await createProduct(basePayload as CreateProductPayload).unwrap();
-
         toast.success("Product created", {
           description: `"${basePayload.name}" has been added successfully.`,
         });
@@ -865,13 +1274,12 @@ const AddProduct: React.FC = () => {
     } catch (err: any) {
       toast.error(
         isEditMode ? "Failed to update product" : "Failed to create product",
-        {
-          description: err?.data?.message ?? "Something went wrong.",
-        },
+        { description: err?.data?.message ?? "Something went wrong." },
       );
     }
   };
 
+  // ── Derived values ─────────────────────────────────────────────────────────
   const marginVal = useMemo(() => {
     if (!form.sellingPrice || !form.costPrice) return null;
     const sp = Number(form.sellingPrice);
@@ -879,6 +1287,56 @@ const AddProduct: React.FC = () => {
     if (sp <= 0) return null;
     return (((sp - cp) / sp) * 100).toFixed(1);
   }, [form.sellingPrice, form.costPrice]);
+
+  const totalSelectedOptions = form.variantTypes.reduce(
+    (sum, typeId) => sum + (form.selectedOptions[typeId]?.length ?? 0),
+    0,
+  );
+
+  // ── Updated allTypesHaveOptions and expectedCombosCount derived values ─────────
+  // Replace the existing derived values:
+
+  const allTypesHaveOptions = (() => {
+    if (!form.imageGroupTypeId) {
+      return form.variantTypes.every(
+        (typeId) => (form.selectedOptions[typeId]?.length ?? 0) > 0,
+      );
+    }
+    const groupOptionIds = form.selectedOptions[form.imageGroupTypeId] ?? [];
+    if (!groupOptionIds.length) return false;
+    const otherTypeIds = form.variantTypes.filter(
+      (id) => id !== form.imageGroupTypeId,
+    );
+    return groupOptionIds.every((groupOptId) =>
+      otherTypeIds.every(
+        (typeId) =>
+          (form.perGroupOptions[typeId]?.[groupOptId]?.length ?? 0) > 0,
+      ),
+    );
+  })();
+
+  const expectedCombosCount = (() => {
+    if (!allTypesHaveOptions) return 0;
+    if (!form.imageGroupTypeId) {
+      return form.variantTypes.reduce(
+        (product, typeId) =>
+          product * (form.selectedOptions[typeId]?.length ?? 1),
+        1,
+      );
+    }
+    const groupOptionIds = form.selectedOptions[form.imageGroupTypeId] ?? [];
+    const otherTypeIds = form.variantTypes.filter(
+      (id) => id !== form.imageGroupTypeId,
+    );
+    return groupOptionIds.reduce((total, groupOptId) => {
+      const perGroupCount = otherTypeIds.reduce(
+        (product, typeId) =>
+          product * (form.perGroupOptions[typeId]?.[groupOptId]?.length ?? 1),
+        1,
+      );
+      return total + perGroupCount;
+    }, 0);
+  })();
 
   if (isEditMode && isFetchingProduct) {
     return (
@@ -889,10 +1347,10 @@ const AddProduct: React.FC = () => {
     );
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="ap-wrapper">
       <div className="ap-container">
-        {/* Top Header */}
         <header className="ap-page-header">
           <div>
             <div className="ap-badge-tag">
@@ -912,9 +1370,9 @@ const AddProduct: React.FC = () => {
         <form onSubmit={handleSubmit} noValidate>
           <fieldset className="ap-fieldset" disabled={isSubmitting}>
             <div className="ap-grid-layout">
-              {/* ── LEFT: FORM ── */}
+              {/* ── LEFT ── */}
               <div className="ap-col-main">
-                {/* 01: General Info */}
+                {/* Basic Info */}
                 <section className="ap-card">
                   <div className="ap-card-head">
                     <div className="ap-card-icon-box ap-icon-indigo">
@@ -927,7 +1385,6 @@ const AddProduct: React.FC = () => {
                       </p>
                     </div>
                   </div>
-
                   <div className="ap-card-body">
                     <div className="ap-field">
                       <label className="ap-label" htmlFor="pro-name">
@@ -969,7 +1426,6 @@ const AddProduct: React.FC = () => {
                           </p>
                         )}
                       </div>
-
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="pro-short-desc">
                           Short description
@@ -1003,7 +1459,7 @@ const AddProduct: React.FC = () => {
                   </div>
                 </section>
 
-                {/* 02: Pricing & Inventory */}
+                {/* Pricing & Inventory */}
                 <section className="ap-card">
                   <div className="ap-card-head">
                     <div className="ap-card-icon-box ap-icon-emerald">
@@ -1016,7 +1472,6 @@ const AddProduct: React.FC = () => {
                       </p>
                     </div>
                   </div>
-
                   <div className="ap-card-body">
                     <div className="ap-row-2">
                       <div className="ap-field">
@@ -1040,7 +1495,6 @@ const AddProduct: React.FC = () => {
                           </p>
                         )}
                       </div>
-
                       <div className="ap-field">
                         <label className="ap-label" htmlFor="pro-currency">
                           Currency
@@ -1058,96 +1512,60 @@ const AddProduct: React.FC = () => {
                               </option>
                             ))}
                           </select>
+                          <ChevronDown className="ap-select-arrow" size={14} />
                         </div>
                       </div>
                     </div>
 
                     <div className="ap-row-3">
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-cost">
-                          Cost price <span className="ap-required">*</span>
-                        </label>
-                        <div className="ap-price-input-group">
-                          <span className="ap-currency-symbol">
-                            {form.currency}
-                          </span>
-                          <input
-                            id="pro-cost"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            onKeyDown={blockBadNumberKeys}
-                            className={`ap-input ${errors.costPrice ? "is-invalid" : ""}`}
-                            placeholder="0.00"
-                            value={form.costPrice}
-                            onChange={(e) => set("costPrice", e.target.value)}
-                            onBlur={() => touch("costPrice")}
-                          />
+                      {[
+                        {
+                          id: "pro-cost",
+                          label: "Cost price",
+                          field: "costPrice" as const,
+                          error: errors.costPrice,
+                        },
+                        {
+                          id: "pro-selling",
+                          label: "Selling price",
+                          field: "sellingPrice" as const,
+                          error: errors.sellingPrice,
+                        },
+                        {
+                          id: "pro-price",
+                          label: "MRP / Price",
+                          field: "price" as const,
+                          error: errors.price,
+                        },
+                      ].map(({ id, label, field, error }) => (
+                        <div className="ap-field" key={field}>
+                          <label className="ap-label" htmlFor={id}>
+                            {label} <span className="ap-required">*</span>
+                          </label>
+                          <div className="ap-price-input-group">
+                            <span className="ap-currency-symbol">
+                              {form.currency}
+                            </span>
+                            <input
+                              id={id}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              onKeyDown={blockBadNumberKeys}
+                              className={`ap-input ${error ? "is-invalid" : ""}`}
+                              placeholder="0.00"
+                              value={form[field]}
+                              onChange={(e) => set(field, e.target.value)}
+                              onBlur={() => touch(field)}
+                            />
+                          </div>
+                          {error && (
+                            <p className="ap-error-msg">
+                              <AlertCircle size={13} /> {error}
+                            </p>
+                          )}
                         </div>
-                        {errors.costPrice && (
-                          <p className="ap-error-msg">
-                            <AlertCircle size={13} /> {errors.costPrice}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-selling">
-                          Selling price <span className="ap-required">*</span>
-                        </label>
-                        <div className="ap-price-input-group">
-                          <span className="ap-currency-symbol">
-                            {form.currency}
-                          </span>
-                          <input
-                            id="pro-selling"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            onKeyDown={blockBadNumberKeys}
-                            className={`ap-input ${errors.sellingPrice ? "is-invalid" : ""}`}
-                            placeholder="0.00"
-                            value={form.sellingPrice}
-                            onChange={(e) =>
-                              set("sellingPrice", e.target.value)
-                            }
-                            onBlur={() => touch("sellingPrice")}
-                          />
-                        </div>
-                        {errors.sellingPrice && (
-                          <p className="ap-error-msg">
-                            <AlertCircle size={13} /> {errors.sellingPrice}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-price">
-                          MRP / Price <span className="ap-required">*</span>
-                        </label>
-                        <div className="ap-price-input-group">
-                          <span className="ap-currency-symbol">
-                            {form.currency}
-                          </span>
-                          <input
-                            id="pro-price"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            onKeyDown={blockBadNumberKeys}
-                            className={`ap-input ${errors.price ? "is-invalid" : ""}`}
-                            placeholder="0.00"
-                            value={form.price}
-                            onChange={(e) => set("price", e.target.value)}
-                            onBlur={() => touch("price")}
-                          />
-                        </div>
-                        {errors.price && (
-                          <p className="ap-error-msg">
-                            <AlertCircle size={13} /> {errors.price}
-                          </p>
-                        )}
-                      </div>
+                      ))}
                     </div>
 
                     {form.costPrice &&
@@ -1170,7 +1588,6 @@ const AddProduct: React.FC = () => {
                             id="pro-stock"
                             type="number"
                             min="0"
-                            step="0.01"
                             onKeyDown={blockBadNumberKeys}
                             className="ap-input"
                             placeholder="0"
@@ -1183,7 +1600,7 @@ const AddProduct: React.FC = () => {
                   </div>
                 </section>
 
-                {/* 03: Media */}
+                {/* Media */}
                 <section className="ap-card">
                   <div className="ap-card-head">
                     <div className="ap-card-icon-box ap-icon-violet">
@@ -1193,12 +1610,11 @@ const AddProduct: React.FC = () => {
                       <h2 className="ap-card-title">Media & Visual Assets</h2>
                       <p className="ap-card-desc">
                         {form.hasVariants
-                          ? "Upload the primary hero image. Gallery images are managed per variant below."
+                          ? "Upload the primary hero image. Variant images are managed below."
                           : "Main product image and up to 6 gallery images."}
                       </p>
                     </div>
                   </div>
-
                   <div className="ap-card-body">
                     <ImageDropzone
                       label="Main hero image *"
@@ -1207,8 +1623,6 @@ const AddProduct: React.FC = () => {
                       onFile={handleMainImage}
                       onRemove={removeMainImage}
                     />
-
-                    {/* Gallery Images (shared across product, with or without variants) */}
                     <div className="ap-field" style={{ marginTop: 20 }}>
                       <label className="ap-label">
                         Gallery images{" "}
@@ -1254,7 +1668,7 @@ const AddProduct: React.FC = () => {
                   </div>
                 </section>
 
-                {/* 04: Variants */}
+                {/* Variants */}
                 <section className="ap-card">
                   <div className="ap-card-head ap-flex-between">
                     <div className="ap-head-group">
@@ -1274,10 +1688,19 @@ const AddProduct: React.FC = () => {
                         type="checkbox"
                         checked={form.hasVariants}
                         onChange={(e) => {
-                          set("hasVariants", e.target.checked);
                           if (!e.target.checked) {
-                            set("variantTypes", []);
-                            set("variants", []);
+                            setForm((p) => ({
+                              ...p,
+                              hasVariants: false,
+                              variantTypes: [],
+                              selectedOptions: {},
+                              imageGroupTypeId: null,
+                              variantImageGroups: {},
+                              variants: [],
+                            }));
+                            setCombosGenerated(false);
+                          } else {
+                            set("hasVariants", true);
                           }
                         }}
                       />
@@ -1287,9 +1710,13 @@ const AddProduct: React.FC = () => {
 
                   {form.hasVariants && (
                     <div className="ap-card-body">
-                      <div className="ap-field">
-                        <label className="ap-label">Variant types</label>
-                        <div className="ap-chip-list">
+                      {/* STEP 1: Select variant types */}
+                      <div className="ap-variant-step">
+                        <div className="ap-variant-step-label">
+                          <span className="ap-step-badge">1</span>
+                          Select variant types
+                        </div>
+                        <div className="ap-chip-list" style={{ marginTop: 8 }}>
                           {vtLoading ? (
                             <span className="ap-muted">Loading types…</span>
                           ) : (
@@ -1301,14 +1728,12 @@ const AddProduct: React.FC = () => {
                                   key={vt._id}
                                   className={`ap-filter-chip ${active ? "is-selected" : ""}`}
                                   onClick={() => {
-                                    set(
-                                      "variantTypes",
-                                      active
-                                        ? form.variantTypes.filter(
-                                            (id) => id !== vt._id,
-                                          )
-                                        : [...form.variantTypes, vt._id],
-                                    );
+                                    const next = active
+                                      ? form.variantTypes.filter(
+                                          (id) => id !== vt._id,
+                                        )
+                                      : [...form.variantTypes, vt._id];
+                                    set("variantTypes", next);
                                   }}
                                 >
                                   {active && <CheckCircle2 size={13} />}
@@ -1320,217 +1745,529 @@ const AddProduct: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* STEP 2: Select options per type + designate image group type */}
+
                       {form.variantTypes.length > 0 && (
-                        <div className="ap-variant-stack">
-                          {form.variants.map((row, idx) => {
-                            const variantFileInputRef =
-                              React.createRef<HTMLInputElement>();
-                            return (
-                              <div key={row.id} className="ap-variant-card">
-                                <div className="ap-variant-top">
-                                  <div className="ap-variant-id">
-                                    <span>#{idx + 1}</span>
+                        <div className="ap-variant-step">
+                          <div className="ap-variant-step-label">
+                            <span className="ap-step-badge">2</span>
+                            Select options for each type
+                          </div>
+
+                          {form.variantTypes.length > 1 && (
+                            <p
+                              className="ap-muted"
+                              style={{
+                                fontSize: "0.78rem",
+                                margin: "4px 0 10px",
+                              }}
+                            >
+                              💡 Mark the type whose options share images (e.g.
+                              Color). Other types (Size) can then be selected
+                              per option.
+                            </p>
+                          )}
+
+                          <div className="ap-options-per-type">
+                            {form.variantTypes.map((typeId) => {
+                              const vt = variantTypes.find(
+                                (v) => v._id === typeId,
+                              );
+                              const isImageType =
+                                form.imageGroupTypeId === typeId;
+
+                              return (
+                                <div
+                                  key={typeId}
+                                  className="ap-type-option-row"
+                                >
+                                  <div className="ap-type-option-header">
+                                    <span className="ap-type-option-label">
+                                      {vt?.name ?? typeId}
+                                    </span>
+                                    {form.variantTypes.length > 1 && (
+                                      <button
+                                        type="button"
+                                        className={`ap-image-type-badge ${isImageType ? "is-active" : ""}`}
+                                        onClick={() =>
+                                          isImageType
+                                            ? setForm((p) => ({
+                                                ...p,
+                                                imageGroupTypeId: null,
+                                                perGroupOptions: {},
+                                                variants: [],
+                                              }))
+                                            : handleImageGroupTypeChange(typeId)
+                                        }
+                                      >
+                                        <ImageIcon size={11} />
+                                        {isImageType
+                                          ? "Images grouped here ✓"
+                                          : "Group images by this"}
+                                      </button>
+                                    )}
                                   </div>
 
-                                  <div className="ap-variant-combos">
-                                    {row.combination.map((c) => {
-                                      const vt = variantTypes.find(
-                                        (v) => v._id === c.variant_type_id,
-                                      );
-                                      return (
+                                  {/* Image group type (Color): flat chip selection as before */}
+                                  {isImageType || !form.imageGroupTypeId ? (
+                                    <VariantOptionChips
+                                      typeId={typeId}
+                                      selectedOptionIds={
+                                        form.selectedOptions[typeId] ?? []
+                                      }
+                                      onToggle={(optionId) =>
+                                        toggleOption(typeId, optionId)
+                                      }
+                                    />
+                                  ) : (
+                                    // Non-image-group type (Size): show chips PER color option
+                                    <div className="ap-per-group-options">
+                                      {(
+                                        form.selectedOptions[
+                                          form.imageGroupTypeId
+                                        ] ?? []
+                                      ).map((groupOptId) => (
                                         <div
-                                          key={c.variant_type_id}
-                                          className="ap-variant-combo-pill"
+                                          key={groupOptId}
+                                          className="ap-per-group-row"
                                         >
-                                          <span className="ap-combo-type-name">
-                                            {vt?.name ?? "Option"}:
+                                          <span className="ap-per-group-label">
+                                            <VariantOptionLabel
+                                              typeId={form.imageGroupTypeId!}
+                                              optionId={groupOptId}
+                                            />
+                                            :
                                           </span>
-                                          <VariantOptionSelect
-                                            typeId={c.variant_type_id}
-                                            value={c.variant_option_id}
-                                            onChange={(optId) =>
-                                              updateVariantOption(
-                                                row.id,
-                                                c.variant_type_id,
-                                                optId,
+                                          <VariantOptionChips
+                                            typeId={typeId}
+                                            selectedOptionIds={
+                                              form.perGroupOptions[typeId]?.[
+                                                groupOptId
+                                              ] ?? []
+                                            }
+                                            onToggle={(optionId) =>
+                                              togglePerGroupOption(
+                                                typeId,
+                                                groupOptId,
+                                                optionId,
                                               )
                                             }
                                           />
                                         </div>
-                                      );
-                                    })}
-                                  </div>
-                                  {form.variants.length > 1 && (
+                                      ))}
+                                      {(
+                                        form.selectedOptions[
+                                          form.imageGroupTypeId
+                                        ] ?? []
+                                      ).length === 0 && (
+                                        <span
+                                          className="ap-muted"
+                                          style={{ fontSize: "0.78rem" }}
+                                        >
+                                          Select color options first
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* STEP 3: Generate combinations */}
+                      {form.variantTypes.length > 0 &&
+                        totalSelectedOptions > 0 && (
+                          <div className="ap-variant-step">
+                            <div className="ap-variant-step-label">
+                              <span className="ap-step-badge">3</span>
+                              Generate combinations
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 12,
+                                marginTop: 8,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className="ap-generate-btn"
+                                onClick={generateCombinations}
+                                disabled={!allTypesHaveOptions}
+                              >
+                                <RefreshCw size={14} />
+                                {combosGenerated
+                                  ? `Regenerate (${expectedCombosCount} combinations)`
+                                  : `Generate ${allTypesHaveOptions ? expectedCombosCount : ""} combinations`}
+                              </button>
+                              {!allTypesHaveOptions && (
+                                <span
+                                  className="ap-muted"
+                                  style={{ fontSize: "0.78rem" }}
+                                >
+                                  Select at least one option per type first
+                                </span>
+                              )}
+                              {combosGenerated && form.variants.length > 0 && (
+                                <span
+                                  style={{
+                                    fontSize: "0.78rem",
+                                    color: "#15803d",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  ✓ {form.variants.length} combination
+                                  {form.variants.length !== 1 ? "s" : ""} ready
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* STEP 4: Images per group + variant rows */}
+                      {combosGenerated && form.variants.length > 0 && (
+                        <div className="ap-variant-step">
+                          <div className="ap-variant-step-label">
+                            <span className="ap-step-badge">4</span>
+                            Set SKU, pricing & stock per combination
+                          </div>
+
+                          {/* Grouped image upload section */}
+                          {form.imageGroupTypeId && (
+                            <div className="ap-image-groups-section">
+                              <p className="ap-image-groups-title">
+                                <ImageIcon size={13} />
+                                Images per&nbsp;
+                                <strong>
+                                  {variantTypes.find(
+                                    (v) => v._id === form.imageGroupTypeId,
+                                  )?.name ?? "option"}
+                                </strong>
+                                <span
+                                  className="ap-muted"
+                                  style={{
+                                    fontWeight: 400,
+                                    fontSize: "0.75rem",
+                                  }}
+                                >
+                                  &nbsp;— upload once, shared across all
+                                  size/pack combos of that option
+                                </span>
+                              </p>
+                              <div className="ap-image-groups-grid">
+                                {(
+                                  form.selectedOptions[form.imageGroupTypeId] ??
+                                  []
+                                ).map((optionId) => {
+                                  const group = form.variantImageGroups[
+                                    optionId
+                                  ] ?? {
+                                    optionId,
+                                    typeId: form.imageGroupTypeId!,
+                                    images: [],
+                                    imagePreviews: [],
+                                  };
+                                  const fileInputRef =
+                                    React.createRef<HTMLInputElement>();
+                                  return (
+                                    <div
+                                      key={optionId}
+                                      className="ap-image-group-card"
+                                    >
+                                      <div className="ap-image-group-label">
+                                        <VariantOptionLabel
+                                          typeId={form.imageGroupTypeId!}
+                                          optionId={optionId}
+                                        />
+                                      </div>
+
+                                      <p className="ap-image-group-count">
+                                        {group.imagePreviews.length} / 5 images
+                                      </p>
+
+                                      <div className="ap-gallery-grid ap-gallery-grid-compact">
+                                        {group.imagePreviews.map((src, i) => (
+                                          <div
+                                            key={i}
+                                            className="ap-gallery-thumb"
+                                          >
+                                            <img
+                                              src={getImageUrl(src)}
+                                              alt="Variant visual"
+                                            />
+                                            <button
+                                              type="button"
+                                              className="ap-gallery-remove"
+                                              onClick={() =>
+                                                removeVariantGroupImage(
+                                                  optionId,
+                                                  i,
+                                                )
+                                              }
+                                            >
+                                              <X size={12} />
+                                            </button>
+                                          </div>
+                                        ))}
+                                        {group.imagePreviews.length < 5 && (
+                                          <button
+                                            type="button"
+                                            className="ap-gallery-add-card ap-gallery-add-card-sm"
+                                            onClick={() =>
+                                              fileInputRef.current?.click()
+                                            }
+                                          >
+                                            <Plus size={16} />
+                                            <span>Add</span>
+                                          </button>
+                                        )}
+                                      </div>
+                                      <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        hidden
+                                        onChange={(e) => {
+                                          if (e.target.files)
+                                            handleVariantGroupImages(
+                                              optionId,
+                                              form.imageGroupTypeId!,
+                                              e.target.files,
+                                            );
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Variant rows */}
+                          <div
+                            className="ap-variant-stack"
+                            style={{
+                              marginTop: form.imageGroupTypeId ? 16 : 8,
+                            }}
+                          >
+                            {form.variants.map((row, idx) => {
+                              const fallbackFileRef =
+                                React.createRef<HTMLInputElement>();
+                              return (
+                                <div key={row.id} className="ap-variant-card">
+                                  <div className="ap-variant-top">
+                                    <div className="ap-variant-id">
+                                      <span>#{idx + 1}</span>
+                                    </div>
+                                    <div className="ap-variant-combos">
+                                      {row.combination.map((c) => {
+                                        const vt = variantTypes.find(
+                                          (v) => v._id === c.variant_type_id,
+                                        );
+                                        return (
+                                          <VariantComboPill
+                                            key={c.variant_type_id}
+                                            typeId={c.variant_type_id}
+                                            optionId={c.variant_option_id}
+                                            typeName={vt?.name ?? "Option"}
+                                          />
+                                        );
+                                      })}
+                                    </div>
                                     <button
                                       type="button"
                                       className="ap-variant-del-btn"
                                       onClick={() => removeVariantRow(row.id)}
-                                      title="Delete item"
+                                      title="Remove this combination"
                                       style={{ marginLeft: "auto" }}
                                     >
                                       <MdDelete size={17} />
                                     </button>
+                                  </div>
+
+                                  <div className="ap-variant-inputs-grid">
+                                    <div className="ap-field-sm">
+                                      <label>SKU *</label>
+                                      <input
+                                        type="text"
+                                        className={`ap-input ap-input-sm ap-mono ${
+                                          touched[`vsku_${row.id}`] &&
+                                          !row.sku.trim()
+                                            ? "is-invalid"
+                                            : ""
+                                        }`}
+                                        placeholder="SKU"
+                                        value={row.sku}
+                                        onChange={(e) =>
+                                          updateVariantRow(
+                                            row.id,
+                                            "sku",
+                                            e.target.value.toUpperCase(),
+                                          )
+                                        }
+                                        onBlur={() =>
+                                          setTouched((p) => ({
+                                            ...p,
+                                            [`vsku_${row.id}`]: true,
+                                          }))
+                                        }
+                                      />
+                                    </div>
+                                    <div className="ap-field-sm">
+                                      <label>Cost</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        onKeyDown={blockBadNumberKeys}
+                                        className="ap-input ap-input-sm"
+                                        placeholder={form.costPrice || "0.00"}
+                                        value={row.costPrice}
+                                        onChange={(e) =>
+                                          updateVariantRow(
+                                            row.id,
+                                            "costPrice",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="ap-field-sm">
+                                      <label>Selling</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        onKeyDown={blockBadNumberKeys}
+                                        className="ap-input ap-input-sm"
+                                        placeholder={
+                                          form.sellingPrice || "0.00"
+                                        }
+                                        value={row.sellingPrice}
+                                        onChange={(e) =>
+                                          updateVariantRow(
+                                            row.id,
+                                            "sellingPrice",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="ap-field-sm">
+                                      <label>MRP</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        onKeyDown={blockBadNumberKeys}
+                                        className="ap-input ap-input-sm"
+                                        placeholder={form.price || "0.00"}
+                                        value={row.price}
+                                        onChange={(e) =>
+                                          updateVariantRow(
+                                            row.id,
+                                            "price",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                    <div className="ap-field-sm">
+                                      <label>Stock</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        onKeyDown={blockBadNumberKeys}
+                                        className="ap-input ap-input-sm"
+                                        placeholder="Qty"
+                                        value={row.stock}
+                                        onChange={(e) =>
+                                          updateVariantRow(
+                                            row.id,
+                                            "stock",
+                                            e.target.value,
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Per-row images: only shown when no image group type is set */}
+                                  {!form.imageGroupTypeId && (
+                                    <div className="ap-variant-media-row">
+                                      <label className="ap-variant-media-label">
+                                        <ImageIcon size={13} /> Variant Media
+                                        <span className="ap-variant-media-count">
+                                          {row.imagePreviews.length}/5
+                                        </span>
+                                      </label>
+                                      <div className="ap-gallery-grid ap-gallery-grid-compact">
+                                        {(row.imagePreviews ?? []).map(
+                                          (src, i) => (
+                                            <div
+                                              key={i}
+                                              className="ap-gallery-thumb"
+                                            >
+                                              <img
+                                                src={getImageUrl(src)}
+                                                alt="Variant asset"
+                                              />
+                                              <button
+                                                type="button"
+                                                className="ap-gallery-remove"
+                                                onClick={() =>
+                                                  removeVariantRowImage(
+                                                    row.id,
+                                                    i,
+                                                  )
+                                                }
+                                              >
+                                                <X size={12} />
+                                              </button>
+                                            </div>
+                                          ),
+                                        )}
+                                        {(row.imagePreviews ?? []).length <
+                                          5 && (
+                                          <button
+                                            type="button"
+                                            className="ap-gallery-add-card ap-gallery-add-card-sm"
+                                            onClick={() =>
+                                              fallbackFileRef.current?.click()
+                                            }
+                                          >
+                                            <Plus size={16} />
+                                            <span>Add</span>
+                                          </button>
+                                        )}
+                                      </div>
+                                      <input
+                                        ref={fallbackFileRef}
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        hidden
+                                        onChange={(e) => {
+                                          if (e.target.files)
+                                            handleVariantRowImages(
+                                              row.id,
+                                              e.target.files,
+                                            );
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                    </div>
                                   )}
                                 </div>
-
-                                <div className="ap-variant-inputs-grid">
-                                  <div className="ap-field-sm">
-                                    <label>SKU</label>
-                                    <input
-                                      type="text"
-                                      className="ap-input ap-input-sm ap-mono"
-                                      placeholder="SKU"
-                                      value={row.sku}
-                                      onChange={(e) =>
-                                        updateVariantRow(
-                                          row.id,
-                                          "sku",
-                                          e.target.value.toUpperCase(),
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="ap-field-sm">
-                                    <label>Cost</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      onKeyDown={blockBadNumberKeys}
-                                      className="ap-input ap-input-sm"
-                                      placeholder="0.00"
-                                      value={row.costPrice}
-                                      onChange={(e) =>
-                                        updateVariantRow(
-                                          row.id,
-                                          "costPrice",
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="ap-field-sm">
-                                    <label>Selling</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      onKeyDown={blockBadNumberKeys}
-                                      className="ap-input ap-input-sm"
-                                      placeholder="0.00"
-                                      value={row.sellingPrice}
-                                      onChange={(e) =>
-                                        updateVariantRow(
-                                          row.id,
-                                          "sellingPrice",
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="ap-field-sm">
-                                    <label>MRP</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      onKeyDown={blockBadNumberKeys}
-                                      className="ap-input ap-input-sm"
-                                      placeholder="0.00"
-                                      value={row.price}
-                                      onChange={(e) =>
-                                        updateVariantRow(
-                                          row.id,
-                                          "price",
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="ap-field-sm">
-                                    <label>Stock</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      onKeyDown={blockBadNumberKeys}
-                                      className="ap-input ap-input-sm"
-                                      placeholder="Qty"
-                                      value={row.stock}
-                                      onChange={(e) =>
-                                        updateVariantRow(
-                                          row.id,
-                                          "stock",
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="ap-variant-media-row">
-                                  <label className="ap-variant-media-label">
-                                    <ImageIcon size={13} /> Variant Media
-                                    (optional, up to 5 images)
-                                  </label>
-                                  <div className="ap-gallery-grid ap-gallery-grid-compact">
-                                    {row.imagePreviews.map((src, i) => (
-                                      <div key={i} className="ap-gallery-thumb">
-                                        <img
-                                          src={getImageUrl(src)}
-                                          alt="Variant asset"
-                                        />
-                                        <button
-                                          type="button"
-                                          className="ap-gallery-remove"
-                                          onClick={() =>
-                                            removeVariantImage(row.id, i)
-                                          }
-                                        >
-                                          <X size={12} />
-                                        </button>
-                                      </div>
-                                    ))}
-                                    {row.imagePreviews.length < 5 && (
-                                      <button
-                                        type="button"
-                                        className="ap-gallery-add-card ap-gallery-add-card-sm"
-                                        onClick={() =>
-                                          variantFileInputRef.current?.click()
-                                        }
-                                      >
-                                        <Plus size={16} />
-                                        <span>Add</span>
-                                      </button>
-                                    )}
-                                  </div>
-                                  <input
-                                    ref={variantFileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    hidden
-                                    onChange={(e) => {
-                                      if (e.target.files)
-                                        handleVariantImages(
-                                          row.id,
-                                          e.target.files,
-                                        );
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          <button
-                            type="button"
-                            className="ap-add-variant-btn"
-                            onClick={addVariantRow}
-                          >
-                            <Plus size={16} /> Add Another Variant Combination
-                          </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1538,11 +2275,9 @@ const AddProduct: React.FC = () => {
                 </section>
               </div>
 
-              {/* ── RIGHT: LIVE PREVIEW & AUDIT ── */}
-              {/* ── RIGHT: LIVE PREVIEW & AUDIT ── */}
+              {/* ── RIGHT SIDEBAR ── */}
               <div className="ap-col-sidebar">
                 <div className="ap-sticky-stack">
-                  {/* Live Preview Card */}
                   <div className="ap-preview-card">
                     <div className="ap-preview-header">
                       <div className="ap-flex-align">
@@ -1553,8 +2288,6 @@ const AddProduct: React.FC = () => {
                         {isEditMode ? "EDITING" : "PREVIEW"}
                       </span>
                     </div>
-
-                    {/* Thumbnail */}
                     <div className="ap-preview-thumb">
                       {mainPreview ? (
                         <img
@@ -1568,40 +2301,28 @@ const AddProduct: React.FC = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Content */}
                     <div className="ap-preview-content">
-                      {/* Name */}
                       <h4 className="ap-preview-title">
                         {form.name || (
                           <span className="ap-preview-ph">Product name</span>
                         )}
                       </h4>
-
-                      {/* SKU */}
                       <p className="ap-preview-sku-line">
                         SKU: <span>{form.sku || "—"}</span>
                       </p>
-
-                      {/* Category */}
                       {form.category_id && (
                         <p className="ap-preview-meta-line">
                           <span className="ap-preview-meta-key">Category</span>
                           <span className="ap-preview-meta-val">
-                            {/* show name if found, else id */}
                             Selected ✓
                           </span>
                         </p>
                       )}
-
-                      {/* Short description */}
                       {form.short_description && (
                         <p className="ap-preview-short-desc">
                           {form.short_description}
                         </p>
                       )}
-
-                      {/* Pricing row */}
                       <div className="ap-preview-pricing">
                         <div className="ap-main-price">
                           {form.currency}{" "}
@@ -1630,11 +2351,9 @@ const AddProduct: React.FC = () => {
                             </span>
                           )}
                       </div>
-
-                      {/* Tags row */}
                       <div className="ap-preview-tags-row">
                         <span className="ap-preview-tag-pill ap-tag-pending">
-                          {form.status ? form.status : "Pending"}
+                          {form.status ?? "Pending"}
                         </span>
                         {form.hasVariants && (
                           <span className="ap-preview-tag-pill ap-tag-variant">
@@ -1643,11 +2362,7 @@ const AddProduct: React.FC = () => {
                         )}
                         {!form.hasVariants && form.stock && (
                           <span
-                            className={`ap-preview-tag-pill ${
-                              Number(form.stock) > 0
-                                ? "ap-tag-instock"
-                                : "ap-tag-outstock"
-                            }`}
+                            className={`ap-preview-tag-pill ${Number(form.stock) > 0 ? "ap-tag-instock" : "ap-tag-outstock"}`}
                           >
                             {Number(form.stock) > 0
                               ? `${form.stock} in stock`
@@ -1655,8 +2370,6 @@ const AddProduct: React.FC = () => {
                           </span>
                         )}
                       </div>
-
-                      {/* Featured images strip */}
                       {featuredPreviews.length > 0 && (
                         <div className="ap-preview-gallery-strip">
                           {featuredPreviews.slice(0, 4).map((src, i) => (
@@ -1671,8 +2384,6 @@ const AddProduct: React.FC = () => {
                           )}
                         </div>
                       )}
-
-                      {/* Variant summary */}
                       {form.hasVariants && form.variants.length > 0 && (
                         <div className="ap-preview-variant-summary">
                           <span className="ap-preview-variant-count">
@@ -1680,11 +2391,11 @@ const AddProduct: React.FC = () => {
                             {form.variants.length > 1 ? "s" : ""} configured
                           </span>
                           <div className="ap-preview-variant-dots">
-                            {form.variants.slice(0, 5).map((_, i) => (
+                            {form.variants.slice(0, 5).map((v, i) => (
                               <span
                                 key={i}
                                 className={`ap-preview-vdot ${
-                                  form.variants[i].combination.every(
+                                  v.combination.every(
                                     (c) => c.variant_option_id,
                                   )
                                     ? "is-complete"
@@ -1703,76 +2414,47 @@ const AddProduct: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Margin Overview */}
                   {(form.costPrice || form.sellingPrice || form.price) && (
                     <div className="ap-metrics-card">
                       <h4 className="ap-metrics-title">Price Breakdown</h4>
-
-                      <div className="ap-metric-row">
-                        <span className="ap-metric-label">Cost price</span>
-                        <span className="ap-metric-val ap-font-mono">
-                          {form.costPrice
-                            ? `${form.currency} ${Number(form.costPrice).toLocaleString("en-IN")}`
-                            : "—"}
-                        </span>
-                      </div>
-                      <div className="ap-metric-row">
-                        <span className="ap-metric-label">Selling price</span>
-                        <span className="ap-metric-val ap-font-mono">
-                          {form.sellingPrice
-                            ? `${form.currency} ${Number(form.sellingPrice).toLocaleString("en-IN")}`
-                            : "—"}
-                        </span>
-                      </div>
-                      <div className="ap-metric-row">
-                        <span className="ap-metric-label">MRP</span>
-                        <span className="ap-metric-val ap-font-mono">
-                          {form.price
-                            ? `${form.currency} ${Number(form.price).toLocaleString("en-IN")}`
-                            : "—"}
-                        </span>
-                      </div>
-
+                      {[
+                        { label: "Cost price", val: form.costPrice },
+                        { label: "Selling price", val: form.sellingPrice },
+                        { label: "MRP", val: form.price },
+                      ].map(({ label, val }) => (
+                        <div className="ap-metric-row" key={label}>
+                          <span className="ap-metric-label">{label}</span>
+                          <span className="ap-metric-val ap-font-mono">
+                            {val
+                              ? `${form.currency} ${Number(val).toLocaleString("en-IN")}`
+                              : "—"}
+                          </span>
+                        </div>
+                      ))}
                       <div className="ap-metric-divider" />
-
                       <div className="ap-metric-row">
                         <span className="ap-metric-label">Gross margin</span>
                         <span
-                          className={`ap-metric-val ap-font-mono ${
-                            marginVal && Number(marginVal) > 0
-                              ? "ap-metric-positive"
-                              : "ap-metric-negative"
-                          }`}
+                          className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
                         >
                           {form.sellingPrice && form.costPrice
-                            ? `${form.currency} ${(
-                                Number(form.sellingPrice) -
-                                Number(form.costPrice)
-                              ).toLocaleString("en-IN")}`
+                            ? `${form.currency} ${(Number(form.sellingPrice) - Number(form.costPrice)).toLocaleString("en-IN")}`
                             : "—"}
                         </span>
                       </div>
                       <div className="ap-metric-row">
                         <span className="ap-metric-label">Margin %</span>
                         <span
-                          className={`ap-metric-val ap-font-mono ${
-                            marginVal && Number(marginVal) > 0
-                              ? "ap-metric-positive"
-                              : "ap-metric-negative"
-                          }`}
+                          className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
                         >
                           {marginVal ? `${marginVal}%` : "—"}
                         </span>
                       </div>
-
                       <div className="ap-metric-progress">
                         <div
                           className="ap-metric-bar"
                           style={{
-                            width: `${Math.min(
-                              Math.max(Number(marginVal || 0), 0),
-                              100,
-                            )}%`,
+                            width: `${Math.min(Math.max(Number(marginVal || 0), 0), 100)}%`,
                           }}
                         />
                       </div>
@@ -1786,7 +2468,6 @@ const AddProduct: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Readiness checklist */}
                   <div className="ap-checklist-card">
                     <h4 className="ap-checklist-title">Readiness</h4>
                     <ul className="ap-checklist">

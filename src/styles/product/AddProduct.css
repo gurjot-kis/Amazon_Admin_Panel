@@ -1366,3 +1366,290 @@ input:checked + .ap-switch-slider:before {
   color: #15803d;
   font-weight: 600;
 }
+
+/* ── Variant Steps ── */
+.ap-variant-step {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--ap-border);
+}
+.ap-variant-step:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ap-variant-step-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ap-text-main);
+  margin-bottom: 4px;
+}
+
+.ap-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ap-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* ── Options per type grid ── */
+.ap-options-per-type {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.ap-type-option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-md);
+}
+
+.ap-type-option-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ap-primary);
+  text-transform: uppercase;
+  min-width: 56px;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+/* ── Smaller chips for options ── */
+.ap-filter-chip-sm {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+/* ── Generate button ── */
+.ap-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--ap-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+.ap-generate-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+.ap-generate-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Variant Steps ── */
+.ap-variant-step {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--ap-border);
+}
+.ap-variant-step:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.ap-variant-step-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ap-text-main);
+  margin-bottom: 4px;
+}
+.ap-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ap-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* ── Options per type ── */
+.ap-options-per-type {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ap-type-option-row {
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-md);
+}
+.ap-type-option-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ap-type-option-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ap-primary);
+  text-transform: uppercase;
+}
+.ap-filter-chip-sm {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+/* ── Image type badge ── */
+.ap-image-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px dashed var(--ap-border);
+  background: #fff;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ap-image-type-badge:hover {
+  border-color: var(--ap-primary);
+  color: var(--ap-primary);
+}
+.ap-image-type-badge.is-active {
+  background: #eff6ff;
+  border: 1px solid #3b82f6;
+  color: #1d4ed8;
+}
+
+/* ── Generate button ── */
+.ap-generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--ap-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+.ap-generate-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+.ap-generate-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Image groups section ── */
+.ap-image-groups-section {
+  background: #f8fafc;
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-md);
+  padding: 14px 16px;
+  margin-bottom: 4px;
+}
+.ap-image-groups-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ap-text-main);
+  margin: 0 0 12px;
+  flex-wrap: wrap;
+}
+.ap-image-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.ap-image-group-card {
+  background: #fff;
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-md);
+  padding: 10px;
+}
+.ap-image-group-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ap-primary);
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+
+.ap-image-group-count {
+  font-size: 0.7rem;
+  color: var(--ap-text-light);
+  margin: 0 0 8px;
+}
+
+.ap-variant-media-count {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--ap-text-light);
+  font-weight: 400;
+  text-transform: none;
+}
+/* ── Per-group options (Size per Color) ── */
+.ap-per-group-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ap-per-group-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ap-per-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ap-text-muted);
+  min-width: 72px;
+  flex-shrink: 0;
+}
