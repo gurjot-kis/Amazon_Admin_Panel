@@ -91,6 +91,7 @@ export interface CreateProductPayload {
   hasVariants?: boolean;
   variantTypes?: string[];
   variants?: CreateProductVariant[];
+  imageGroupTypeId?: string | null;
 }
 
 // ====================
@@ -161,6 +162,7 @@ export interface ProductDetails {
   updatedAt: string;
   slug: string;
   variants: ProductVariant[];
+  imageGroupTypeId?: string | null;
 }
 
 export type GetProductByIdResponse = ApiResponse<ProductDetails>;
@@ -181,6 +183,7 @@ export interface UpdateProductPayload {
   hasVariants?: boolean;
   variantTypes?: string[];
   variants?: CreateProductVariant[];
+  imageGroupTypeId?: string | null;
 }
 
 export interface UpdateProductStatusPayload {

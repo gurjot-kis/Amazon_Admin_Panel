@@ -547,198 +547,356 @@ const AddProduct: React.FC = () => {
     [variantTypesData],
   );
 
+  // useEffect(() => {
+  //   if (isEditMode && productData?.data) {
+  //     const prod = productData.data;
+
+  //     const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
+  //       typeof vt === "object" ? vt._id : vt,
+  //     );
+
+  //     const populatedVariants: VariantRow[] = (prod.variants || []).map(
+  //       (v) => ({
+  //         _id: v._id,
+  //         id: uid(),
+  //         combination: (v.combination || []).map((c) => ({
+  //           variant_type_id:
+  //             typeof c.variant_type_id === "object"
+  //               ? c.variant_type_id._id
+  //               : c.variant_type_id,
+  //           variant_option_id:
+  //             typeof c.variant_option_id === "object"
+  //               ? (c.variant_option_id as any)._id
+  //               : c.variant_option_id,
+  //         })),
+  //         sku: v.sku || "",
+  //         costPrice: v.costPrice !== undefined ? String(v.costPrice) : "",
+  //         sellingPrice:
+  //           v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
+  //         price: v.price !== undefined ? String(v.price) : "",
+  //         stock: v.stock !== undefined ? String(v.stock) : "",
+  //         images: [],
+  //         imagePreviews: [],
+  //       }),
+  //     );
+
+  //     // Reconstruct selectedOptions from existing variants
+  //     const reconstructedSelectedOptions: Record<string, string[]> = {};
+  //     populatedVariants.forEach((row) => {
+  //       row.combination.forEach((c) => {
+  //         if (!reconstructedSelectedOptions[c.variant_type_id])
+  //           reconstructedSelectedOptions[c.variant_type_id] = [];
+  //         if (
+  //           !reconstructedSelectedOptions[c.variant_type_id].includes(
+  //             c.variant_option_id,
+  //           )
+  //         )
+  //           reconstructedSelectedOptions[c.variant_type_id].push(
+  //             c.variant_option_id,
+  //           );
+  //       });
+  //     });
+
+  //     // Detect imageGroupTypeId
+  //     let detectedImageGroupTypeId: string | null = null;
+
+  //     if (resolvedVariantTypes.length === 1) {
+  //       detectedImageGroupTypeId = resolvedVariantTypes[0];
+  //     } else {
+  //       // Find the type where different options have DIFFERENT image sets
+  //       // That type is the one driving image differences (e.g. Color)
+  //       for (const typeId of resolvedVariantTypes) {
+  //         const optionIds = reconstructedSelectedOptions[typeId] ?? [];
+  //         const imageSetsPerOption = optionIds.map((optId) => {
+  //           const matchingVariant = (prod.variants || []).find((v) =>
+  //             v.combination.some((c) => {
+  //               const cOptId =
+  //                 typeof c.variant_option_id === "object"
+  //                   ? (c.variant_option_id as any)._id
+  //                   : c.variant_option_id;
+  //               return cOptId === optId;
+  //             }),
+  //           );
+  //           return JSON.stringify(matchingVariant?.images || []);
+  //         });
+
+  //         const uniqueImageSets = new Set(imageSetsPerOption);
+  //         if (uniqueImageSets.size > 1) {
+  //           detectedImageGroupTypeId = typeId;
+  //           break;
+  //         }
+  //       }
+
+  //       // Fallback: pick the type with FEWER options (Color usually < Size)
+  //       if (!detectedImageGroupTypeId) {
+  //         let minOptions = Infinity;
+  //         for (const typeId of resolvedVariantTypes) {
+  //           const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
+  //           if (count < minOptions && count > 0) {
+  //             minOptions = count;
+  //             detectedImageGroupTypeId = typeId;
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     // Reconstruct perGroupOptions from existing variants
+  //     const reconstructedPerGroupOptions: Record<
+  //       string,
+  //       Record<string, string[]>
+  //     > = {};
+
+  //     if (detectedImageGroupTypeId) {
+  //       const otherTypeIds = resolvedVariantTypes.filter(
+  //         (id) => id !== detectedImageGroupTypeId,
+  //       );
+
+  //       populatedVariants.forEach((row) => {
+  //         const groupOptId = row.combination.find(
+  //           (c) => c.variant_type_id === detectedImageGroupTypeId,
+  //         )?.variant_option_id;
+
+  //         if (!groupOptId) return;
+
+  //         otherTypeIds.forEach((typeId) => {
+  //           const optId = row.combination.find(
+  //             (c) => c.variant_type_id === typeId,
+  //           )?.variant_option_id;
+
+  //           if (!optId) return;
+
+  //           if (!reconstructedPerGroupOptions[typeId])
+  //             reconstructedPerGroupOptions[typeId] = {};
+  //           if (!reconstructedPerGroupOptions[typeId][groupOptId])
+  //             reconstructedPerGroupOptions[typeId][groupOptId] = [];
+  //           if (
+  //             !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
+  //           )
+  //             reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
+  //         });
+  //       });
+  //     }
+
+  //     // Reconstruct image groups
+  //     const reconstructedImageGroups: Record<string, VariantImageGroup> = {};
+
+  //     if (detectedImageGroupTypeId) {
+  //       const optionIds =
+  //         reconstructedSelectedOptions[detectedImageGroupTypeId] ?? [];
+
+  //       optionIds.forEach((optionId) => {
+  //         const matchingApiVariant = (prod.variants || []).find((v) =>
+  //           v.combination.some((c) => {
+  //             const cOptId =
+  //               typeof c.variant_option_id === "object"
+  //                 ? (c.variant_option_id as any)._id
+  //                 : c.variant_option_id;
+  //             return cOptId === optionId;
+  //           }),
+  //         );
+
+  //         const images: string[] = matchingApiVariant?.images || [];
+
+  //         reconstructedImageGroups[optionId] = {
+  //           optionId,
+  //           typeId: detectedImageGroupTypeId!,
+  //           images,
+  //           imagePreviews: images.map((img) => getImageUrl(img)),
+  //         };
+  //       });
+  //     }
+
+  //     setForm({
+  //       name: prod.name || "",
+  //       description: prod.description || "",
+  //       short_description: prod.short_description || "",
+  //       category_id:
+  //         typeof prod.category_id === "object"
+  //           ? prod.category_id._id
+  //           : prod.category_id,
+  //       sku: prod.sku || "",
+  //       currency: prod.currency || "INR",
+  //       costPrice: prod.costPrice !== undefined ? String(prod.costPrice) : "",
+  //       sellingPrice:
+  //         prod.sellingPrice !== undefined ? String(prod.sellingPrice) : "",
+  //       price: prod.price !== undefined ? String(prod.price) : "",
+  //       stock: prod.stock !== undefined ? String(prod.stock) : "",
+  //       mainImage: prod.mainImage || null,
+  //       featuredImages: prod.featuredImages || [],
+  //       hasVariants: prod.hasVariants || false,
+  //       variantTypes: resolvedVariantTypes,
+  //       selectedOptions: reconstructedSelectedOptions,
+  //       perGroupOptions: reconstructedPerGroupOptions,
+  //       imageGroupTypeId: detectedImageGroupTypeId,
+  //       variantImageGroups: reconstructedImageGroups,
+  //       variants: populatedVariants,
+  //       status: prod.status || "pending",
+  //     });
+
+  //     if (prod.mainImage) setMainPreview(getImageUrl(prod.mainImage));
+  //     if (prod.featuredImages?.length)
+  //       setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
+  //     if (populatedVariants.length > 0) setCombosGenerated(true);
+  //   }
+  // }, [isEditMode, productData]);
+
+
   useEffect(() => {
-    if (isEditMode && productData?.data) {
-      const prod = productData.data;
+  if (isEditMode && productData?.data) {
+    const prod = productData.data;
 
-      const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
-        typeof vt === "object" ? vt._id : vt,
-      );
+    const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
+      typeof vt === "object" ? vt._id : vt,
+    );
 
-      const populatedVariants: VariantRow[] = (prod.variants || []).map(
-        (v) => ({
-          _id: v._id,
-          id: uid(),
-          combination: (v.combination || []).map((c) => ({
-            variant_type_id:
-              typeof c.variant_type_id === "object"
-                ? c.variant_type_id._id
-                : c.variant_type_id,
-            variant_option_id:
-              typeof c.variant_option_id === "object"
-                ? (c.variant_option_id as any)._id
-                : c.variant_option_id,
-          })),
-          sku: v.sku || "",
-          costPrice: v.costPrice !== undefined ? String(v.costPrice) : "",
-          sellingPrice:
-            v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
-          price: v.price !== undefined ? String(v.price) : "",
-          stock: v.stock !== undefined ? String(v.stock) : "",
-          images: [],
-          imagePreviews: [],
-        }),
-      );
+    const populatedVariants: VariantRow[] = (prod.variants || []).map(
+      (v) => ({
+        _id: v._id,
+        id: uid(),
+        combination: (v.combination || []).map((c) => ({
+          variant_type_id:
+            typeof c.variant_type_id === "object"
+              ? c.variant_type_id._id
+              : c.variant_type_id,
+          variant_option_id:
+            typeof c.variant_option_id === "object"
+              ? (c.variant_option_id as any)._id
+              : c.variant_option_id,
+        })),
+        sku: v.sku || "",
+        costPrice: v.costPrice !== undefined ? String(v.costPrice) : "",
+        sellingPrice:
+          v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
+        price: v.price !== undefined ? String(v.price) : "",
+        stock: v.stock !== undefined ? String(v.stock) : "",
+        images: [],
+        imagePreviews: [],
+      }),
+    );
 
-      // Reconstruct selectedOptions from existing variants
-      const reconstructedSelectedOptions: Record<string, string[]> = {};
-      populatedVariants.forEach((row) => {
-        row.combination.forEach((c) => {
-          if (!reconstructedSelectedOptions[c.variant_type_id])
-            reconstructedSelectedOptions[c.variant_type_id] = [];
-          if (
-            !reconstructedSelectedOptions[c.variant_type_id].includes(
-              c.variant_option_id,
-            )
+    // Reconstruct selectedOptions from existing variants
+    const reconstructedSelectedOptions: Record<string, string[]> = {};
+    populatedVariants.forEach((row) => {
+      row.combination.forEach((c) => {
+        if (!reconstructedSelectedOptions[c.variant_type_id])
+          reconstructedSelectedOptions[c.variant_type_id] = [];
+        if (
+          !reconstructedSelectedOptions[c.variant_type_id].includes(
+            c.variant_option_id,
           )
-            reconstructedSelectedOptions[c.variant_type_id].push(
-              c.variant_option_id,
-            );
-        });
+        )
+          reconstructedSelectedOptions[c.variant_type_id].push(
+            c.variant_option_id,
+          );
       });
+    });
 
-      // Detect imageGroupTypeId
-      let detectedImageGroupTypeId: string | null = null;
+    // ── REPLACE entire detection block with this one line ──
+    const detectedImageGroupTypeId: string | null = prod.imageGroupTypeId
+      ? typeof prod.imageGroupTypeId === "object"
+        ? (prod.imageGroupTypeId as any)._id
+        : prod.imageGroupTypeId
+      : null;
 
-      if (resolvedVariantTypes.length === 1) {
-        detectedImageGroupTypeId = resolvedVariantTypes[0];
-      } else {
-        // Find the type where different options have DIFFERENT image sets
-        // That type is the one driving image differences (e.g. Color)
-        for (const typeId of resolvedVariantTypes) {
-          const optionIds = reconstructedSelectedOptions[typeId] ?? [];
-          const imageSetsPerOption = optionIds.map((optId) => {
-            const matchingVariant = (prod.variants || []).find((v) =>
-              v.combination.some((c) => {
-                const cOptId =
-                  typeof c.variant_option_id === "object"
-                    ? (c.variant_option_id as any)._id
-                    : c.variant_option_id;
-                return cOptId === optId;
-              }),
-            );
-            return JSON.stringify(matchingVariant?.images || []);
-          });
+    // Reconstruct perGroupOptions from existing variants
+    const reconstructedPerGroupOptions: Record<
+      string,
+      Record<string, string[]>
+    > = {};
 
-          const uniqueImageSets = new Set(imageSetsPerOption);
-          if (uniqueImageSets.size > 1) {
-            detectedImageGroupTypeId = typeId;
-            break;
-          }
-        }
+    if (detectedImageGroupTypeId) {
+      const otherTypeIds = resolvedVariantTypes.filter(
+        (id) => id !== detectedImageGroupTypeId,
+      );
 
-        // Fallback: pick the type with FEWER options (Color usually < Size)
-        if (!detectedImageGroupTypeId) {
-          let minOptions = Infinity;
-          for (const typeId of resolvedVariantTypes) {
-            const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
-            if (count < minOptions && count > 0) {
-              minOptions = count;
-              detectedImageGroupTypeId = typeId;
-            }
-          }
-        }
-      }
+      populatedVariants.forEach((row) => {
+        const groupOptId = row.combination.find(
+          (c) => c.variant_type_id === detectedImageGroupTypeId,
+        )?.variant_option_id;
 
-      // Reconstruct perGroupOptions from existing variants
-      const reconstructedPerGroupOptions: Record<
-        string,
-        Record<string, string[]>
-      > = {};
+        if (!groupOptId) return;
 
-      if (detectedImageGroupTypeId) {
-        const otherTypeIds = resolvedVariantTypes.filter(
-          (id) => id !== detectedImageGroupTypeId,
-        );
-
-        populatedVariants.forEach((row) => {
-          const groupOptId = row.combination.find(
-            (c) => c.variant_type_id === detectedImageGroupTypeId,
+        otherTypeIds.forEach((typeId) => {
+          const optId = row.combination.find(
+            (c) => c.variant_type_id === typeId,
           )?.variant_option_id;
 
-          if (!groupOptId) return;
+          if (!optId) return;
 
-          otherTypeIds.forEach((typeId) => {
-            const optId = row.combination.find(
-              (c) => c.variant_type_id === typeId,
-            )?.variant_option_id;
-
-            if (!optId) return;
-
-            if (!reconstructedPerGroupOptions[typeId])
-              reconstructedPerGroupOptions[typeId] = {};
-            if (!reconstructedPerGroupOptions[typeId][groupOptId])
-              reconstructedPerGroupOptions[typeId][groupOptId] = [];
-            if (
-              !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
-            )
-              reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
-          });
+          if (!reconstructedPerGroupOptions[typeId])
+            reconstructedPerGroupOptions[typeId] = {};
+          if (!reconstructedPerGroupOptions[typeId][groupOptId])
+            reconstructedPerGroupOptions[typeId][groupOptId] = [];
+          if (
+            !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
+          )
+            reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
         });
-      }
-
-      // Reconstruct image groups
-      const reconstructedImageGroups: Record<string, VariantImageGroup> = {};
-
-      if (detectedImageGroupTypeId) {
-        const optionIds =
-          reconstructedSelectedOptions[detectedImageGroupTypeId] ?? [];
-
-        optionIds.forEach((optionId) => {
-          const matchingApiVariant = (prod.variants || []).find((v) =>
-            v.combination.some((c) => {
-              const cOptId =
-                typeof c.variant_option_id === "object"
-                  ? (c.variant_option_id as any)._id
-                  : c.variant_option_id;
-              return cOptId === optionId;
-            }),
-          );
-
-          const images: string[] = matchingApiVariant?.images || [];
-
-          reconstructedImageGroups[optionId] = {
-            optionId,
-            typeId: detectedImageGroupTypeId!,
-            images,
-            imagePreviews: images.map((img) => getImageUrl(img)),
-          };
-        });
-      }
-
-      setForm({
-        name: prod.name || "",
-        description: prod.description || "",
-        short_description: prod.short_description || "",
-        category_id:
-          typeof prod.category_id === "object"
-            ? prod.category_id._id
-            : prod.category_id,
-        sku: prod.sku || "",
-        currency: prod.currency || "INR",
-        costPrice: prod.costPrice !== undefined ? String(prod.costPrice) : "",
-        sellingPrice:
-          prod.sellingPrice !== undefined ? String(prod.sellingPrice) : "",
-        price: prod.price !== undefined ? String(prod.price) : "",
-        stock: prod.stock !== undefined ? String(prod.stock) : "",
-        mainImage: prod.mainImage || null,
-        featuredImages: prod.featuredImages || [],
-        hasVariants: prod.hasVariants || false,
-        variantTypes: resolvedVariantTypes,
-        selectedOptions: reconstructedSelectedOptions,
-        perGroupOptions: reconstructedPerGroupOptions,
-        imageGroupTypeId: detectedImageGroupTypeId,
-        variantImageGroups: reconstructedImageGroups,
-        variants: populatedVariants,
-        status: prod.status || "pending",
       });
-
-      if (prod.mainImage) setMainPreview(getImageUrl(prod.mainImage));
-      if (prod.featuredImages?.length)
-        setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
-      if (populatedVariants.length > 0) setCombosGenerated(true);
     }
-  }, [isEditMode, productData]);
+
+    // Reconstruct image groups
+    const reconstructedImageGroups: Record<string, VariantImageGroup> = {};
+
+    if (detectedImageGroupTypeId) {
+      const optionIds =
+        reconstructedSelectedOptions[detectedImageGroupTypeId] ?? [];
+
+      optionIds.forEach((optionId) => {
+        const matchingApiVariant = (prod.variants || []).find((v) =>
+          v.combination.some((c) => {
+            const cOptId =
+              typeof c.variant_option_id === "object"
+                ? (c.variant_option_id as any)._id
+                : c.variant_option_id;
+            return cOptId === optionId;
+          }),
+        );
+
+        const images: string[] = matchingApiVariant?.images || [];
+
+        reconstructedImageGroups[optionId] = {
+          optionId,
+          typeId: detectedImageGroupTypeId!,
+          images,
+          imagePreviews: images.map((img) => getImageUrl(img)),
+        };
+      });
+    }
+
+    setForm({
+      name: prod.name || "",
+      description: prod.description || "",
+      short_description: prod.short_description || "",
+      category_id:
+        typeof prod.category_id === "object"
+          ? prod.category_id._id
+          : prod.category_id,
+      sku: prod.sku || "",
+      currency: prod.currency || "INR",
+      costPrice: prod.costPrice !== undefined ? String(prod.costPrice) : "",
+      sellingPrice:
+        prod.sellingPrice !== undefined ? String(prod.sellingPrice) : "",
+      price: prod.price !== undefined ? String(prod.price) : "",
+      stock: prod.stock !== undefined ? String(prod.stock) : "",
+      mainImage: prod.mainImage || null,
+      featuredImages: prod.featuredImages || [],
+      hasVariants: prod.hasVariants || false,
+      variantTypes: resolvedVariantTypes,
+      selectedOptions: reconstructedSelectedOptions,
+      perGroupOptions: reconstructedPerGroupOptions,
+      imageGroupTypeId: detectedImageGroupTypeId,
+      variantImageGroups: reconstructedImageGroups,
+      variants: populatedVariants,
+      status: prod.status || "pending",
+    });
+
+    if (prod.mainImage) setMainPreview(getImageUrl(prod.mainImage));
+    if (prod.featuredImages?.length)
+      setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
+    if (populatedVariants.length > 0) setCombosGenerated(true);
+  }
+}, [isEditMode, productData]);
 
   useEffect(() => {
     setForm((p) => {
@@ -1223,9 +1381,9 @@ const AddProduct: React.FC = () => {
       ),
       hasVariants: form.hasVariants,
       variantTypes: form.hasVariants ? form.variantTypes : [],
+      imageGroupTypeId: form.hasVariants ? form.imageGroupTypeId : null,
       variants: form.hasVariants
         ? form.variants.map((r) => {
-            // Resolve images: grouped or per-row fallback
             let images: (File | string)[] = r.images ?? [];
             if (form.imageGroupTypeId) {
               const groupOptId = r.combination.find(

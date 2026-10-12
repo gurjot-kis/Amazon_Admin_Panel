@@ -71,7 +71,6 @@ export const productApi = baseApi.injectEndpoints({
           if (data.stock !== undefined)
             formData.append("stock", String(data.stock));
 
-          // Main image
           if (data.mainImage instanceof File) {
             formData.append("mainImage", data.mainImage);
           }
@@ -88,9 +87,11 @@ export const productApi = baseApi.injectEndpoints({
             formData.append("variantTypes", JSON.stringify(data.variantTypes));
           }
 
-          // Variants & their files
+          if (data.imageGroupTypeId) {
+            formData.append("imageGroupTypeId", data.imageGroupTypeId);
+          }
+
           if (data.hasVariants && data.variants?.length) {
-            // 1. Append variant binary files to FormData under indexed keys
             data.variants.forEach((v: any, index: number) => {
               if (Array.isArray(v.images)) {
                 v.images.forEach((file: any) => {
@@ -101,7 +102,6 @@ export const productApi = baseApi.injectEndpoints({
               }
             });
 
-            // 2. Strip out File instances from JSON to avoid empty {} strings
             const sanitizedVariants = data.variants.map((v: any) => ({
               combination: v.combination,
               sku: v.sku,
@@ -202,6 +202,10 @@ export const productApi = baseApi.injectEndpoints({
         // Variant types
         if (data.variantTypes) {
           formData.append("variantTypes", JSON.stringify(data.variantTypes));
+        }
+
+        if (data.imageGroupTypeId !== undefined) {
+          formData.append("imageGroupTypeId", data.imageGroupTypeId ?? "");
         }
 
         // Variants
