@@ -80,8 +80,6 @@ const blockBadNumberKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
   if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
 };
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-
 interface LeafCategory {
   _id: string;
   parent_id?: string;
@@ -97,7 +95,6 @@ interface VariantRow {
   sellingPrice: string;
   price: string;
   stock: string;
-  // fallback images — used only when imageGroupTypeId is null
   images: (File | string)[];
   imagePreviews: string[];
 }
@@ -124,12 +121,8 @@ interface FormState {
   featuredImages: (File | string)[];
   hasVariants: boolean;
   variantTypes: string[];
-  // For the image group type (e.g. Color): flat list of selected optionIds
-  // { [colorTypeId]: ["whiteBlueId", "blackWhiteId"] }
   selectedOptions: Record<string, string[]>;
   imageGroupTypeId: string | null;
-  // For non-image-group types (e.g. Size): selected per color option
-  // { [sizeTypeId]: { [colorOptionId]: ["6id", "7id"] } }
   perGroupOptions: Record<string, Record<string, string[]>>;
   variantImageGroups: Record<string, VariantImageGroup>;
   variants: VariantRow[];
@@ -158,9 +151,6 @@ const INITIAL: FormState = {
   variants: [],
 };
 
-// ── Toggle option for non-image-group types (e.g. Size per Color) ─────────────
-
-// ── LeafCategoryDropdown ───────────────────────────────────────────────────────
 const LeafCategoryDropdown = ({
   value,
   onChange,
@@ -318,7 +308,6 @@ const LeafCategoryDropdown = ({
   );
 };
 
-// ── VariantOptionChips — multi-select chips for one type's options ─────────────
 const VariantOptionChips = ({
   typeId,
   selectedOptionIds,
@@ -374,7 +363,6 @@ const VariantOptionChips = ({
   );
 };
 
-// ── VariantOptionLabel — resolves an optionId to its display value ─────────────
 const VariantOptionLabel = ({
   typeId,
   optionId,
@@ -397,7 +385,6 @@ const VariantOptionLabel = ({
   return <span>{found ? found.label || found.value : "…"}</span>;
 };
 
-// ── VariantComboPill — read-only label for a combination entry ─────────────────
 const VariantComboPill = ({
   typeId,
   optionId,
@@ -431,7 +418,6 @@ const VariantComboPill = ({
   );
 };
 
-// ── ImageDropzone ──────────────────────────────────────────────────────────────
 const ImageDropzone = ({
   label,
   preview,
@@ -522,7 +508,6 @@ const ImageDropzone = ({
   );
 };
 
-// ── Main Component ─────────────────────────────────────────────────────────────
 const AddProduct: React.FC = () => {
   const { id: paramId, productId: paramProductId } = useParams<{
     id?: string;
@@ -562,7 +547,6 @@ const AddProduct: React.FC = () => {
     [variantTypesData],
   );
 
-  // ── Populate form in edit mode ──────────────────────────────────────────────
   useEffect(() => {
     if (isEditMode && productData?.data) {
       const prod = productData.data;
@@ -598,39 +582,65 @@ const AddProduct: React.FC = () => {
 
       // Reconstruct selectedOptions from existing variants
       const reconstructedSelectedOptions: Record<string, string[]> = {};
-
       populatedVariants.forEach((row) => {
         row.combination.forEach((c) => {
-          if (!reconstructedSelectedOptions[c.variant_type_id]) {
+          if (!reconstructedSelectedOptions[c.variant_type_id])
             reconstructedSelectedOptions[c.variant_type_id] = [];
-          }
-
           if (
             !reconstructedSelectedOptions[c.variant_type_id].includes(
               c.variant_option_id,
             )
-          ) {
+          )
             reconstructedSelectedOptions[c.variant_type_id].push(
               c.variant_option_id,
             );
-          }
         });
       });
 
-      // Detect imageGroupTypeId: pick the type with the most selected options
+      // Detect imageGroupTypeId
       let detectedImageGroupTypeId: string | null = null;
-      let maxOptions = 0;
 
-      for (const typeId of resolvedVariantTypes) {
-        const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
+      if (resolvedVariantTypes.length === 1) {
+        detectedImageGroupTypeId = resolvedVariantTypes[0];
+      } else {
+        // Find the type where different options have DIFFERENT image sets
+        // That type is the one driving image differences (e.g. Color)
+        for (const typeId of resolvedVariantTypes) {
+          const optionIds = reconstructedSelectedOptions[typeId] ?? [];
+          const imageSetsPerOption = optionIds.map((optId) => {
+            const matchingVariant = (prod.variants || []).find((v) =>
+              v.combination.some((c) => {
+                const cOptId =
+                  typeof c.variant_option_id === "object"
+                    ? (c.variant_option_id as any)._id
+                    : c.variant_option_id;
+                return cOptId === optId;
+              }),
+            );
+            return JSON.stringify(matchingVariant?.images || []);
+          });
 
-        if (count > maxOptions) {
-          maxOptions = count;
-          detectedImageGroupTypeId = typeId;
+          const uniqueImageSets = new Set(imageSetsPerOption);
+          if (uniqueImageSets.size > 1) {
+            detectedImageGroupTypeId = typeId;
+            break;
+          }
+        }
+
+        // Fallback: pick the type with FEWER options (Color usually < Size)
+        if (!detectedImageGroupTypeId) {
+          let minOptions = Infinity;
+          for (const typeId of resolvedVariantTypes) {
+            const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
+            if (count < minOptions && count > 0) {
+              minOptions = count;
+              detectedImageGroupTypeId = typeId;
+            }
+          }
         }
       }
 
-      // NEW: Reconstruct perGroupOptions from existing variants
+      // Reconstruct perGroupOptions from existing variants
       const reconstructedPerGroupOptions: Record<
         string,
         Record<string, string[]>
@@ -655,19 +665,14 @@ const AddProduct: React.FC = () => {
 
             if (!optId) return;
 
-            if (!reconstructedPerGroupOptions[typeId]) {
+            if (!reconstructedPerGroupOptions[typeId])
               reconstructedPerGroupOptions[typeId] = {};
-            }
-
-            if (!reconstructedPerGroupOptions[typeId][groupOptId]) {
+            if (!reconstructedPerGroupOptions[typeId][groupOptId])
               reconstructedPerGroupOptions[typeId][groupOptId] = [];
-            }
-
             if (
               !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
-            ) {
+            )
               reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
-            }
           });
         });
       }
@@ -686,7 +691,6 @@ const AddProduct: React.FC = () => {
                 typeof c.variant_option_id === "object"
                   ? (c.variant_option_id as any)._id
                   : c.variant_option_id;
-
               return cOptId === optionId;
             }),
           );
@@ -722,53 +726,54 @@ const AddProduct: React.FC = () => {
         hasVariants: prod.hasVariants || false,
         variantTypes: resolvedVariantTypes,
         selectedOptions: reconstructedSelectedOptions,
-
-        // NEW: Restore per-group option selections in edit mode
         perGroupOptions: reconstructedPerGroupOptions,
-
         imageGroupTypeId: detectedImageGroupTypeId,
         variantImageGroups: reconstructedImageGroups,
         variants: populatedVariants,
         status: prod.status || "pending",
       });
 
-      if (prod.mainImage) {
-        setMainPreview(getImageUrl(prod.mainImage));
-      }
-
-      if (prod.featuredImages?.length) {
+      if (prod.mainImage) setMainPreview(getImageUrl(prod.mainImage));
+      if (prod.featuredImages?.length)
         setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
-      }
-
-      if (populatedVariants.length > 0) {
-        setCombosGenerated(true);
-      }
+      if (populatedVariants.length > 0) setCombosGenerated(true);
     }
   }, [isEditMode, productData]);
 
-  // ── Reset selectedOptions when variantTypes changes ────────────────────────
   useEffect(() => {
     setForm((p) => {
       const cleaned: Record<string, string[]> = {};
       p.variantTypes.forEach((typeId) => {
         cleaned[typeId] = p.selectedOptions[typeId] ?? [];
       });
-      const keysChanged =
-        JSON.stringify(Object.keys(cleaned).sort()) !==
-        JSON.stringify(Object.keys(p.selectedOptions).sort());
+
+      const removedTypes = Object.keys(p.selectedOptions).filter(
+        (typeId) => !p.variantTypes.includes(typeId),
+      );
+
+      const cleanedPerGroup: Record<string, Record<string, string[]>> = {};
+      Object.keys(p.perGroupOptions).forEach((typeId) => {
+        if (p.variantTypes.includes(typeId)) {
+          cleanedPerGroup[typeId] = p.perGroupOptions[typeId];
+        }
+      });
+
+      // Only clear variants if a type was actually REMOVED (not just options changed)
+      const typeWasRemoved = removedTypes.length > 0;
+
       return {
         ...p,
         selectedOptions: cleaned,
-        variants: keysChanged ? [] : p.variants,
+        perGroupOptions: cleanedPerGroup,
+        variants: typeWasRemoved ? [] : p.variants,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.variantTypes.join(",")]);
 
   const togglePerGroupOption = (
     typeId: string,
-    groupOptionId: string, // e.g. whiteBlueId
-    optionId: string, // e.g. size6Id
+    groupOptionId: string,
+    optionId: string,
   ) => {
     setForm((p) => {
       const typeMap = p.perGroupOptions[typeId] ?? {};
@@ -782,13 +787,11 @@ const AddProduct: React.FC = () => {
           ...p.perGroupOptions,
           [typeId]: { ...typeMap, [groupOptionId]: next },
         },
-        variants: [], // stale, need regenerate
       };
     });
     setCombosGenerated(false);
   };
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   const set = (field: keyof FormState, value: any) =>
     setForm((p) => ({ ...p, [field]: value }));
 
@@ -803,13 +806,12 @@ const AddProduct: React.FC = () => {
       return {
         ...p,
         selectedOptions: { ...p.selectedOptions, [typeId]: next },
-        variants: [],
+        // variants: [],
       };
     });
     setCombosGenerated(false);
   };
 
-  // ── Updated handleImageGroupTypeChange ────────────────────────────────────────
   const handleImageGroupTypeChange = (typeId: string) => {
     setForm((p) => {
       const optionIds = p.selectedOptions[typeId] ?? [];
@@ -834,7 +836,6 @@ const AddProduct: React.FC = () => {
     setCombosGenerated(false);
   };
 
-  // ── Updated generateCombinations ───────────────────────────────────────────────
   const generateCombinations = () => {
     if (!form.imageGroupTypeId) {
       // Original flat logic when no image group type set
@@ -974,7 +975,6 @@ const AddProduct: React.FC = () => {
     setCombosGenerated(true);
   };
 
-  // ── Main image ─────────────────────────────────────────────────────────────
   const handleMainImage = (file: File) => {
     const err = validateImageFile(file);
     if (err) {
@@ -992,7 +992,6 @@ const AddProduct: React.FC = () => {
     setMainImageError(null);
   };
 
-  // ── Featured images ────────────────────────────────────────────────────────
   const handleFeaturedImages = (files: FileList) => {
     const valid: File[] = [];
     const previews: string[] = [];
@@ -1017,7 +1016,6 @@ const AddProduct: React.FC = () => {
     setFeaturedPreviews((p) => p.filter((_, i) => i !== idx));
   };
 
-  // ── Variant image group handlers ───────────────────────────────────────────
   const handleVariantGroupImages = (
     optionId: string,
     typeId: string,
@@ -1072,7 +1070,6 @@ const AddProduct: React.FC = () => {
     });
   };
 
-  // ── Fallback per-row image handlers (when imageGroupTypeId is null) ────────
   const handleVariantRowImages = (rowId: string, files: FileList) => {
     const valid: File[] = [];
     const previews: string[] = [];
@@ -1111,7 +1108,6 @@ const AddProduct: React.FC = () => {
     }));
   };
 
-  // ── Variant row field update ───────────────────────────────────────────────
   const updateVariantRow = (
     rowId: string,
     field: keyof Omit<
@@ -1135,7 +1131,6 @@ const AddProduct: React.FC = () => {
     }));
   };
 
-  // ── Validation ─────────────────────────────────────────────────────────────
   const errors = {
     name: touched.name && !form.name.trim() ? "Product name is required." : "",
     category_id:
@@ -1195,7 +1190,6 @@ const AddProduct: React.FC = () => {
         new Set(form.variants.map((r) => r.sku.trim().toUpperCase())).size ===
           form.variants.length));
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({
@@ -1279,7 +1273,6 @@ const AddProduct: React.FC = () => {
     }
   };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
   const marginVal = useMemo(() => {
     if (!form.sellingPrice || !form.costPrice) return null;
     const sp = Number(form.sellingPrice);
@@ -1292,9 +1285,6 @@ const AddProduct: React.FC = () => {
     (sum, typeId) => sum + (form.selectedOptions[typeId]?.length ?? 0),
     0,
   );
-
-  // ── Updated allTypesHaveOptions and expectedCombosCount derived values ─────────
-  // Replace the existing derived values:
 
   const allTypesHaveOptions = (() => {
     if (!form.imageGroupTypeId) {
@@ -1347,7 +1337,6 @@ const AddProduct: React.FC = () => {
     );
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="ap-wrapper">
       <div className="ap-container">
@@ -2047,6 +2036,24 @@ const AddProduct: React.FC = () => {
                                 })}
                               </div>
                             </div>
+                          )}
+
+                          {form.variants.some(
+                            (r) =>
+                              !pricingOk(
+                                r.costPrice || form.costPrice,
+                                r.sellingPrice || form.sellingPrice,
+                                r.price || form.price,
+                              ),
+                          ) && (
+                            <p
+                              className="ap-error-msg"
+                              style={{ marginBottom: 8 }}
+                            >
+                              <AlertCircle size={13} /> One or more variants
+                              have invalid pricing (Cost ≤ Selling ≤ MRP
+                              required).
+                            </p>
                           )}
 
                           {/* Variant rows */}
