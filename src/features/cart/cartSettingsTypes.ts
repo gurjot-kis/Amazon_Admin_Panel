@@ -7,6 +7,8 @@ export interface CartSettings {
   small_cart_charge: number;
   small_cart_max_amount: number;
   user_id: string;
+  user_name: string;
+  user_profile: string;
   role: string;
   createdAt?: string;
   updatedAt?: string;

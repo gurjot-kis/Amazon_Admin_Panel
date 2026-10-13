@@ -11,8 +11,11 @@ import { DataTable } from "../../../components/common/DataTable/DataTable";
 import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
 import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
 import { useHeader } from "../../../layout/LayoutContext";
+import "../../../styles/cart/cart-settings.css";
+import { LuGlobe } from "react-icons/lu";
 
 const PAGE_LIMIT = 10;
+const API_ASSET_URL = import.meta.env.VITE_API_ASSET_URL || "";
 
 const formatAmount = (value?: number | null): string =>
   `₹${Number(value ?? 0).toLocaleString("en-IN")}`;
@@ -33,7 +36,6 @@ const CartSettingsList = () => {
     setHeaderConfig({ title: "Cart Settings" });
   }, [setHeaderConfig]);
 
-  // debounce search (search is applied as user_id filter)
   useEffect(() => {
     const t = setTimeout(() => {
       setSearch(searchInput.trim());
@@ -56,8 +58,6 @@ const CartSettingsList = () => {
   const cartSettings = data?.data ?? [];
   const pagination = data?.pagination;
 
-  // Accumulate roles seen so far so the role dropdown doesn't collapse
-  // to a single option once a role filter is applied.
   useEffect(() => {
     if (!cartSettings.length) return;
     setKnownRoles((prev) => {
@@ -102,6 +102,19 @@ const CartSettingsList = () => {
     }
   };
 
+  const getAvatarGradient = (text: string) => {
+    const gradients = [
+      "linear-gradient(135deg, #2563eb, #1e40af)",
+      "linear-gradient(135deg, #0d9488, #115e59)",
+      "linear-gradient(135deg, #7c3aed, #5b21b6)",
+      "linear-gradient(135deg, #ea580c, #c2410c)",
+      "linear-gradient(135deg, #475569, #1e293b)",
+    ];
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) hash += text.charCodeAt(i);
+    return gradients[Math.abs(hash) % gradients.length];
+  };
+
   const columns: DataTableColumn<CartSettings>[] = [
     {
       key: "role",
@@ -112,13 +125,73 @@ const CartSettingsList = () => {
       ),
     },
     {
-      key: "user_id",
-      header: "User ID",
+      key: "user_name",
+      header: "User Scope",
       headerClassName: "d-none d-lg-table-cell",
       cellClassName: "d-none d-lg-table-cell",
-      render: (item) => (
-        <span title={item.user_id || undefined}>{item.user_id || "—"}</span>
-      ),
+      render: (item) => {
+        const hasName = Boolean(item.user_name?.trim());
+        const initials = hasName
+          ? item
+              .user_name!.trim()
+              .split(" ")
+              .map((n) => n[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()
+          : null;
+
+        if (!hasName) {
+          return (
+            <div className="cl-user-cell cl-user-cell--global">
+              <div className="cl-user-cell__badge-global">
+                <LuGlobe className="cl-user-cell__badge-icon" />
+                <span>All Users (Global)</span>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="cl-user-cell">
+            <div className="cl-user-cell__avatar-wrapper">
+              {item.user_profile ? (
+                <img
+                  src={`${API_ASSET_URL}${item.user_profile}`}
+                  alt={item.user_name!}
+                  className="cl-user-cell__avatar"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = "none";
+                    if (target.nextElementSibling) {
+                      (target.nextElementSibling as HTMLElement).style.display =
+                        "flex";
+                    }
+                  }}
+                />
+              ) : null}
+
+              {/* Fallback initials badge */}
+              <div
+                className="cl-user-cell__avatar cl-user-cell__avatar--initials"
+                style={{
+                  display: item.user_profile ? "none" : "flex",
+                  background: getAvatarGradient(item.user_name!),
+                }}
+              >
+                {initials}
+              </div>
+            </div>
+
+            <div className="cl-user-cell__meta">
+              <span className="cl-user-cell__name" title={item.user_name!}>
+                {item.user_name}
+              </span>
+            
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: "handling_charge",
