@@ -5,8 +5,7 @@ import {
   LuUserRound,
   LuLogOut,
   LuX,
-  LuCalendarClock,
-  LuBadgeCheck,
+  LuPackage,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -48,19 +47,13 @@ const NAV_ITEMS: NavItem[] = [
     activePaths: [VENDOR_ROUTES.profile],
     icon: <LuUserRound size={20} />,
   },
+
   {
-    id: "Services",
-    label: "Services",
-    path: VENDOR_ROUTES.serviceList,
-    activePaths: [VENDOR_ROUTES.serviceList],
-    icon: <LuBadgeCheck size={20} />,
-  },
-  {
-    id: "Slots",
-    label: "Slots",
-    path: VENDOR_ROUTES.slots,
-    activePaths: [VENDOR_ROUTES.slots],
-    icon: <LuCalendarClock size={20} />,
+    id: "Product",
+    label: "Products",
+    path: VENDOR_ROUTES.products,
+    activePaths: [VENDOR_ROUTES.products],
+    icon: <LuPackage size={20} />,
   },
 
   // {

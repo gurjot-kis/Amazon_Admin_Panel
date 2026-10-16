@@ -1,10 +1,11 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
 import {
   AdminProtectedRoute,
   VendorProtectedRoute,
 } from "./components/ProtectedRoute";
 import { VENDOR_ROUTES, ROUTES } from "./routes";
+import { CustomToaster } from "./components/common/CustomToaster";
+import "./App.css";
 import DashboardPage from "./pages/admin/DashboardPage";
 import ProfilePage from "./pages/admin/profile/ProfilePage";
 import SupportPage from "./pages/SupportPage";
@@ -17,7 +18,6 @@ import VendorSupportPage from "./pages/vendor/VendorSupportPage";
 import CategoryList from "./pages/admin/category/CategoryList";
 import Layout from "./layout/admin/Layout";
 import AddCategory from "./pages/admin/category/AddCategory";
-import { CustomToaster } from "./components/common/CustomToaster";
 import ProductList from "./pages/admin/product/ProductList";
 import AddProduct from "./pages/admin/product/AddProduct";
 import ProductDetails from "./pages/admin/product/ProductDetails";
@@ -28,10 +28,6 @@ import VendorList from "./pages/admin/vendor/VendorList";
 import AddVendor from "./pages/admin/vendor/AddVendor";
 import VendorDashboardPage from "./pages/vendor/VendorDashboardPage";
 import VendorLayout from "./layout/vendor/VendorLayout";
-import VendorSlotList from "./pages/vendor/vendorSlot/SlotList/SlotList";
-import AddSlot from "./pages/vendor/vendorSlot/AddSlot";
-import ServiceList from "./pages/vendor/vendorService/ServiceList";
-import AddService from "./pages/vendor/vendorService/AddService";
 import VariantType from "./pages/admin/variant/VariantType";
 import VariantOption from "./pages/admin/variant/VariantOption";
 import AddVariantOption from "./pages/admin/variant/AddVariantOption";
@@ -62,14 +58,13 @@ function App() {
               path={VENDOR_ROUTES.support}
               element={<VendorSupportPage />}
             />
-
-            <Route path={VENDOR_ROUTES.slots} element={<VendorSlotList />} />
-            <Route path={VENDOR_ROUTES.addSlot} element={<AddSlot />} />
-            <Route path={VENDOR_ROUTES.editSlot} element={<AddSlot />} />
-
-            <Route path={VENDOR_ROUTES.serviceList} element={<ServiceList />} />
-            <Route path={VENDOR_ROUTES.addService} element={<AddService />} />
-            <Route path={VENDOR_ROUTES.editService} element={<ServiceList />} />
+            <Route path={VENDOR_ROUTES.products} element={<ProductList />} />
+            <Route path={VENDOR_ROUTES.productsNew} element={<AddProduct />} />
+            <Route path={VENDOR_ROUTES.productEdit} element={<AddProduct />} />
+            <Route
+              path={VENDOR_ROUTES.productDetails}
+              element={<ProductDetails />}
+            />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -79,11 +74,6 @@ function App() {
             <Route path={ROUTES.categories} element={<CategoryList />} />
             <Route path={ROUTES.addCategory} element={<AddCategory />} />
             <Route path={ROUTES.editCategory} element={<AddCategory />} />
-
-            <Route path={ROUTES.products} element={<ProductList />} />
-            <Route path={ROUTES.productsNew} element={<AddProduct />} />
-            <Route path={ROUTES.productEdit} element={<AddProduct />} />
-            <Route path={ROUTES.productDetails} element={<ProductDetails />} />
 
             <Route path={ROUTES.orders} element={<AllOrderList />} />
             <Route path={ROUTES.orderDetails} element={<OrderDetails />} />
@@ -97,12 +87,24 @@ function App() {
 
             <Route path={ROUTES.variantType} element={<VariantType />} />
             <Route path={ROUTES.variantOption} element={<VariantOption />} />
-            <Route path={ROUTES.addVariantOption} element={<AddVariantOption />} />
-            <Route path={ROUTES.editVariantOption} element={<AddVariantOption />} />
+            <Route
+              path={ROUTES.addVariantOption}
+              element={<AddVariantOption />}
+            />
+            <Route
+              path={ROUTES.editVariantOption}
+              element={<AddVariantOption />}
+            />
 
             <Route path={ROUTES.cartSettings} element={<CartSettingsList />} />
-            <Route path={ROUTES.addCartSettings} element={<CreateCartSettings />} />
-            <Route path={ROUTES.editCartSettings} element={<CreateCartSettings />} />
+            <Route
+              path={ROUTES.addCartSettings}
+              element={<CreateCartSettings />}
+            />
+            <Route
+              path={ROUTES.editCartSettings}
+              element={<CreateCartSettings />}
+            />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

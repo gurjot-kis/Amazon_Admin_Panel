@@ -7,17 +7,11 @@ export const PUBLIC_ROUTES = {
 
 export const ROUTES = {
   ...PUBLIC_ROUTES,
-  //Worked by kshitish start
   dashboard: "/admin/dashboard",
 
   categories: "/admin/categories",
   addCategory: "/admin/categories/add",
   editCategory: "/admin/categories/:categoryId/edit",
-
-  products: "/admin/products",
-  productsNew: "/admin/products/add",
-  productEdit: "/admin/products/:productId/edit",
-  productDetails: "/admin/products/:productId/details",
 
   variantType: "/admin/variant-type",
 
@@ -40,7 +34,6 @@ export const ROUTES = {
   editCartSettings: "/admin/cart-settings/:id/edit",
 
   support: "/admin/support",
-  //Worked by kshitish end
 } as const;
 
 export const VENDOR_ROUTES = {
@@ -48,11 +41,8 @@ export const VENDOR_ROUTES = {
   profile: "/vendor/profile",
   support: "/vendor/support",
 
-  slots: "/vendor/slots",
-  addSlot: "/vendor/slots/add",
-  editSlot: "/vendor/slots/:slotId/edit",
-
-  serviceList: "/vendor/services",
-  addService:"/vendor/services/add",
-  editService:"/vendor/services/:serviceId/edit"
+  products: "/vendor/products",
+  productsNew: "/vendor/products/add",
+  productEdit: "/vendor/products/:productId/edit",
+  productDetails: "/vendor/products/:productId/details",
 } as const;

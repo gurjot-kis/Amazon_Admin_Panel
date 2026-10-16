@@ -27,7 +27,7 @@ export const productApi = baseApi.injectEndpoints({
         const qs = params.toString();
 
         return {
-          url: `/admin/product/list${qs ? `?${qs}` : ""}`,
+          url: `/vendor/product/list${qs ? `?${qs}` : ""}`,
           method: "GET",
         };
       },
@@ -41,7 +41,7 @@ export const productApi = baseApi.injectEndpoints({
 
     getProductById: builder.query<GetProductByIdResponse, string>({
       query: (productId) => ({
-        url: `/admin/product/${productId}`,
+        url: `/vendor/product/${productId}`,
         method: "GET",
       }),
 
@@ -118,7 +118,7 @@ export const productApi = baseApi.injectEndpoints({
           }
 
           return {
-            url: "/admin/product/create",
+            url: "/vendor/product/create",
             method: "POST",
             body: formData,
           };
@@ -238,7 +238,7 @@ export const productApi = baseApi.injectEndpoints({
         }
 
         return {
-          url: `/admin/product/${productId}/update`,
+          url: `/vendor/product/${productId}/update`,
           method: "PUT",
           body: formData,
         };
@@ -259,7 +259,7 @@ export const productApi = baseApi.injectEndpoints({
       }
     >({
       query: ({ productId, status }) => ({
-        url: `/admin/product/${productId}/status`,
+        url: `/vendor/product/${productId}/status`,
         method: "PATCH",
         body: { status },
       }),
@@ -273,7 +273,7 @@ export const productApi = baseApi.injectEndpoints({
 
     deleteProduct: builder.mutation<ApiResponse<null>, string>({
       query: (productId) => ({
-        url: `/admin/product/${productId}/delete`,
+        url: `/vendor/product/${productId}/delete`,
         method: "DELETE",
       }),
 
