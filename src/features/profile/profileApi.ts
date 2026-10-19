@@ -40,7 +40,7 @@ export const profileApi = baseApi.injectEndpoints({
     // Vendor Profile
     getVendorProfile: builder.query<GetVendorProfileResponse, void>({
       query: () => ({
-        url: "/vendors/profile",
+        url: "/vendor/profile",
         method: "GET",
       }),
       extraOptions: {
@@ -54,7 +54,7 @@ export const profileApi = baseApi.injectEndpoints({
       UpdateVendorProfilePayload
     >({
       query: (payload) => ({
-        url: "/vendors/profile",
+        url: "/vendor/profile",
         method: "PATCH",
         body: payload,
       }),

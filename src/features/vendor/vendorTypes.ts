@@ -14,6 +14,7 @@ export interface VendorCateoryDetails {
 }
 
 export interface Vendor {
+  _id: string;
   user_id: string;
   fullName: string;
   email: string;

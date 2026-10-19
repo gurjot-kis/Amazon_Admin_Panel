@@ -53,7 +53,7 @@ export const vendorApi = baseApi.injectEndpoints({
         const qs = params.toString();
 
         return {
-          url: `/vendors${qs ? `?${qs}` : ""}`,
+          url: `/admin/vendors${qs ? `?${qs}` : ""}`,
           method: "GET",
         };
       },
@@ -67,7 +67,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     fetchVendorById: builder.query<GetVendorByIdResponse, string>({
       query: (userId) => ({
-        url: `/vendors/${userId}`,
+        url: `/admin/vendors/${userId}`,
         method: "GET",
       }),
 
@@ -80,7 +80,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     createVendor: builder.mutation<UpdateVendorResponse, CreateVendorPayload>({
       query: (payload) => ({
-        url: "/vendors",
+        url: "/admin/vendors",
         method: "POST",
         body: payload,
       }),
@@ -94,7 +94,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     updateVendor: builder.mutation<UpdateVendorResponse, UpdateVendorRequest>({
       query: ({ userId, payload }) => ({
-        url: `/vendors/${userId}`,
+        url: `/admin/vendors/${userId}`,
         method: "PUT",
         body: payload,
       }),
@@ -111,7 +111,7 @@ export const vendorApi = baseApi.injectEndpoints({
       UpdateVendorStatusRequest
     >({
       query: ({ userId, payload }) => ({
-        url: `/vendors/${userId}/status`,
+        url: `/admin/vendors/${userId}/status`,
         method: "PATCH",
         body: payload,
       }),
@@ -128,24 +128,7 @@ export const vendorApi = baseApi.injectEndpoints({
       UpdateVendorVerificationRequest
     >({
       query: ({ userId, payload }) => ({
-        url: `/vendors/${userId}/verify`,
-        method: "PATCH",
-        body: payload,
-      }),
-
-      extraOptions: {
-        requiresAuth: true,
-      },
-
-      invalidatesTags: ["Vendor"],
-    }),
-
-    updateVendorAvailability: builder.mutation<
-      UpdateVendorResponse,
-      UpdateVendorAvailabilityRequest
-    >({
-      query: ({ userId, payload }) => ({
-        url: `/vendors/${userId}/availability`,
+        url: `/admin/vendors/${userId}/verify`,
         method: "PATCH",
         body: payload,
       }),
@@ -159,7 +142,7 @@ export const vendorApi = baseApi.injectEndpoints({
 
     deleteVendor: builder.mutation<unknown, string>({
       query: (venderId: string) => ({
-        url: `/vendors/${venderId}`,
+        url: `/admin/vendors/${venderId}`,
         method: "DELETE",
       }),
       extraOptions: { requiresAuth: true },
@@ -360,7 +343,6 @@ export const {
   useUpdateVendorMutation,
   useUpdateVendorStatusMutation,
   useUpdateVendorVerificationMutation,
-  useUpdateVendorAvailabilityMutation,
   useDeleteVendorMutation,
   //vendor slot
   useGetMyVendorSlotsQuery,

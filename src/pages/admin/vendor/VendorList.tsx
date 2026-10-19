@@ -10,7 +10,6 @@ import {
   useFetchVendorsQuery,
   useUpdateVendorStatusMutation,
   useUpdateVendorVerificationMutation,
-  useUpdateVendorAvailabilityMutation,
   useDeleteVendorMutation,
 } from "../../../features/vendor/vendorApi";
 import type { Vendor } from "../../../features/vendor/vendorTypes";
@@ -32,7 +31,6 @@ export default function VendorList(): React.ReactElement {
   const [page, setPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [verifiedFilter, setVerifiedFilter] = useState<string>("all");
-  const [availabilityFilter, setAvailabilityFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [searchInput, setSearchInput] = useState<string>("");
   const [search, setSearch] = useState<string>("");
@@ -40,7 +38,6 @@ export default function VendorList(): React.ReactElement {
   // Track which vendor + which field is being updated
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [updatingVerify, setUpdatingVerify] = useState<string | null>(null);
-  const [updatingAvail, setUpdatingAvail] = useState<string | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -71,10 +68,7 @@ export default function VendorList(): React.ReactElement {
       status: statusFilter !== "all" ? Number(statusFilter) : undefined,
       isVendorVerified:
         verifiedFilter !== "all" ? verifiedFilter === "true" : undefined,
-      isAvailableNow:
-        availabilityFilter !== "all"
-          ? availabilityFilter === "true"
-          : undefined,
+
       category: categoryFilter || undefined,
       sortBy: "createdAt",
       sortOrder: "desc",
@@ -84,7 +78,6 @@ export default function VendorList(): React.ReactElement {
 
   const [updateVendorStatus] = useUpdateVendorStatusMutation();
   const [updateVendorVerification] = useUpdateVendorVerificationMutation();
-  const [updateVendorAvailability] = useUpdateVendorAvailabilityMutation();
 
   const rawVendors = data?.data ?? [];
   const pagination = data?.pagination;
@@ -118,11 +111,12 @@ export default function VendorList(): React.ReactElement {
   // ── Toggle Handlers ──────────────────────────────────────────────────────────
 
   const handleToggleStatus = async (vendor: Vendor) => {
+    console.log("vendor", vendor);
     const newStatus = vendor.status === 1 ? 0 : 1;
-    setUpdatingStatus(vendor.user_id);
+    setUpdatingStatus(vendor._id);
     try {
       await updateVendorStatus({
-        userId: vendor.user_id,
+        userId: vendor._id,
         payload: { status: newStatus },
       }).unwrap();
       toast.success("Status updated", {
@@ -164,29 +158,29 @@ export default function VendorList(): React.ReactElement {
     }
   };
 
-  const handleToggleAvailability = async (vendor: Vendor) => {
-    const newValue = !vendor.isAvailableNow;
-    setUpdatingAvail(vendor.user_id);
-    try {
-      await updateVendorAvailability({
-        userId: vendor.user_id,
-        payload: { isAvailableNow: newValue },
-      }).unwrap();
-      toast.success("Availability updated", {
-        description: `"${vendor.fullName || "Vendor"}" is now ${
-          newValue ? "Available" : "Unavailable"
-        }.`,
-      });
-    } catch (err: any) {
-      toast.error("Failed to update availability", {
-        description:
-          err?.data?.message ??
-          "Could not update availability. Please try again.",
-      });
-    } finally {
-      setUpdatingAvail(null);
-    }
-  };
+  // const handleToggleAvailability = async (vendor: Vendor) => {
+  //   const newValue = !vendor.isAvailableNow;
+  //   setUpdatingAvail(vendor.user_id);
+  //   try {
+  //     await updateVendorAvailability({
+  //       userId: vendor.user_id,
+  //       payload: { isAvailableNow: newValue },
+  //     }).unwrap();
+  //     toast.success("Availability updated", {
+  //       description: `"${vendor.fullName || "Vendor"}" is now ${
+  //         newValue ? "Available" : "Unavailable"
+  //       }.`,
+  //     });
+  //   } catch (err: any) {
+  //     toast.error("Failed to update availability", {
+  //       description:
+  //         err?.data?.message ??
+  //         "Could not update availability. Please try again.",
+  //     });
+  //   } finally {
+  //     setUpdatingAvail(null);
+  //   }
+  // };
 
   const openDeleteModal = (vendor: Vendor) => {
     setSelectedVendor(vendor);
@@ -274,40 +268,6 @@ export default function VendorList(): React.ReactElement {
       ),
     },
     {
-      key: "category",
-      header: "Category",
-      headerClassName: "d-none d-xl-table-cell",
-      cellClassName: "d-none d-xl-table-cell",
-      render: (vendor) => {
-        const cat = vendor.category?.[0];
-        return (
-          <div className="vendor-cat-cell">
-            <span className="vendor-cat-thumb">
-              {cat?.image ? (
-                <img
-                  src={`${import.meta.env.VITE_API_ASSET_URL}${cat.image}`}
-                  alt={cat.name ?? "Category"}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
-              <span
-                className={`vendor-cat-thumb-fallback ${cat?.image ? "d-none" : ""}`}
-              >
-                ?
-              </span>
-            </span>
-            <span className="vendor-cat-name">{cat?.name ?? "—"}</span>
-          </div>
-        );
-      },
-    },
-    {
       key: "isVendorVerified",
       header: "Verified",
       render: (vendor) => (
@@ -320,21 +280,21 @@ export default function VendorList(): React.ReactElement {
         </div>
       ),
     },
-    {
-      key: "isAvailableNow",
-      header: "Available",
-      headerClassName: "d-none d-lg-table-cell",
-      cellClassName: "d-none d-lg-table-cell",
-      render: (vendor) => (
-        <div className="vendor-table-toggle-wrapper">
-          <DataTableStatusToggle
-            active={vendor.isAvailableNow}
-            isUpdating={updatingAvail === vendor.user_id}
-            onChange={() => handleToggleAvailability(vendor)}
-          />
-        </div>
-      ),
-    },
+    // {
+    //   key: "isAvailableNow",
+    //   header: "Available",
+    //   headerClassName: "d-none d-lg-table-cell",
+    //   cellClassName: "d-none d-lg-table-cell",
+    //   render: (vendor) => (
+    //     <div className="vendor-table-toggle-wrapper">
+    //       <DataTableStatusToggle
+    //         active={vendor.isAvailableNow}
+    //         isUpdating={updatingAvail === vendor.user_id}
+    //         onChange={() => handleToggleAvailability(vendor)}
+    //       />
+    //     </div>
+    //   ),
+    // },
     {
       key: "status",
       header: "Status",
@@ -342,7 +302,7 @@ export default function VendorList(): React.ReactElement {
         <div className="vendor-table-toggle-wrapper">
           <DataTableStatusToggle
             active={vendor.status === 1}
-            isUpdating={updatingStatus === vendor.user_id}
+            isUpdating={updatingStatus === vendor._id}
             onChange={() => handleToggleStatus(vendor)}
           />
         </div>
@@ -389,7 +349,7 @@ export default function VendorList(): React.ReactElement {
         ]}
         columns={columns}
         data={vendors}
-        getId={(v) => v.user_id}
+        getId={(v) => v._id}
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         searchPlaceholder="Search by name or email..."
@@ -418,18 +378,18 @@ export default function VendorList(): React.ReactElement {
               { value: "false", label: "Unverified" },
             ],
           },
-          {
-            value: availabilityFilter,
-            onChange: (v) => {
-              setAvailabilityFilter(v);
-              setPage(1);
-            },
-            options: [
-              { value: "all", label: "All Availability" },
-              { value: "true", label: "Available Now" },
-              { value: "false", label: "Unavailable" },
-            ],
-          },
+          // {
+          //   value: availabilityFilter,
+          //   onChange: (v) => {
+          //     setAvailabilityFilter(v);
+          //     setPage(1);
+          //   },
+          //   options: [
+          //     { value: "all", label: "All Availability" },
+          //     { value: "true", label: "Available Now" },
+          //     { value: "false", label: "Unavailable" },
+          //   ],
+          // },
         ]}
         addButtonLabel="Add Vendor"
         onAddClick={() => navigate("/admin/vendors/add")}
@@ -461,7 +421,7 @@ export default function VendorList(): React.ReactElement {
         message={
           <>
             Are you sure you want to delete{" "}
-            <strong>"{selectedVendor?.fullName}"</strong>? 
+            <strong>"{selectedVendor?.fullName}"</strong>?
           </>
         }
       />

@@ -101,7 +101,7 @@ export default function VendorSidebar(): React.ReactElement {
         {/* Brand / Close Header */}
         <div className="vendor-sidebar-brand-header">
           <div className="vendor-sidebar-brand-logo">
-            <span className="vendor-sidebar-brand-accent">Urban</span>Clap
+            <span className="vendor-sidebar-brand-accent">Ever</span>Mart
           </div>
           <button
             type="button"

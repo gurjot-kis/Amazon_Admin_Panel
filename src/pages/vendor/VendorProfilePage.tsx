@@ -7,8 +7,8 @@ import {
   LuLock,
   LuPhone,
   LuMapPin,
-  LuTag,
-  LuHash,
+  // LuTag,
+  // LuHash,
   LuCamera,
   LuSave,
   LuRotateCcw,
@@ -73,11 +73,11 @@ export default function VendorProfilePage(): React.ReactElement {
 
   // Form State
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
+  // const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [gstNumber, setGstNumber] = useState("");
+  // const [gstNumber, setGstNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [profileImage, setProfileImage] = useState("");
@@ -93,11 +93,11 @@ export default function VendorProfilePage(): React.ReactElement {
       const profile: VendorProfileData = raw?.data ?? raw;
 
       setName(String(profile.fullName ?? ""));
-      setCode(String(profile.code ?? ""));
+      // setCode(String(profile.code ?? ""));
       setEmail(String(profile.email ?? ""));
       setPhone(String(profile.phone ?? ""));
       setAddress(String(profile.address ?? ""));
-      setGstNumber(String(profile.gst_number ?? ""));
+      // setGstNumber(String(profile.gst_number ?? ""));
       setProfileImage(
         String(
           profile.profilePicture ??
@@ -154,8 +154,8 @@ export default function VendorProfilePage(): React.ReactElement {
       formData.append("email", email.trim());
       formData.append("phone", phone.trim());
       formData.append("address", address.trim());
-      formData.append("gst_number", gstNumber.trim());
-      if (code.trim()) formData.append("code", code.trim());
+      // formData.append("gst_number", gstNumber.trim());
+      // if (code.trim()) formData.append("code", code.trim());
       if (password.trim()) formData.append("password", password.trim());
       if (profileImageFile) {
         formData.append("profile_picture", profileImageFile);
@@ -262,23 +262,23 @@ export default function VendorProfilePage(): React.ReactElement {
                 {email || "vendor@domain.com"}
               </p>
 
-              {code && (
+              {/* {code && (
                 <p className="vendor-profile-card-code">
                   Code: <strong>{code}</strong>
                 </p>
-              )}
+              )} */}
 
               <div className="vendor-profile-role-badge">
                 <LuStore size={14} />
                 <span>Vendor Account</span>
               </div>
 
-              {gstNumber && (
+              {/* {gstNumber && (
                 <div className="vendor-profile-gst-badge">
                   <LuHash size={12} />
                   <span>{gstNumber}</span>
                 </div>
-              )}
+              )} */}
 
               {profileImagePreviewUrl && (
                 <div className="vendor-profile-photo-alert">
@@ -317,7 +317,7 @@ export default function VendorProfilePage(): React.ReactElement {
               </div>
 
               {/* Vendor Code */}
-              <div className="vendor-profile-field">
+              {/* <div className="vendor-profile-field">
                 <label className="vendor-profile-label">Vendor Code</label>
                 <div className="vendor-profile-input-box">
                   <LuTag className="vendor-profile-field-icon" size={18} />
@@ -330,7 +330,7 @@ export default function VendorProfilePage(): React.ReactElement {
                     maxLength={50}
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Email */}
               <div className="vendor-profile-field">
@@ -365,7 +365,7 @@ export default function VendorProfilePage(): React.ReactElement {
               </div>
 
               {/* GST Number */}
-              <div className="vendor-profile-field">
+              {/* <div className="vendor-profile-field">
                 <label className="vendor-profile-label">GST Number</label>
                 <div className="vendor-profile-input-box">
                   <LuHash className="vendor-profile-field-icon" size={18} />
@@ -378,7 +378,7 @@ export default function VendorProfilePage(): React.ReactElement {
                     maxLength={15}
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Password */}
               <div className="vendor-profile-field">
