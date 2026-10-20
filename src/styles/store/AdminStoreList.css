@@ -1,0 +1,224 @@
+/* src/styles/store/storeList.css */
+
+/* ── Page wrapper ─────────────────────────────────────────── */
+.storelist-page {
+  width: 100%;
+}
+
+/* ── Store avatar ─────────────────────────────────────────── */
+.storelist-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.storelist-avatar {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #e8eef5;
+}
+
+.storelist-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.storelist-avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b3a5c;
+  background-color: #d0dff0;
+  border-radius: 8px;
+}
+
+/* ── Name / subtext ───────────────────────────────────────── */
+.storelist-name-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.storelist-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b3a5c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storelist-subtext {
+  font-size: 12px;
+  color: #6b7a8d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Contact cell ─────────────────────────────────────────── */
+.storelist-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.storelist-contact-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3c4a5c;
+}
+
+.storelist-icon {
+  flex-shrink: 0;
+  color: #6b7a8d;
+}
+
+/* ── Location cell ────────────────────────────────────────── */
+.storelist-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 160px;
+}
+
+.storelist-location-icon {
+  flex-shrink: 0;
+  color: #e05c2a;
+}
+
+.storelist-location-text {
+  font-size: 13px;
+  color: #3c4a5c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Verification select ──────────────────────────────────── */
+.storelist-verify-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.storelist-verify-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 4px 28px 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition:
+    opacity 0.15s ease,
+    box-shadow 0.15s ease;
+  /* custom caret */
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a8d' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.storelist-verify-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.storelist-verify-select:not(:disabled):hover {
+  box-shadow: 0 0 0 2px rgba(27, 58, 92, 0.15);
+}
+
+/* per-value colour themes */
+.storelist-verify-select--pending {
+  background-color: #fff8e6;
+  color: #a16207;
+  border-color: #f5d87a;
+}
+
+.storelist-verify-select--verified {
+  background-color: #e6f9f0;
+  color: #1a7f4b;
+  border-color: #7fdbb0;
+}
+
+.storelist-verify-select--rejected {
+  background-color: #fdecea;
+  color: #c0392b;
+  border-color: #f5a89e;
+}
+
+/* spinner shown while the mutation is in-flight */
+.storelist-verify-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ccc;
+  border-top-color: #1b3a5c;
+  border-radius: 50%;
+  animation: storelist-spin 0.6s linear infinite;
+}
+
+@keyframes storelist-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Rejection hint ───────────────────────────────────────── */
+.storelist-rejection-hint {
+  font-size: 11px;
+  color: #c0392b;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  cursor: default;
+}
+
+/* ── Actions cell ─────────────────────────────────────────── */
+.storelist-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.storelist-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e8eef5;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  padding: 0;
+}
+
+.storelist-action-btn:hover {
+  background-color: #d0dff0;
+}
+
+.storelist-action-btn svg {
+  font-size: 16px;
+}

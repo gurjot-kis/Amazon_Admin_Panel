@@ -6,6 +6,7 @@ import {
   LuLogOut,
   LuX,
   LuPackage,
+  LuStore,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -54,6 +55,14 @@ const NAV_ITEMS: NavItem[] = [
     path: VENDOR_ROUTES.products,
     activePaths: [VENDOR_ROUTES.products],
     icon: <LuPackage size={20} />,
+  },
+
+  {
+    id: "Stores",
+    label: "Stores",
+    path: VENDOR_ROUTES.stores,
+    activePaths: [VENDOR_ROUTES.stores],
+    icon: <LuStore size={20} />,
   },
 
   // {

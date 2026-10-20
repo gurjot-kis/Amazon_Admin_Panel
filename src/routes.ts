@@ -33,6 +33,9 @@ export const ROUTES = {
   addCartSettings: "/admin/cart-settings/add",
   editCartSettings: "/admin/cart-settings/:id/edit",
 
+  stores: "/admin/stores",
+  storeDetails: "/admin/store/:storeId/details",
+
   support: "/admin/support",
 } as const;
 
@@ -45,4 +48,8 @@ export const VENDOR_ROUTES = {
   productsNew: "/vendor/products/add",
   productEdit: "/vendor/products/:productId/edit",
   productDetails: "/vendor/products/:productId/details",
+
+  stores: "/vendor/stores",
+  addStore: "/vendor/store/add",
+  editStore: "/vendor/store/:storeId/edit",
 } as const;

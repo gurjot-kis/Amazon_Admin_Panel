@@ -1,0 +1,329 @@
+/* Extra styles for the store form. Builds on the shared cc-* classes
+   from styles/category/AddCategory.css. */
+
+.st-required {
+  color: #d92d20;
+}
+
+.st-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
+
+@media (max-width: 575px) {
+  .st-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dropzone sizes */
+.st-dropzone--logo {
+  width: 160px;
+  height: 160px;
+  min-height: 0;
+}
+
+.st-dropzone--banner {
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  min-height: 140px;
+}
+
+.st-dropzone .cc-preview-wrap,
+.st-dropzone .cc-dropzone-image {
+  width: 100%;
+  height: 100%;
+}
+
+.st-dropzone .cc-dropzone-image {
+  object-fit: cover;
+}
+
+.st-dropzone--logo .cc-dropzone-title,
+.st-dropzone--logo .cc-dropzone-hint {
+  font-size: 12px;
+}
+
+.st-locate-btn {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Checkbox row */
+.st-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.st-check input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.st-check strong,
+.st-check small {
+  display: block;
+}
+
+.st-check small {
+  color: #667085;
+  margin-top: 2px;
+}
+
+/* Alert */
+.st-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.st-alert--danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #912018;
+}
+
+/* Error / not-found card */
+.st-state-card {
+  max-width: 520px;
+  margin: 48px auto;
+  text-align: center;
+}
+
+.st-state-card .cc-actions {
+  justify-content: center;
+}
+
+/* Live preview tile */
+.st-tile {
+  position: relative;
+}
+
+.st-tile-banner {
+  height: 96px;
+  background: #f2f4f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.st-tile-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-tile-logo {
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 16px;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  background: #e4e7ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  overflow: hidden;
+  position: relative;
+}
+
+.st-tile-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-tile-address {
+  margin-top: 6px;
+}
+
+
+/* Extra styles for the store form. Builds on the shared cc-* classes
+   from styles/category/AddCategory.css. */
+
+.st-required {
+  color: #d92d20;
+}
+
+.st-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
+
+@media (max-width: 575px) {
+  .st-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dropzone sizes */
+.st-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.st-dropzone--logo {
+  width: 220px;
+  height: 220px;
+  min-height: 0;
+}
+
+.st-dropzone--banner {
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  min-height: 180px;
+}
+
+.st-dropzone .cc-dropzone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 0;
+}
+
+.st-dropzone .cc-dropzone-empty p {
+  margin: 0;
+}
+
+.st-dropzone {
+  position: relative;
+}
+
+.st-dropzone .cc-preview-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.st-dropzone .cc-dropzone-image {
+  width: 100%;
+  height: 100%;
+}
+
+.st-dropzone .cc-dropzone-image {
+  object-fit: cover;
+}
+
+.st-dropzone--logo .cc-dropzone-title,
+.st-dropzone--logo .cc-dropzone-hint {
+  font-size: 12px;
+}
+
+.st-locate-btn {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Checkbox row */
+.st-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.st-check input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.st-check strong,
+.st-check small {
+  display: block;
+}
+
+.st-check small {
+  color: #667085;
+  margin-top: 2px;
+}
+
+/* Alert */
+.st-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.st-alert--danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  color: #912018;
+}
+
+/* Error / not-found card */
+.st-state-card {
+  max-width: 520px;
+  margin: 48px auto;
+  text-align: center;
+}
+
+.st-state-card .cc-actions {
+  justify-content: center;
+}
+
+/* Live preview tile */
+.st-tile {
+  position: relative;
+}
+
+.st-tile-banner {
+  height: 96px;
+  background: #f2f4f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.st-tile-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-tile-logo {
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 16px;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  background: #e4e7ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  overflow: hidden;
+  position: relative;
+}
+
+.st-tile-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-tile-address {
+  margin-top: 6px;
+}

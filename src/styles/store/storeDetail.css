@@ -1,0 +1,409 @@
+/* ── Page ─────────────────────────────────────────────────── */
+.storedetail-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+/* ── State (loading / error) ─────────────────────────────── */
+.storedetail-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 20px;
+  color: #6b7a8d;
+  font-size: 14px;
+}
+
+.storedetail-state--error svg {
+  color: #c0392b;
+}
+
+.storedetail-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e7ef;
+  border-top-color: #1b3a5c;
+  border-radius: 50%;
+  animation: storedetail-spin 0.65s linear infinite;
+}
+
+@keyframes storedetail-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Back button ─────────────────────────────────────────── */
+.storedetail-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid #d0dce8;
+  border-radius: 8px;
+  background: #fff;
+  color: #1b3a5c;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: fit-content;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.storedetail-back-btn:hover {
+  background: #f0f5fb;
+  border-color: #b0c4d8;
+}
+
+/* ── Hero (banner + logo + name) ────────────────────────── */
+.storedetail-hero {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e4ecf4;
+  background: #fff;
+}
+
+.storedetail-banner {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+}
+
+.storedetail-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storedetail-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #d0dff0 0%, #e8f0f9 100%);
+}
+
+.storedetail-hero-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+/* ── Logo ────────────────────────────────────────────────── */
+.storedetail-logo {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  margin-top: -36px;
+  background: #e8eef5;
+  position: relative;
+}
+
+.storedetail-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storedetail-logo-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1b3a5c;
+  background: #d0dff0;
+}
+
+/* ── Hero info ───────────────────────────────────────────── */
+.storedetail-hero-info {
+  flex: 1;
+  min-width: 0;
+  padding-top: 12px;
+}
+
+.storedetail-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.storedetail-store-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1b3a5c;
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.storedetail-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #6b7a8d;
+}
+
+.storedetail-location-icon {
+  color: #e05c2a;
+  flex-shrink: 0;
+}
+
+.storedetail-description {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #4a5a6a;
+  line-height: 1.6;
+}
+
+/* ── Verification select (hero) ─────────────────────────── */
+.storedetail-verify-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.storedetail-verify-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 5px 30px 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a8d' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.storedetail-verify-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.storedetail-verify-select:not(:disabled):hover {
+  box-shadow: 0 0 0 2px rgba(27, 58, 92, 0.15);
+}
+
+.storedetail-verify-select--pending {
+  background-color: #fff8e6;
+  color: #a16207;
+  border-color: #f5d87a;
+}
+
+.storedetail-verify-select--verified {
+  background-color: #e6f9f0;
+  color: #1a7f4b;
+  border-color: #7fdbb0;
+}
+
+.storedetail-verify-select--rejected {
+  background-color: #fdecea;
+  color: #c0392b;
+  border-color: #f5a89e;
+}
+
+.storedetail-verify-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #ccc;
+  border-top-color: #1b3a5c;
+  border-radius: 50%;
+  animation: storedetail-spin 0.6s linear infinite;
+}
+
+/* ── Grid ────────────────────────────────────────────────── */
+.storedetail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .storedetail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Card ────────────────────────────────────────────────── */
+.storedetail-card {
+  background: #fff;
+  border: 1px solid #e4ecf4;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.storedetail-card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b3a5c;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f8;
+}
+
+/* ── Definition list ─────────────────────────────────────── */
+.storedetail-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+
+.storedetail-dl-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f3f6fa;
+  font-size: 13px;
+}
+
+.storedetail-dl-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.storedetail-dl-row dt {
+  flex-shrink: 0;
+  width: 120px;
+  color: #6b7a8d;
+  font-weight: 500;
+}
+
+.storedetail-dl-row dd {
+  flex: 1;
+  margin: 0;
+  color: #1b3a5c;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* ── Links ───────────────────────────────────────────────── */
+.storedetail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #1b6fd8;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.storedetail-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Mono (GST) ──────────────────────────────────────────── */
+.storedetail-mono {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12.5px;
+  background: #f3f6fa;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Status badges ───────────────────────────────────────── */
+.storedetail-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.storedetail-status-badge--active    { background: #e6f9f0; color: #1a7f4b; }
+.storedetail-status-badge--inactive  { background: #f3f4f6; color: #6b7280; }
+.storedetail-status-badge--suspended { background: #fdecea; color: #c0392b; }
+.storedetail-status-badge--verified  { background: #e6f9f0; color: #1a7f4b; }
+.storedetail-status-badge--pending   { background: #fff8e6; color: #a16207; }
+.storedetail-status-badge--rejected  { background: #fdecea; color: #c0392b; }
+
+/* ── Rejection reason ────────────────────────────────────── */
+.storedetail-rejection {
+  color: #c0392b !important;
+  font-style: italic;
+}
+
+/* ── Vendor block ────────────────────────────────────────── */
+.storedetail-vendor {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.storedetail-vendor-avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e8eef5;
+}
+
+.storedetail-vendor-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storedetail-vendor-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1b3a5c;
+  background: #d0dff0;
+}
+
+.storedetail-vendor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.storedetail-vendor-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b3a5c;
+}
+
+.storedetail-vendor-meta {
+  font-size: 12px;
+  color: #1b6fd8;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.storedetail-empty {
+  font-size: 13px;
+  color: #6b7a8d;
+  margin: 0;
+}

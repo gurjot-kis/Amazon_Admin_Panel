@@ -14,7 +14,6 @@ import type {
   GetVendorsParams,
   GetVendorsResponse,
   ToggleVendorServiceResponse,
-  UpdateVendorAvailabilityRequest,
   UpdateVendorRequest,
   UpdateVendorResponse,
   UpdateVendorSlotAvailabilityResponse,

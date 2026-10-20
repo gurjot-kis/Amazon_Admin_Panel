@@ -241,7 +241,6 @@ const ProductList = () => {
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  // Track which product's status is being updated for per-row loading state
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -403,7 +402,7 @@ const ProductList = () => {
             type="button"
             className="cl-icon-btn cl-icon-btn--info"
             title="Details"
-            onClick={()=> navigate(`/admin/products/${p._id}/details`)}
+            onClick={()=> navigate(`/vendor/products/${p._id}/details`)}
           >
             <FiEye color="#2563EB" />
           </button>
@@ -411,7 +410,7 @@ const ProductList = () => {
             type="button"
             className="cl-icon-btn"
             title="Edit"
-            onClick={() => navigate(`/admin/products/${p._id}/edit`)}
+            onClick={() => navigate(`/vendor/products/${p._id}/edit`)}
           >
             <MdModeEdit color="#1b3a5c" />
           </button>
@@ -465,7 +464,7 @@ const ProductList = () => {
           },
         ]}
         addButtonLabel="Add Product"
-        onAddClick={() => navigate("/admin/products/add")}
+        onAddClick={() => navigate("/vendor/products/add")}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}

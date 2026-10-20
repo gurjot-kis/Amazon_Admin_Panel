@@ -18,9 +18,9 @@ import VendorSupportPage from "./pages/vendor/VendorSupportPage";
 import CategoryList from "./pages/admin/category/CategoryList";
 import Layout from "./layout/admin/Layout";
 import AddCategory from "./pages/admin/category/AddCategory";
-import ProductList from "./pages/admin/product/ProductList";
-import AddProduct from "./pages/admin/product/AddProduct";
-import ProductDetails from "./pages/admin/product/ProductDetails";
+import ProductList from "./pages/vendor/product/ProductList";
+import AddProduct from "./pages/vendor/product/AddProduct";
+import ProductDetails from "./pages/vendor/product/ProductDetails";
 import AllOrderList from "./pages/admin/orders/AllOrderList";
 import OrderDetails from "./pages/admin/orders/OrderDetails";
 import UserList from "./pages/admin/user/UserList";
@@ -33,6 +33,10 @@ import VariantOption from "./pages/admin/variant/VariantOption";
 import AddVariantOption from "./pages/admin/variant/AddVariantOption";
 import CartSettingsList from "./pages/admin/cart-settings/CartSettingsList";
 import CreateCartSettings from "./pages/admin/cart-settings/CreateCartSettings";
+import { default as AdminStoreList } from "./pages/admin/store/StoreList";
+import { default as VendorStoreList } from "./pages/vendor/store/StoreList";
+import StoreDetails from "./pages/admin/store/StoreDetails";
+import AddStore from "./pages/vendor/store/AddStore";
 
 function App() {
   return (
@@ -65,6 +69,10 @@ function App() {
               path={VENDOR_ROUTES.productDetails}
               element={<ProductDetails />}
             />
+
+            <Route path={VENDOR_ROUTES.stores} element={<VendorStoreList />} />
+            <Route path={VENDOR_ROUTES.addStore} element={<AddStore />} />
+            <Route path={VENDOR_ROUTES.editStore} element={<AddStore />} />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -105,6 +113,9 @@ function App() {
               path={ROUTES.editCartSettings}
               element={<CreateCartSettings />}
             />
+
+            <Route path={ROUTES.stores} element={<AdminStoreList />} />
+            <Route path={ROUTES.storeDetails} element={<StoreDetails />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

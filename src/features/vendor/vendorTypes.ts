@@ -17,6 +17,7 @@ export interface Vendor {
   _id: string;
   user_id: string;
   fullName: string;
+  profilePicture: string;
   email: string;
   phone: string;
   address: string;
@@ -119,11 +120,6 @@ export interface CreateVendorPayload {
   password: string;
   phone: string;
   address: string;
-  gst_number: string;
-  vendorCategories: string[];
-  serviceableAreas: {
-    pincode: string;
-  }[];
 }
 
 export interface UpdateVendorPayload {

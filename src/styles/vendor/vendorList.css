@@ -1,4 +1,3 @@
-
 /* ── Page wrapper ── */
 .vendor-list-page {
   display: flex;
@@ -203,6 +202,32 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+}
+
+.vendor-table-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.vendor-table-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.vendor-table-avatar-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #1b3a5c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 767px) {

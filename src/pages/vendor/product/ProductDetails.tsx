@@ -266,7 +266,7 @@ const ProductDetails: React.FC = () => {
               Dashboard
             </Link>
             <span className="pro-detail-breadcrumb-sep">/</span>
-            <Link to="/admin/products" className="pro-detail-breadcrumb-item">
+            <Link to="/vendor/products" className="pro-detail-breadcrumb-item">
               Products
             </Link>
             <span className="pro-detail-breadcrumb-sep">/</span>
@@ -319,7 +319,7 @@ const ProductDetails: React.FC = () => {
                 : "Publish Product"}
           </button>
           <Link
-            to={`/admin/products/${product._id}/edit`}
+            to={`/vendor/products/${product._id}/edit`}
             className="pro-detail-btn pro-detail-btn-solid"
           >
             Edit Record

@@ -1422,7 +1422,7 @@ const AddProduct: React.FC = () => {
           description: `"${basePayload.name}" has been added successfully.`,
         });
       }
-      navigate("/admin/products");
+      navigate("/vendor/products");
     } catch (err: any) {
       toast.error(
         isEditMode ? "Failed to update product" : "Failed to create product",
@@ -2686,7 +2686,7 @@ const AddProduct: React.FC = () => {
             <button
               type="button"
               className="ap-btn ap-btn-secondary"
-              onClick={() => navigate("/admin/products")}
+              onClick={() => navigate("/vendor/products")}
             >
               Cancel
             </button>

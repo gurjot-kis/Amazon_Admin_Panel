@@ -23,6 +23,7 @@ import "../../../styles/vendor/vendorList.css";
 import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
 
 const PAGE_LIMIT = 10;
+const ASSET_URL = import.meta.env.VITE_API_ASSET_URL as string;
 
 export default function VendorList(): React.ReactElement {
   const navigate = useNavigate();
@@ -35,7 +36,6 @@ export default function VendorList(): React.ReactElement {
   const [searchInput, setSearchInput] = useState<string>("");
   const [search, setSearch] = useState<string>("");
 
-  // Track which vendor + which field is being updated
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [updatingVerify, setUpdatingVerify] = useState<string | null>(null);
 
@@ -50,7 +50,6 @@ export default function VendorList(): React.ReactElement {
     });
   }, [setHeaderConfig]);
 
-  // Debounced search — resets to page 1
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
@@ -59,7 +58,6 @@ export default function VendorList(): React.ReactElement {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // RTK Query hooks
   const { data, isLoading, isFetching, isError, error, refetch } =
     useFetchVendorsQuery({
       page,
@@ -82,7 +80,6 @@ export default function VendorList(): React.ReactElement {
   const rawVendors = data?.data ?? [];
   const pagination = data?.pagination;
 
-  // Client-side search fallback (in case API doesn't support full-text)
   const vendors = useMemo(() => {
     if (!search) return rawVendors;
     const lower = search.toLowerCase();
@@ -108,10 +105,7 @@ export default function VendorList(): React.ReactElement {
     };
   }, [vendors, pagination]);
 
-  // ── Toggle Handlers ──────────────────────────────────────────────────────────
-
   const handleToggleStatus = async (vendor: Vendor) => {
-    console.log("vendor", vendor);
     const newStatus = vendor.status === 1 ? 0 : 1;
     setUpdatingStatus(vendor._id);
     try {
@@ -136,10 +130,10 @@ export default function VendorList(): React.ReactElement {
 
   const handleToggleVerification = async (vendor: Vendor) => {
     const newValue = !vendor.isVendorVerified;
-    setUpdatingVerify(vendor.user_id);
+    setUpdatingVerify(vendor._id);
     try {
       await updateVendorVerification({
-        userId: vendor.user_id,
+        userId: vendor._id,
         payload: { isVendorVerified: newValue },
       }).unwrap();
       toast.success("Verification updated", {
@@ -158,30 +152,6 @@ export default function VendorList(): React.ReactElement {
     }
   };
 
-  // const handleToggleAvailability = async (vendor: Vendor) => {
-  //   const newValue = !vendor.isAvailableNow;
-  //   setUpdatingAvail(vendor.user_id);
-  //   try {
-  //     await updateVendorAvailability({
-  //       userId: vendor.user_id,
-  //       payload: { isAvailableNow: newValue },
-  //     }).unwrap();
-  //     toast.success("Availability updated", {
-  //       description: `"${vendor.fullName || "Vendor"}" is now ${
-  //         newValue ? "Available" : "Unavailable"
-  //       }.`,
-  //     });
-  //   } catch (err: any) {
-  //     toast.error("Failed to update availability", {
-  //       description:
-  //         err?.data?.message ??
-  //         "Could not update availability. Please try again.",
-  //     });
-  //   } finally {
-  //     setUpdatingAvail(null);
-  //   }
-  // };
-
   const openDeleteModal = (vendor: Vendor) => {
     setSelectedVendor(vendor);
     setIsDeleteModalOpen(true);
@@ -191,7 +161,7 @@ export default function VendorList(): React.ReactElement {
     if (!selectedVendor) return;
     const vendorName = selectedVendor.fullName;
     try {
-      await deleteVendor(selectedVendor.user_id).unwrap();
+      await deleteVendor(selectedVendor._id).unwrap();
       setIsDeleteModalOpen(false);
       setSelectedVendor(null);
       toast.success("Vendor deleted", {
@@ -207,8 +177,6 @@ export default function VendorList(): React.ReactElement {
     }
   };
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
   const getInitials = (name?: string): string => {
     if (!name?.trim()) return "V";
     const words = name.trim().split(/\s+/);
@@ -219,8 +187,6 @@ export default function VendorList(): React.ReactElement {
     );
   };
 
-  // ── Column Definitions ───────────────────────────────────────────────────────
-
   const columns: DataTableColumn<Vendor>[] = [
     {
       key: "fullName",
@@ -229,13 +195,29 @@ export default function VendorList(): React.ReactElement {
       render: (vendor) => (
         <div className="vendor-table-profile">
           <div className="vendor-table-avatar">
-            {getInitials(vendor.fullName)}
+            {vendor.profilePicture ? (
+              <img
+                src={`${ASSET_URL}${vendor.profilePicture}`}
+                alt={vendor.fullName || "Vendor"}
+                className="vendor-table-avatar-img"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                  (
+                    e.currentTarget.nextElementSibling as HTMLElement
+                  ).style.display = "flex";
+                }}
+              />
+            ) : null}
+            <span
+              className="vendor-table-avatar-initials"
+              style={{ display: vendor.profilePicture ? "none" : "flex" }}
+            >
+              {getInitials(vendor.fullName)}
+            </span>
           </div>
           <div className="vendor-table-name-wrapper">
             <span className="vendor-table-name">{vendor.fullName || "—"}</span>
-            {vendor.code && (
-              <span className="vendor-table-code">#{vendor.code}</span>
-            )}
+
             <span className="vendor-table-subtext d-md-none">
               {vendor.email || vendor.phone}
             </span>
@@ -276,25 +258,12 @@ export default function VendorList(): React.ReactElement {
             active={vendor.isVendorVerified}
             isUpdating={updatingVerify === vendor.user_id}
             onChange={() => handleToggleVerification(vendor)}
+            activeLabel="Verified"
+            inactiveLabel="Unverified"
           />
         </div>
       ),
     },
-    // {
-    //   key: "isAvailableNow",
-    //   header: "Available",
-    //   headerClassName: "d-none d-lg-table-cell",
-    //   cellClassName: "d-none d-lg-table-cell",
-    //   render: (vendor) => (
-    //     <div className="vendor-table-toggle-wrapper">
-    //       <DataTableStatusToggle
-    //         active={vendor.isAvailableNow}
-    //         isUpdating={updatingAvail === vendor.user_id}
-    //         onChange={() => handleToggleAvailability(vendor)}
-    //       />
-    //     </div>
-    //   ),
-    // },
     {
       key: "status",
       header: "Status",
@@ -319,7 +288,7 @@ export default function VendorList(): React.ReactElement {
             type="button"
             className="vendor-table-action-btn"
             title="Edit Vendor"
-            onClick={() => navigate(`/admin/vendors/${vendor.user_id}/edit`)}
+            onClick={() => navigate(`/admin/vendors/${vendor._id}/edit`)}
           >
             <MdModeEdit color="#1b3a5c" />
           </button>
@@ -335,8 +304,6 @@ export default function VendorList(): React.ReactElement {
       ),
     },
   ];
-
-  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="vendor-list-page">
@@ -378,18 +345,6 @@ export default function VendorList(): React.ReactElement {
               { value: "false", label: "Unverified" },
             ],
           },
-          // {
-          //   value: availabilityFilter,
-          //   onChange: (v) => {
-          //     setAvailabilityFilter(v);
-          //     setPage(1);
-          //   },
-          //   options: [
-          //     { value: "all", label: "All Availability" },
-          //     { value: "true", label: "Available Now" },
-          //     { value: "false", label: "Unavailable" },
-          //   ],
-          // },
         ]}
         addButtonLabel="Add Vendor"
         onAddClick={() => navigate("/admin/vendors/add")}
