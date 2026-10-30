@@ -153,3 +153,16 @@ export type SetDefaultStoreResponse = StoreApiResponse<Store>;
 export type ToggleStoreStatusResponse = StoreApiResponse<Store>;
 
 export type DeleteStoreResponse = StoreApiResponse<null>;
+
+export interface VendorActiveStore {
+  _id: string;
+  store_name: string;
+  store_logo: string | null;
+}
+
+export interface FetchVendorActiveStoresResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: VendorActiveStore[];
+}

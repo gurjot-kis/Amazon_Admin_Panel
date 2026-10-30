@@ -7,6 +7,7 @@ import {
   LuX,
   LuPackage,
   LuStore,
+  LuTicketPercent,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -63,6 +64,14 @@ const NAV_ITEMS: NavItem[] = [
     path: VENDOR_ROUTES.stores,
     activePaths: [VENDOR_ROUTES.stores],
     icon: <LuStore size={20} />,
+  },
+
+  {
+    id: "Coupons",
+    label: "Coupons",
+    path: VENDOR_ROUTES.couponList,
+    activePaths: [VENDOR_ROUTES.couponList],
+    icon: <LuTicketPercent size={20} />,
   },
 
   // {

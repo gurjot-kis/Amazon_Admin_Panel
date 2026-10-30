@@ -7,8 +7,11 @@ import {
   Plus,
   Pencil,
   Trash2,
-  ToggleLeft,
   Star,
+  ToggleLeft,
+  ShieldCheck,
+  Clock,
+  ShieldX,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,21 +30,10 @@ import { ConfirmationModal } from "../../../components/common/ConfirmationModal"
 
 import "../../../styles/store/VendorStoreList.css";
 import { useNavigate } from "react-router-dom";
+
 const ASSET_URL = import.meta.env.VITE_API_ASSET_URL as string;
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-
-const statusBadgeClass: Record<StoreStatus, string> = {
-  active: "badge badge-status-active",
-  inactive: "badge badge-status-inactive",
-  suspended: "badge badge-status-suspended",
-};
-
-const verificationBadgeClass: Record<StoreVerificationStatus, string> = {
-  verified: "badge badge-verified",
-  pending: "badge badge-pending",
-  rejected: "badge badge-rejected",
-};
 
 const getInitials = (name: string) =>
   name
@@ -51,10 +43,22 @@ const getInitials = (name: string) =>
     .join("")
     .toUpperCase();
 
+const VerificationIcon: React.FC<{ status: StoreVerificationStatus }> = ({
+  status,
+}) => {
+  if (status === "verified")
+    return <ShieldCheck size={13} className="v-icon verified" />;
+  if (status === "pending")
+    return <Clock size={13} className="v-icon pending" />;
+  return <ShieldX size={13} className="v-icon rejected" />;
+};
+
+// ─── Store Card ──────────────────────────────────────────────────────────────
+
 interface StoreCardProps {
   store: Store;
   onEdit: (store: Store) => void;
-  onDelete: (store: Store) => void; // now receives the whole store (for the modal)
+  onDelete: (store: Store) => void;
   onToggleStatus: (storeId: string) => void;
   onSetDefault: (storeId: string) => void;
 }
@@ -71,6 +75,7 @@ const StoreCard: React.FC<StoreCardProps> = ({
     store_name,
     store_description,
     store_logo,
+    store_banner,
     email,
     phone,
     address,
@@ -81,118 +86,138 @@ const StoreCard: React.FC<StoreCardProps> = ({
     is_default,
   } = store;
 
-  const location = [city, state].filter(Boolean).join(", ");
+  const location = [city, state].filter(Boolean).join(", ") || address;
+  const isActive = status === "active";
 
   return (
-    <div className="store-card white-glass-card">
-      <div className="store-card-glow" />
-
-      <div className="store-card-top-bar">
-        {is_default ? (
-          <span className="store-default-badge">DEFAULT</span>
+    <div className={`sc-card ${isActive ? "sc-active" : "sc-inactive"}`}>
+      {/* ── Banner ── */}
+      <div className="sc-banner">
+        {store_banner ? (
+          <img
+            src={`${ASSET_URL}${store_banner}`}
+            alt=""
+            className="sc-banner-img"
+          />
         ) : (
-          <span />
+          <div className="sc-banner-placeholder" aria-hidden="true" />
         )}
-        <div className="store-card-badges">
-          <span className={statusBadgeClass[status]}>
-            <span className="badge-dot" />
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+
+        {/* Overlay gradient for readability */}
+        <div className="sc-banner-overlay" />
+
+        {/* Top-left: DEFAULT pill */}
+        {is_default && (
+          <span className="sc-pill sc-pill-default">
+            <Star size={10} fill="currentColor" />
+            Default
           </span>
-          <span className={verificationBadgeClass[verification_status]}>
-            {verification_status.charAt(0).toUpperCase() +
-              verification_status.slice(1)}
-          </span>
-        </div>
+        )}
+
+        {/* Top-right: status dot */}
+        <span className={`sc-status-dot sc-status-${status}`} title={status} />
       </div>
 
-      <div className="store-card-hero">
-        <div className="store-card-logo-wrap">
+      {/* ── Identity Row: logo + name/desc ── */}
+      <div className="sc-identity">
+        <div className="sc-logo-wrap">
           {store_logo ? (
-            <img src={`${ASSET_URL}${store_logo}`} alt={`${store_name} logo`} />
+            <img
+              src={`${ASSET_URL}${store_logo}`}
+              alt={`${store_name} logo`}
+              className="sc-logo-img"
+            />
           ) : (
-            <div className="store-logo-placeholder">
-              {getInitials(store_name)}
-            </div>
+            <div className="sc-logo-initials">{getInitials(store_name)}</div>
           )}
         </div>
 
-        <h3 className="store-card-name" title={store_name}>
-          {store_name}
-        </h3>
+        <div className="sc-name-block">
+          <div className="sc-name-row">
+            <h3 className="sc-name" title={store_name}>
+              {store_name}
+            </h3>
+            <span
+              className={`sc-verification sc-verification-${verification_status}`}
+            >
+              <VerificationIcon status={verification_status} />
+              {verification_status.charAt(0).toUpperCase() +
+                verification_status.slice(1)}
+            </span>
+          </div>
+          {store_description && <p className="sc-desc">{store_description}</p>}
+        </div>
+      </div>
 
-        {store_description && (
-          <p className="store-card-desc">{store_description}</p>
+      {/* ── Meta ── */}
+      <ul className="sc-meta">
+        {location && (
+          <li>
+            <MapPin size={13} />
+            <span>{location}</span>
+          </li>
         )}
+        {email && (
+          <li>
+            <Mail size={13} />
+            <span>{email}</span>
+          </li>
+        )}
+        {phone && (
+          <li>
+            <Phone size={13} />
+            <span>{phone}</span>
+          </li>
+        )}
+      </ul>
+
+      {/* ── Status pill row ── */}
+      <div className="sc-status-row">
+        <span className={`sc-badge sc-badge-${status}`}>
+          <span className="sc-badge-dot" />
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
       </div>
 
-      <div className="store-card-body">
-        <div className="store-card-meta-list">
-          {location && (
-            <div className="store-meta-row">
-              <MapPin size={15} />
-              <span>{location}</span>
-            </div>
-          )}
-          {email && (
-            <div className="store-meta-row">
-              <Mail size={15} />
-              <span>{email}</span>
-            </div>
-          )}
-          {phone && (
-            <div className="store-meta-row">
-              <Phone size={15} />
-              <span>{phone}</span>
-            </div>
-          )}
-          {!location && address && (
-            <div className="store-meta-row">
-              <MapPin size={15} />
-              <span>{address}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="store-card-footer">
-        <button
-          className="store-btn store-btn-primary"
-          onClick={() => onEdit(store)}
-        >
-          <Pencil size={14} />
-          <span>Edit</span>
+      {/* ── Footer actions ── */}
+      <div className="sc-footer">
+        <button className="sc-btn sc-btn-primary" onClick={() => onEdit(store)}>
+          <Pencil size={13} />
+          Edit
         </button>
 
         <button
-          className="store-btn store-btn-glass"
+          className="sc-btn sc-btn-outline"
           onClick={() => onToggleStatus(_id)}
         >
-          <ToggleLeft size={15} />
-          <span>{status === "active" ? "Deactivate" : "Activate"}</span>
+          <ToggleLeft size={14} />
+          {isActive ? "Deactivate" : "Activate"}
         </button>
 
         {!is_default && (
           <button
-            className="store-btn store-btn-glass"
+            className="sc-btn sc-btn-outline"
             onClick={() => onSetDefault(_id)}
-            title="Set as default"
+            title="Set as default store"
           >
-            <Star size={14} />
-            <span>Default</span>
+            <Star size={13} />
+            Set Default
           </button>
         )}
 
         <button
-          className="store-btn store-btn-danger"
+          className="sc-btn sc-btn-danger"
           onClick={() => onDelete(store)}
           title="Delete store"
         >
-          <Trash2 size={15} />
+          <Trash2 size={14} />
         </button>
       </div>
     </div>
   );
 };
+
+// ─── Store List Page ─────────────────────────────────────────────────────────
 
 const StoreList: React.FC = () => {
   const navigate = useNavigate();
@@ -204,7 +229,6 @@ const StoreList: React.FC = () => {
     StoreVerificationStatus | ""
   >("");
 
-  // delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
@@ -223,10 +247,8 @@ const StoreList: React.FC = () => {
   const stores = data?.data ?? [];
   const pagination = data?.pagination;
 
-  const handleEdit = (store: Store) => {
-    navigate(`/vendor/store/${store._id}/edit`);
-    console.log("Edit store:", store._id);
-  };
+  const handleEdit = (store: Store) =>
+    navigate(`/vendor/stores/${store._id}/edit`);
 
   const openDeleteModal = (store: Store) => {
     setSelectedStore(store);
@@ -248,12 +270,9 @@ const StoreList: React.FC = () => {
         description: `"${storeName}" has been successfully removed.`,
       });
     } catch (error: any) {
-      console.error("Failed to delete store:", error);
       const errMsg =
         error?.data?.message || "Something went wrong. Please try again.";
-      toast.error("Failed to delete store", {
-        description: errMsg,
-      });
+      toast.error("Failed to delete store", { description: errMsg });
     }
   };
 
@@ -275,9 +294,9 @@ const StoreList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="store-list-page">
-        <div className="store-list-state">
-          <StoreIcon size={42} />
+      <div className="sl-page">
+        <div className="sl-state">
+          <StoreIcon size={40} />
           <p>Loading your stores…</p>
         </div>
       </div>
@@ -286,9 +305,9 @@ const StoreList: React.FC = () => {
 
   if (isError) {
     return (
-      <div className="store-list-page">
-        <div className="store-list-state">
-          <StoreIcon size={42} />
+      <div className="sl-page">
+        <div className="sl-state">
+          <StoreIcon size={40} />
           <h3>Something went wrong</h3>
           <p>We couldn't load your stores. Please try again.</p>
         </div>
@@ -297,40 +316,55 @@ const StoreList: React.FC = () => {
   }
 
   return (
-    <div className="store-list-page">
+    <div className="sl-page">
       {/* Header */}
-      <div className="store-list-header">
-        <h1>
-          My Stores
+      <div className="sl-header">
+        <div className="sl-header-left">
+          <h1 className="sl-title">My Stores</h1>
           {pagination && (
-            <span className="store-count">({pagination.total})</span>
+            <span className="sl-count">
+              {pagination.total} store{pagination.total !== 1 ? "s" : ""}
+            </span>
           )}
-        </h1>
-
+        </div>
         <button
-          className="btn-create-store"
-          onClick={() => navigate("/vendor/store/add")}
+          className="sl-add-btn"
+          onClick={() => navigate("/vendor/stores/add")}
         >
-          <Plus size={16} />
+          <Plus size={15} />
           Add Store
         </button>
       </div>
 
       {/* Filters */}
-      <div className="store-list-filters">
-        <input
-          className="store-filter-input"
-          type="text"
-          placeholder="Search stores…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
+      <div className="sl-filters">
+        <div className="sl-search-wrap">
+          <svg
+            className="sl-search-icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            className="sl-search"
+            type="text"
+            placeholder="Search by name, city, email…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
 
         <select
-          className="store-filter-select"
+          className="sl-select"
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as StoreStatus | "");
@@ -344,7 +378,7 @@ const StoreList: React.FC = () => {
         </select>
 
         <select
-          className="store-filter-select"
+          className="sl-select"
           value={verificationFilter}
           onChange={(e) => {
             setVerificationFilter(
@@ -360,10 +394,10 @@ const StoreList: React.FC = () => {
         </select>
       </div>
 
-      {/* Cards Grid */}
+      {/* Grid */}
       {stores.length === 0 ? (
-        <div className="store-list-state">
-          <StoreIcon size={42} />
+        <div className="sl-state">
+          <StoreIcon size={40} />
           <h3>No stores found</h3>
           <p>
             {search || statusFilter || verificationFilter
@@ -373,8 +407,8 @@ const StoreList: React.FC = () => {
         </div>
       ) : (
         <div
-          className="store-cards-grid"
-          style={{ opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s" }}
+          className="sl-grid"
+          style={{ opacity: isFetching ? 0.55 : 1, transition: "opacity 0.2s" }}
         >
           {stores.map((store) => (
             <StoreCard
@@ -391,28 +425,27 @@ const StoreList: React.FC = () => {
 
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="store-list-pagination">
-          <span className="pagination-info">
+        <div className="sl-pagination">
+          <span className="sl-page-info">
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <button
-            className="pagination-btn"
+            className="sl-page-btn"
             disabled={!pagination.hasPrevPage}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
+            ← Previous
           </button>
           <button
-            className="pagination-btn"
+            className="sl-page-btn"
             disabled={!pagination.hasNextPage}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            Next →
           </button>
         </div>
       )}
 
-      {/* Delete confirmation modal */}
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}

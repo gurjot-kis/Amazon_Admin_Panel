@@ -1,0 +1,174 @@
+/* ── Avatar ─────────────────────────────────────────────── */
+.couponlist-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.couponlist-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.couponlist-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1b3a5c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* ── Name cell ───────────────────────────────────────────── */
+.couponlist-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.couponlist-name-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.couponlist-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1b3a5c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.couponlist-title {
+  font-size: 12px;
+  color: #8a96a3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Coupon code ─────────────────────────────────────────── */
+.couponlist-code-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f4f6fa;
+  border: 1px dashed #c5cdd8;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.couponlist-code {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b3a5c;
+  letter-spacing: 0.5px;
+}
+
+.couponlist-copy-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #8a96a3;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.couponlist-copy-btn:hover {
+  color: #1b3a5c;
+}
+
+/* ── Discount badge ──────────────────────────────────────── */
+.couponlist-discount-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.couponlist-discount-badge--pct {
+  background: #e6f9f0;
+  color: #18a262;
+}
+
+.couponlist-discount-badge--fixed {
+  background: #fff4e5;
+  color: #d97706;
+}
+
+/* ── Date / Lifetime / Usage ─────────────────────────────── */
+.couponlist-lifetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.couponlist-infinity {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.couponlist-date {
+  font-size: 13px;
+  color: #374151;
+}
+
+.couponlist-expired-date {
+  font-size: 13px;
+  color: #ef4444;
+}
+
+.couponlist-usage {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* ── Actions ─────────────────────────────────────────────── */
+.couponlist-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.couponlist-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: #f0f4f8;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.couponlist-icon-btn:hover {
+  background: #dde4ed;
+}
+
+.couponlist-icon-btn--danger:hover {
+  background: #fee2e2;
+}

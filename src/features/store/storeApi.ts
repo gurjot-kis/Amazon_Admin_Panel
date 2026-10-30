@@ -17,6 +17,7 @@ import type {
   ToggleStoreStatusResponse,
   DeleteStoreResponse,
   UpdateStorePayload,
+  FetchVendorActiveStoresResponse,
 } from "./storeTypes";
 
 // Convert a store payload to multipart FormData.
@@ -118,7 +119,6 @@ export const storeApi = baseApi.injectEndpoints({
 
     // ==================== VENDOR ROUTES ====================
 
-    // Fetch logged-in vendor's stores
     fetchMyStores: builder.query<FetchMyStoresResponse, FetchMyStoresParams>({
       query: ({ page, limit, search, status, verification_status } = {}) => {
         const params = new URLSearchParams();
@@ -142,7 +142,18 @@ export const storeApi = baseApi.injectEndpoints({
       providesTags: ["Store"],
     }),
 
-    // Create a store
+    fetchVendorActiveStores: builder.query<
+      FetchVendorActiveStoresResponse,
+      void
+    >({
+      query: () => ({
+        url: "/vendor/store/my/active-list",
+        method: "GET",
+      }),
+      extraOptions: { requiresAuth: true },
+      providesTags: ["Store"],
+    }),
+
     createStore: builder.mutation<CreateStoreResponse, FormData>({
       query: (formData) => ({
         url: "/vendor/store",
@@ -153,7 +164,6 @@ export const storeApi = baseApi.injectEndpoints({
       invalidatesTags: ["Store"],
     }),
 
-    // Fetch a vendor-owned store by ID
     getMyStoreById: builder.query<GetMyStoreByIdResponse, string>({
       query: (storeId) => ({
         url: `/vendor/store/${storeId}`,
@@ -163,7 +173,6 @@ export const storeApi = baseApi.injectEndpoints({
       providesTags: ["Store"],
     }),
 
-    // Update a vendor-owned store
     updateMyStore: builder.mutation<UpdateStoreResponse, UpdateStorePayload>({
       query: ({ storeId, ...payload }) => ({
         url: `/vendor/store/${storeId}`,
@@ -174,7 +183,6 @@ export const storeApi = baseApi.injectEndpoints({
       invalidatesTags: ["Store"],
     }),
 
-    // Set a store as the vendor's default store
     setDefaultStore: builder.mutation<SetDefaultStoreResponse, string>({
       query: (storeId) => ({
         url: `/vendor/store/${storeId}/default`,
@@ -184,7 +192,6 @@ export const storeApi = baseApi.injectEndpoints({
       invalidatesTags: ["Store"],
     }),
 
-    // Toggle active/inactive status
     toggleMyStoreStatus: builder.mutation<ToggleStoreStatusResponse, string>({
       query: (storeId) => ({
         url: `/vendor/store/${storeId}/status`,
@@ -194,7 +201,6 @@ export const storeApi = baseApi.injectEndpoints({
       invalidatesTags: ["Store"],
     }),
 
-    // Delete a vendor-owned store
     deleteMyStore: builder.mutation<DeleteStoreResponse, string>({
       query: (storeId) => ({
         url: `/vendor/store/${storeId}`,
@@ -215,6 +221,7 @@ export const {
 
   // Vendor hooks
   useFetchMyStoresQuery,
+  useFetchVendorActiveStoresQuery,
   useCreateStoreMutation,
   useGetMyStoreByIdQuery,
   useUpdateMyStoreMutation,

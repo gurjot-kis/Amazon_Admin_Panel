@@ -37,6 +37,8 @@ import { default as AdminStoreList } from "./pages/admin/store/StoreList";
 import { default as VendorStoreList } from "./pages/vendor/store/StoreList";
 import StoreDetails from "./pages/admin/store/StoreDetails";
 import AddStore from "./pages/vendor/store/AddStore";
+import CouponList from "./pages/vendor/coupon/CouponList";
+import AddCoupon from "./pages/vendor/coupon/AddCoupon";
 
 function App() {
   return (
@@ -73,6 +75,10 @@ function App() {
             <Route path={VENDOR_ROUTES.stores} element={<VendorStoreList />} />
             <Route path={VENDOR_ROUTES.addStore} element={<AddStore />} />
             <Route path={VENDOR_ROUTES.editStore} element={<AddStore />} />
+
+            <Route path={VENDOR_ROUTES.couponList} element={<CouponList />} />
+            <Route path={VENDOR_ROUTES.addCoupon} element={<AddCoupon />} />
+            <Route path={VENDOR_ROUTES.editCoupon} element={<AddCoupon />} />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
