@@ -36,6 +36,10 @@ export const ROUTES = {
   stores: "/admin/stores",
   storeDetails: "/admin/store/:storeId/details",
 
+  couponList: "/admin/coupons",
+  addCoupon: "/admin/coupons/add",
+  editCoupon: "/admin/coupons/:id/edit",
+
   support: "/admin/support",
 } as const;
 

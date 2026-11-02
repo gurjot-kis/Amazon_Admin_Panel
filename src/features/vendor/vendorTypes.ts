@@ -57,60 +57,6 @@ export interface VendorPagination {
 }
 
 // ============================================================
-// Vendor Slot Models / Details
-// ============================================================
-
-export interface VendorSlotLocation {
-  type: string;
-  coordinates: [number, number];
-}
-
-export interface VendorSlot {
-  _id: string;
-  vendor_id: string;
-  category_id: string;
-  categoryName: string;
-  categoryImage?: string;
-  slotType: string[];
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: VendorSlotLocation;
-  status: string;
-  bookedCount: number;
-  capacity: number;
-  booking_id: string | null;
-}
-
-export interface VendorSlotPagination {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-// ============================================================
-// Vendor Service Models / Details
-// ============================================================
-
-export interface VendorService {
-  _id: string;
-  category: {
-    _id: string;
-    name: string;
-    category_image: string | null;
-  } | null;
-  service: {
-    _id: string;
-    name: string;
-    category_image: string | null;
-  } | null;
-  status: "active" | "inactive";
-}
-
-// ============================================================
 // Vendor Payloads / Request Params
 // ============================================================
 
@@ -187,50 +133,12 @@ export interface DeleteVendorParams {
   vendorId: string;
 }
 
-export interface AddVendorSlotPayload {
-  category_id: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: {
-    coordinates: [number, number];
-  };
-}
-
-export interface AddVendorServicesPayload {
-  service_ids: string[];
-}
-
-export interface UpdateVendorSlotRequest {
-  slotId: string;
-  payload: AddVendorSlotPayload;
-}
-
-export interface GetVendorSlotsParams {
-  page: number;
-  limit: number;
-  category_id?: string;
-  status?: string;
-  date?: string;
-}
-
 export interface GetVendorSlotByIdParams {
   slotId: string;
 }
 
 export interface UpdateVendorSlotAvailabilityParams {
   slotId: string;
-}
-
-export interface GetVendorServicesParams {
-  page?: number;
-  limit?: number;
-  status?: "active" | "inactive";
-  search?: string;
-}
-
-export interface AddVendorServicesPayload {
-  service_ids: string[];
 }
 
 export interface ToggleVendorServiceParams {
@@ -267,72 +175,6 @@ export interface GetVendorByIdResponse {
   data: VendorDetails;
 }
 
-export interface AddVendorSlotResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: unknown;
-}
-
-export interface GetVendorSlotsResponse {
-  success: boolean;
-  statusCode: number;
-  message: string;
-  data: VendorSlot[];
-  pagination: VendorSlotPagination;
-}
-
-export interface GetVendorSlotByIdResponse {
-  success: boolean;
-  message: string;
-  data: VendorSlot;
-}
-
-export interface UpdateVendorSlotAvailabilityResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: VendorSlot;
-}
-
-export interface GetVendorServicesResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: VendorService[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
-
-export interface AddVendorServicesResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: {
-    inserted: number;
-    message: string;
-  };
-}
-
-export interface ToggleVendorServiceResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: VendorService;
-}
-
-export interface RemoveVendorServiceResponse {
-  success: boolean;
-  code: number;
-  message: string;
-}
-
 export interface DeleteVendorResponse {
   success: boolean;
   code: number;
@@ -350,4 +192,16 @@ export interface VendorServicePagination {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+}
+
+export interface ActiveVendor {
+  _id: string;
+  name: string;
+}
+
+export interface GetActiveVendorsResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: ActiveVendor[];
 }

@@ -172,3 +172,152 @@
 .couponlist-icon-btn--danger:hover {
   background: #fee2e2;
 }
+
+/* ── Media Group & Thumbnails ────────────────────────────── */
+.couponlist-media-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.couponlist-thumb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.couponlist-thumb-pill:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.couponlist-thumb-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.couponlist-thumb-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ── Default / Empty State ───────────────────────────────── */
+.couponlist-empty-image-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+.couponlist-empty-icon {
+  font-size: 15px;
+  color: #a0aec0;
+}
+
+/* Disabled button state */
+.couponlist-icon-btn:disabled,
+.couponlist-icon-btn--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: auto; /* Keeps hover title visible */
+  background: #f1f5f9;
+}
+
+.couponlist-icon-btn:disabled:hover,
+.couponlist-icon-btn--disabled:hover {
+  background: #f1f5f9;
+  transform: none;
+}
+
+/* Empty state dash */
+.couponlist-actions-empty {
+  color: #94a3b8;
+  font-weight: 500;
+  display: inline-block;
+  padding-right: 8px;
+}
+
+
+/* Container alignment */
+.couponlist-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.couponlist-code-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* Badge Base */
+.coupon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.coupon-badge svg {
+  font-size: 12px;
+}
+
+/* Scope: Global */
+.coupon-badge--global {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+/* Scope: Store */
+.coupon-badge--store {
+  background: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+/* Role: SuperAdmin */
+.coupon-badge--admin {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* Role: Vendor */
+.coupon-badge--vendor {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
+}

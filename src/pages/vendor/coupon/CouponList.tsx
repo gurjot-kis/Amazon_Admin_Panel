@@ -6,7 +6,12 @@ import {
   useUpdateVendorCouponStatusMutation,
 } from "../../../features/coupon/couponAPI";
 import type { Coupon } from "../../../features/coupon/couponTypes";
-import { MdDelete, MdModeEdit } from "react-icons/md";
+import {
+  MdDelete,
+  MdModeEdit,
+  MdOutlineImageNotSupported,
+  MdShield,
+} from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
 import {
@@ -15,25 +20,14 @@ import {
 } from "../../../components/common/DataTable/DataTable";
 import type { DataTableColumn } from "../../../components/common/DataTable/DataTable.types";
 import { useHeader } from "../../../layout/LayoutContext";
-import "../../../styles/coupon/VendorCouponList.css";
+import "../../../styles/coupon/CouponList.css";
+import { ImagePreviewModal } from "../../../components/common/ImagePreviewModal";
 
 const PAGE_LIMIT = 10;
 
-// const AvatarIcon = ({ name }: { name: string }) => {
-//   const initials = name
-//     .split(" ")
-//     .map((w) => w[0])
-//     .join("")
-//     .slice(0, 2)
-//     .toUpperCase();
-//   return <span className="couponlist-avatar">{initials}</span>;
-// };
-
 const CouponList = () => {
   const [page, setPage] = useState(1);
-  const [scopeFilter, setScopeFilter] = useState<"all" | "global" | "store">(
-    "all",
-  );
+
   const [statusFilter, setStatusFilter] = useState<"all" | "0" | "1">("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -41,6 +35,7 @@ const CouponList = () => {
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
@@ -63,7 +58,6 @@ const CouponList = () => {
       limit: PAGE_LIMIT,
       search: search || undefined,
       status: statusFilter === "all" ? undefined : Number(statusFilter),
-      scope: scopeFilter === "all" ? undefined : scopeFilter,
     });
 
   const [updateCouponStatus] = useUpdateVendorCouponStatusMutation();
@@ -145,39 +139,38 @@ const CouponList = () => {
     }
   };
 
+  const getImageUrl = (image?: string) => {
+    if (!image) return "";
+
+    if (image.startsWith("http://") || image.startsWith("https://")) {
+      return image;
+    }
+
+    return `${import.meta.env.VITE_API_ASSET_URL}${image}`;
+  };
+
   const columns: DataTableColumn<Coupon>[] = [
     {
       key: "user_details",
       header: "Name",
       isPrimary: true,
       render: (coupon) => {
-        // const name = coupon.user_details?.name ?? "Unknown";
-        // const hasImage = !!coupon.user_details?.image;
+        const isSuperAdmin = coupon.created_by_role === "SuperAdmin";
         return (
           <span className="couponlist-name-cell">
-            {/* <span className="couponlist-avatar-wrap">
-              {hasImage ? (
-                <img
-                  src={coupon.user_details!.image!}
-                  alt={name}
-                  className="couponlist-avatar-img"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
-              <span className={hasImage ? "d-none" : ""}>
-                <AvatarIcon name={name} />
-              </span>
-            </span> */}
             <span className="couponlist-name-info">
-              {/* <span className="couponlist-name">{name}</span> */}
-              {/* <span className="couponlist-title">{coupon.title}</span> */}
               <span className="couponlist-name">{coupon.title}</span>
+
+              <span className="couponlist-meta-badges">
+                <span
+                  className={`coupon-badge ${
+                    isSuperAdmin && "coupon-badge--admin"
+                  }`}
+                >
+                  {isSuperAdmin && <MdShield />}
+                  <span>{isSuperAdmin && "Super Admin"}</span>
+                </span>
+              </span>
             </span>
           </span>
         );
@@ -239,8 +232,6 @@ const CouponList = () => {
     {
       key: "end_date",
       header: "Date Valid",
-      //   headerClassName: "d-none d-md-table-cell",
-      //   cellClassName: "d-none d-md-table-cell",
       render: (coupon) => {
         if (isLifetime(coupon.end_date)) {
           return (
@@ -265,8 +256,6 @@ const CouponList = () => {
     {
       key: "usage_limit",
       header: "Sales / Limit",
-      //   headerClassName: "d-none d-lg-table-cell",
-      //   cellClassName: "d-none d-lg-table-cell",
       render: (coupon) => {
         const isUnlimited = !coupon.usage_limit || coupon.usage_limit === 0;
         return isUnlimited ? (
@@ -290,6 +279,74 @@ const CouponList = () => {
           onChange={() => handleToggleStatus(coupon)}
         />
       ),
+    },
+    {
+      key: "images",
+      header: "Banners",
+      render: (coupon) => {
+        const hasWeb = !!coupon.website_image;
+        const hasMobile = !!coupon.mobile_image;
+
+        if (!hasWeb && !hasMobile) {
+          return (
+            <div
+              className="couponlist-empty-image-badge"
+              title="No banners uploaded"
+            >
+              <MdOutlineImageNotSupported className="couponlist-empty-icon" />
+              <span>No image</span>
+            </div>
+          );
+        }
+
+        return (
+          <div className="couponlist-media-group">
+            {hasWeb && (
+              <button
+                type="button"
+                className="couponlist-thumb-pill"
+                onClick={() =>
+                  setPreviewImage(getImageUrl(coupon.website_image))
+                }
+                title="Preview Website Banner"
+              >
+                <img
+                  src={getImageUrl(coupon.website_image)}
+                  alt="Web"
+                  className="couponlist-thumb-img"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                />
+                <span className="couponlist-thumb-label">Web</span>
+              </button>
+            )}
+
+            {hasMobile && (
+              <button
+                type="button"
+                className="couponlist-thumb-pill"
+                onClick={() =>
+                  setPreviewImage(getImageUrl(coupon.mobile_image))
+                }
+                title="Preview Mobile Banner"
+              >
+                <img
+                  src={getImageUrl(coupon.mobile_image)}
+                  alt="App"
+                  className="couponlist-thumb-img"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                />
+                <span className="couponlist-thumb-label">App</span>
+              </button>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "actions",
@@ -337,18 +394,6 @@ const CouponList = () => {
         searchPlaceholder="Search by name, email or coupon code..."
         filters={[
           {
-            value: scopeFilter,
-            onChange: (v) => {
-              setScopeFilter(v as any);
-              setPage(1);
-            },
-            options: [
-              { value: "all", label: "All Offer Types" },
-              { value: "global", label: "🌐 Global" },
-              { value: "store", label: "🏪 Store" },
-            ],
-          },
-          {
             value: statusFilter,
             onChange: (v) => {
               setStatusFilter(v as any);
@@ -375,6 +420,12 @@ const CouponList = () => {
         }
         pagination={pagination}
         onPageChange={setPage}
+      />
+
+      <ImagePreviewModal
+        isOpen={Boolean(previewImage)}
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
 
       <ConfirmationModal

@@ -96,7 +96,7 @@
   transition:
     box-shadow 0.2s ease,
     border-color 0.2s ease;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .ac-panel:hover {
@@ -111,6 +111,7 @@
   padding: 18px 24px;
   border-bottom: 1px solid #f1f5f9;
   background: #fafbfd;
+  border-radius: 16px 16px 0 0;
 }
 
 .ac-panel-title-group h3 {
@@ -797,4 +798,198 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ── Lifetime checkbox (validity panel) ──────────────────── */
+.ac-form-group--center {
+  justify-content: flex-end;
+}
+
+.ac-lifetime-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  height: 40px;
+}
+
+.ac-lifetime-check input {
+  display: none;
+}
+
+.ac-lifetime-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  background: #fff;
+}
+
+.ac-lifetime-check input:checked ~ .ac-lifetime-box {
+  background: var(--ac-accent);
+  border-color: var(--ac-accent);
+}
+
+.ac-lifetime-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ac-text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Custom Vendor Dropdown ──────────────────────────────── */
+.ac-vd-wrap {
+  position: relative;
+}
+
+.ac-vd-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1.5px solid var(--ac-border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--ac-text-primary);
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.ac-vd-trigger:hover,
+.ac-vd-trigger.is-open {
+  border-color: var(--ac-border-focus);
+  box-shadow: 0 0 0 3px var(--ac-accent-glow);
+}
+
+.ac-vd-trigger-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ac-text-secondary);
+}
+
+.ac-vd-trigger-text:not(:empty) {
+  color: var(--ac-text-primary);
+}
+
+.ac-vd-chevron {
+  flex-shrink: 0;
+  color: var(--ac-text-muted);
+  transition: transform 0.2s;
+}
+
+.ac-vd-chevron.is-flipped {
+  transform: rotate(180deg);
+}
+
+.ac-vd-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  top: auto;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid var(--ac-border);
+  border-radius: 12px;
+  box-shadow: 0 -8px 24px -4px rgba(15, 23, 42, 0.12);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.ac-vd-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafbfd;
+}
+
+.ac-vd-search-icon {
+  color: var(--ac-text-muted);
+  flex-shrink: 0;
+}
+
+.ac-vd-search {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--ac-text-primary);
+  background: transparent;
+  font-family: inherit;
+}
+
+.ac-vd-search::placeholder {
+  color: var(--ac-text-muted);
+}
+
+.ac-vd-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.ac-vd-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.ac-vd-option:hover {
+  background: #f8fafc;
+}
+
+.ac-vd-option.is-selected {
+  background: #eef2ff;
+}
+
+.ac-vd-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ac-vd-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ac-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ac-vd-empty {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ac-text-muted);
 }

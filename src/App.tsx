@@ -37,8 +37,10 @@ import { default as AdminStoreList } from "./pages/admin/store/StoreList";
 import { default as VendorStoreList } from "./pages/vendor/store/StoreList";
 import StoreDetails from "./pages/admin/store/StoreDetails";
 import AddStore from "./pages/vendor/store/AddStore";
-import CouponList from "./pages/vendor/coupon/CouponList";
-import AddCoupon from "./pages/vendor/coupon/AddCoupon";
+import { default as VendorCouponList } from "./pages/vendor/coupon/CouponList";
+import { default as VendorAddCoupon } from "./pages/vendor/coupon/AddCoupon";
+import { default as AdminCouponList } from "./pages/admin/coupon/CouponList";
+import { default as AdminAddCoupon } from "./pages/admin/coupon/AddCoupon";
 
 function App() {
   return (
@@ -76,9 +78,18 @@ function App() {
             <Route path={VENDOR_ROUTES.addStore} element={<AddStore />} />
             <Route path={VENDOR_ROUTES.editStore} element={<AddStore />} />
 
-            <Route path={VENDOR_ROUTES.couponList} element={<CouponList />} />
-            <Route path={VENDOR_ROUTES.addCoupon} element={<AddCoupon />} />
-            <Route path={VENDOR_ROUTES.editCoupon} element={<AddCoupon />} />
+            <Route
+              path={VENDOR_ROUTES.couponList}
+              element={<VendorCouponList />}
+            />
+            <Route
+              path={VENDOR_ROUTES.addCoupon}
+              element={<VendorAddCoupon />}
+            />
+            <Route
+              path={VENDOR_ROUTES.editCoupon}
+              element={<VendorAddCoupon />}
+            />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -122,6 +133,10 @@ function App() {
 
             <Route path={ROUTES.stores} element={<AdminStoreList />} />
             <Route path={ROUTES.storeDetails} element={<StoreDetails />} />
+
+            <Route path={ROUTES.couponList} element={<AdminCouponList />} />
+            <Route path={ROUTES.addCoupon} element={<AdminAddCoupon />} />
+            <Route path={ROUTES.editCoupon} element={<AdminAddCoupon />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

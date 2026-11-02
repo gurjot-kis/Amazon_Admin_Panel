@@ -75,3 +75,6 @@ export interface CreateCouponPayload {
 }
 
 export type UpdateCouponPayload = Partial<CreateCouponPayload>;
+
+
+

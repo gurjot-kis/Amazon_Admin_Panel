@@ -77,6 +77,18 @@ export const storeApi = baseApi.injectEndpoints({
       },
     ),
 
+    fetchStoresByVendorId: builder.query<
+      FetchVendorActiveStoresResponse,
+      string
+    >({
+      query: (vendorId) => ({
+        url: `/admin/store/${vendorId}`,
+        method: "GET",
+      }),
+      extraOptions: { requiresAuth: true },
+      providesTags: ["Store"],
+    }),
+
     getStoreById: builder.query<GetStoreByIdResponse, string>({
       query: (storeId) => ({
         url: `/admin/store/${storeId}/details`,
@@ -215,6 +227,7 @@ export const storeApi = baseApi.injectEndpoints({
 export const {
   // Admin hooks
   useFetchAllStoresQuery,
+  useFetchStoresByVendorIdQuery,
   useGetStoreByIdQuery,
   useUpdateStoreVerificationMutation,
   useUpdateStoreStatusMutation,
