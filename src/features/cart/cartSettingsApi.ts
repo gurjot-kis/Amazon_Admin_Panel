@@ -7,6 +7,7 @@ import type {
   CreateCartSettingsResponse,
   UpdateCartSettingsPayload,
   UpdateCartSettingsResponse,
+  ToggleCartSettingsStatusResponse,
 } from "./cartSettingsTypes";
 
 export const cartSettingsApi = baseApi.injectEndpoints({
@@ -67,7 +68,7 @@ export const cartSettingsApi = baseApi.injectEndpoints({
       CreateCartSettingsPayload
     >({
       query: (data) => ({
-        url: "/admin/cart-settings/",
+        url: "/admin/cart-settings",
         method: "POST",
         body: data,
       }),
@@ -87,6 +88,22 @@ export const cartSettingsApi = baseApi.injectEndpoints({
         url: `/admin/cart-settings/${cartSettingsId}`,
         method: "PUT",
         body: data,
+      }),
+
+      extraOptions: {
+        requiresAuth: true,
+      },
+
+      invalidatesTags: ["CartSettings"],
+    }),
+
+    toggleCartSettingsStatus: builder.mutation<
+      ToggleCartSettingsStatusResponse,
+      string
+    >({
+      query: (cartSettingsId) => ({
+        url: `/admin/cart-settings/${cartSettingsId}/toggle-status`,
+        method: "PATCH",
       }),
 
       extraOptions: {
@@ -118,5 +135,6 @@ export const {
   useGetCartSettingsByIdQuery,
   useCreateCartSettingsMutation,
   useUpdateCartSettingsMutation,
+  useToggleCartSettingsStatusMutation,
   useDeleteCartSettingsMutation,
 } = cartSettingsApi;

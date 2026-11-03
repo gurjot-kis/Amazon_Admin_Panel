@@ -41,6 +41,8 @@ import { default as VendorCouponList } from "./pages/vendor/coupon/CouponList";
 import { default as VendorAddCoupon } from "./pages/vendor/coupon/AddCoupon";
 import { default as AdminCouponList } from "./pages/admin/coupon/CouponList";
 import { default as AdminAddCoupon } from "./pages/admin/coupon/AddCoupon";
+import WalletSettings from "./pages/admin/wallet/WalletSettings";
+import AddWalletSettings from "./pages/admin/wallet/AddWalletSettings";
 
 function App() {
   return (
@@ -137,6 +139,16 @@ function App() {
             <Route path={ROUTES.couponList} element={<AdminCouponList />} />
             <Route path={ROUTES.addCoupon} element={<AdminAddCoupon />} />
             <Route path={ROUTES.editCoupon} element={<AdminAddCoupon />} />
+
+            <Route path={ROUTES.walletSettings} element={<WalletSettings />} />
+            <Route
+              path={ROUTES.addWalletSetings}
+              element={<AddWalletSettings />}
+            />
+            <Route
+              path={ROUTES.editWalletSetings}
+              element={<AddWalletSettings />}
+            />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

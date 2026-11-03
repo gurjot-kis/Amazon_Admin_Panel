@@ -55,38 +55,12 @@ const IconEdit = () => (
   </svg>
 );
 
-const IconInfo = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-    <line
-      x1="12"
-      y1="8"
-      x2="12"
-      y2="8"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
-    <line
-      x1="12"
-      y1="12"
-      x2="12"
-      y2="16"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-type Role = "SuperAdmin" | "Vendor";
 interface FormValues {
   handling_charge: string;
   delivery_charge: string;
   free_delivery_min_amount: string;
   small_cart_charge: string;
   small_cart_max_amount: string;
-  role: Role;
 }
 
 interface FormErrors {
@@ -104,7 +78,6 @@ const EMPTY_FORM: FormValues = {
   free_delivery_min_amount: "",
   small_cart_charge: "",
   small_cart_max_amount: "",
-  role: "SuperAdmin",
 };
 
 const fieldMeta: { key: keyof FormErrors; label: string; hint: string }[] = [
@@ -129,8 +102,8 @@ const fieldMeta: { key: keyof FormErrors; label: string; hint: string }[] = [
 
 const hasErrors = (errors: FormErrors) => Object.keys(errors).length > 0;
 
-const validateField = ( value: string): string => {
-  if (value === "" || value === undefined) return `This field is required`;
+const validateField = (value: string): string => {
+  if (value === "" || value === undefined) return "This field is required";
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0)
     return "Must be a number greater than or equal to 0";
@@ -186,7 +159,6 @@ const CreateCartSettings = () => {
       free_delivery_min_amount: String(d.free_delivery_min_amount ?? ""),
       small_cart_charge: String(d.small_cart_charge ?? ""),
       small_cart_max_amount: String(d.small_cart_max_amount ?? ""),
-      role: (d.role as Role) || "SuperAdmin",
     });
   }, [editData, isEditMode]);
 
@@ -196,11 +168,9 @@ const CreateCartSettings = () => {
     if (touched[field]) {
       const err = validateField(value);
       setErrors((prev) => ({ ...prev, [field]: err || undefined }));
-    } 
+    }
   };
-  const handleRoleChange = (role: Role) => {
-    setValues((prev) => ({ ...prev, role }));
-  };
+
   const handleBlur = (field: keyof FormErrors) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     const err = validateField(values[field]);
@@ -224,7 +194,7 @@ const CreateCartSettings = () => {
       free_delivery_min_amount: Number(values.free_delivery_min_amount),
       small_cart_charge: Number(values.small_cart_charge),
       small_cart_max_amount: Number(values.small_cart_max_amount),
-      role: values.role,
+      role: "SuperAdmin",
     };
 
     try {
@@ -255,7 +225,7 @@ const CreateCartSettings = () => {
 
   const handleCancel = () => navigate("/admin/cart-settings");
 
-  //Loading state (edit mode)
+  // Loading state (edit mode)
   if (isEditMode && isFetchingSettings) {
     return (
       <FullScreenLoader
@@ -285,9 +255,10 @@ const CreateCartSettings = () => {
       </div>
     );
   }
+
   return (
     <div className="cs-page">
-      {/* Header section  */}
+      {/* Header section */}
       <div className="cs-header">
         <button
           className="cs-back-btn"
@@ -301,14 +272,14 @@ const CreateCartSettings = () => {
           <p>
             {isEditMode
               ? "Update the charges and limits for this configuration."
-              : "Configure delivery and cart charges for a role."}
+              : "Configure delivery and cart charges."}
           </p>
         </div>
       </div>
 
-      {/* Card section  */}
+      {/* Card section */}
       <div className="cs-card">
-        {/* Header  */}
+        {/* Header */}
         <div className="cs-card-header">
           <div className="cs-card-icon">
             <IconSettings />
@@ -316,7 +287,7 @@ const CreateCartSettings = () => {
           <div>
             <p className="cs-card-title">Cart Configuration</p>
             <p className="cs-card-subtitle">
-              Charges apply at checkout based on cart value and role
+              Charges apply at checkout based on cart value
             </p>
           </div>
           {isEditMode && (
@@ -327,45 +298,8 @@ const CreateCartSettings = () => {
           )}
         </div>
 
-        {/* body  */}
+        {/* Body */}
         <div className="cs-card-body">
-          <div className="cs-section">
-            <p className="cs-section-label">Role Assignment</p>
-            <div className="cs-info-box">
-              <IconInfo />
-              <p>
-                Settings are scoped per role. Only one configuration can exist
-                per role at a time.
-              </p>
-            </div>
-            <div className="cs-role-group">
-              {(["SuperAdmin", "Vendor"] as Role[]).map((r) => (
-                <label
-                  key={r}
-                  className={`cs-role-option${values.role === r ? " cs-role-active" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="cs-role"
-                    value={r}
-                    checked={values.role === r}
-                    onChange={() => handleRoleChange(r)}
-                    disabled={isEditMode}
-                  />
-                  <span className="cs-role-radio-dot">
-                    <span className="cs-role-radio-dot-inner" />
-                  </span>
-                  <span className="cs-role-text">{r}</span>
-                  {values.role === r && (
-                    <span className="cs-role-badge">Selected</span>
-                  )}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="cs-divider" />
-
           <div className="cs-section">
             <p className="cs-section-label">Charge Configuration</p>
             <div className="cs-grid-2">
@@ -409,7 +343,7 @@ const CreateCartSettings = () => {
           </div>
         </div>
 
-        {/* Footer  */}
+        {/* Footer */}
         <div className="cs-footer">
           <button
             className="cs-btn-cancel"

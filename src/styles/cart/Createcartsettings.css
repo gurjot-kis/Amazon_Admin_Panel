@@ -1,7 +1,8 @@
 .cs-page {
-  min-height: 100vh;
+  min-height: 100%;
+  box-sizing: border-box;
   background: #f8f9fb;
-  padding: 32px 24px;
+  padding: 24px;
   font-family:
     "Inter",
     -apple-system,

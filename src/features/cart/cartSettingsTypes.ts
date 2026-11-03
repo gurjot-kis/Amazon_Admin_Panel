@@ -66,3 +66,10 @@ export interface UpdateCartSettingsPayload {
     small_cart_max_amount: number;
   }>;
 }
+
+export interface ToggleCartSettingsStatusResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: CartSettings;
+}

@@ -40,6 +40,10 @@ export const ROUTES = {
   addCoupon: "/admin/coupons/add",
   editCoupon: "/admin/coupons/:id/edit",
 
+  walletSettings: "/admin/wallet-settings",
+  addWalletSetings: "/admin/wallet-settings/add",
+  editWalletSetings: "/admin/wallet-settings/:id/edit",
+
   support: "/admin/support",
 } as const;
 
