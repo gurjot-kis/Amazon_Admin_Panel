@@ -29,6 +29,12 @@ export interface ProductCategory {
   category_image: string;
 }
 
+export interface ProductStore {
+  _id: string;
+  store_name: string;
+  store_logo: string | null;
+}
+
 export interface Product {
   _id: string;
   name: string;
@@ -44,6 +50,8 @@ export interface Product {
   hasVariants: boolean;
   createdAt: string;
   category: ProductCategory;
+  store?: ProductStore;
+  unit?: string;
 }
 
 export type GetProductsResponse = ApiResponse<Product[]>;
@@ -77,6 +85,7 @@ export interface CreateProductVariant {
 
 export interface CreateProductPayload {
   name: string;
+  store_id: string;
   description?: string;
   short_description?: string;
   category_id: string;
@@ -92,6 +101,7 @@ export interface CreateProductPayload {
   variantTypes?: string[];
   variants?: CreateProductVariant[];
   imageGroupTypeId?: string | null;
+  unit?: string;
 }
 
 // ====================
@@ -102,6 +112,13 @@ export interface ProductCategoryDetails {
   _id: string;
   name: string;
   category_image: string;
+}
+
+// Populated store shape returned by GET /product/:id
+export interface ProductStoreDetails {
+  _id: string;
+  store_name: string;
+  store_logo: string | null;
 }
 
 export interface ProductVariantType {
@@ -132,7 +149,6 @@ export interface ProductVariant {
   stock: number;
   stockStatus: StockStatus;
   images: string[];
-
   status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
@@ -141,12 +157,15 @@ export interface ProductVariant {
 export interface ProductDetails {
   _id: string;
   category_id: ProductCategoryDetails;
+  // store_id is a populated object in GET responses, not a raw string
+  store_id: ProductStoreDetails;
   name: string;
   description: string;
   short_description: string;
   mainImage: string;
   featuredImages: string[];
   sku: string;
+  slug: string;
   currency: string;
   costPrice: number;
   sellingPrice: number;
@@ -158,17 +177,18 @@ export interface ProductDetails {
   role: "SuperAdmin" | "User" | "Vendor";
   hasVariants: boolean;
   variantTypes: ProductVariantType[];
-  createdAt: string;
-  updatedAt: string;
-  slug: string;
   variants: ProductVariant[];
   imageGroupTypeId?: string | null;
+  unit?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type GetProductByIdResponse = ApiResponse<ProductDetails>;
 
 export interface UpdateProductPayload {
   name?: string;
+  store_id?: string;
   description?: string;
   short_description?: string;
   category_id?: string;
@@ -184,6 +204,7 @@ export interface UpdateProductPayload {
   variantTypes?: string[];
   variants?: CreateProductVariant[];
   imageGroupTypeId?: string | null;
+  unit?: string;
 }
 
 export interface UpdateProductStatusPayload {

@@ -341,3 +341,88 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── Store cell ────────────────────────────────────────── */
+.pl-store-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pl-store-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.pl-store-logo-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1b3a5c 0%, #2563eb 100%);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pl-store-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+
+/* ============================================================
+   Store Identity Card
+   ============================================================ */
+.pro-detail-store-card {
+  padding: var(--pro-detail-card-pad);
+}
+
+.pro-detail-store-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-top: 0.625rem;
+  background: #f8fafc;
+  border: 1px solid var(--pro-detail-border-color);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  min-width: 0;
+}
+
+.pro-detail-store-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--pro-detail-border-color);
+  background: #ffffff;
+}
+
+.pro-detail-store-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.pro-detail-store-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--pro-detail-text-primary);
+  overflow-wrap: anywhere;
+}

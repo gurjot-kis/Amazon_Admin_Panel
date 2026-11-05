@@ -991,3 +991,59 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================
+   Store Identity Card
+   ============================================================ */
+.pro-detail-store-card {
+  padding: var(--pro-detail-card-pad);
+}
+
+.pro-detail-store-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-top: 0.625rem;
+  background: #f8fafc;
+  border: 1px solid var(--pro-detail-border-color);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  min-width: 0;
+}
+
+.pro-detail-store-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--pro-detail-border-color);
+  background: #ffffff;
+}
+
+.pro-detail-store-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.pro-detail-store-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--pro-detail-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* Unit badge — sits in the quick-meta row next to SKU */
+.pro-detail-unit-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  letter-spacing: 0.01em;
+}

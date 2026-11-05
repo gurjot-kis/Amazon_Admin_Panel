@@ -331,6 +331,30 @@ const ProductList = () => {
         </div>
       ),
     },
+
+    {
+      key: "store",
+      header: "Store",
+      headerClassName: "d-none d-md-table-cell",
+      cellClassName: "d-none d-md-table-cell",
+      render: (p) => (
+        <div className="pl-store-cell">
+          {p.store?.store_logo ? (
+            <img
+              src={resolveImage(p.store.store_logo)}
+              alt={p.store.store_name}
+              className="pl-store-logo"
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
+          ) : (
+            <div className="pl-store-logo-fallback">
+              {p.store?.store_name?.[0]?.toUpperCase() ?? "S"}
+            </div>
+          )}
+          <span className="pl-store-name">{p.store?.store_name ?? "—"}</span>
+        </div>
+      ),
+    },
     {
       key: "sku",
       header: "SKU",
@@ -402,7 +426,7 @@ const ProductList = () => {
             type="button"
             className="cl-icon-btn cl-icon-btn--info"
             title="Details"
-            onClick={()=> navigate(`/vendor/products/${p._id}/details`)}
+            onClick={() => navigate(`/vendor/products/${p._id}/details`)}
           >
             <FiEye color="#2563EB" />
           </button>

@@ -58,10 +58,41 @@ const ProductDetails: React.FC = () => {
     useUpdateProductStatusMutation();
 
   const product = response?.data;
+
+  // FIX: Default selectedVariantId to the first variant's _id (not "all")
+  // This ensures variant images + sidebar stats reflect the first variant on load.
+  const defaultVariantId = useMemo(() => {
+    if (
+      product?.hasVariants &&
+      Array.isArray(product.variants) &&
+      product.variants.length > 0
+    ) {
+      return product.variants[0]._id;
+    }
+    return "all";
+  }, [product]);
+
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | "all">(
     "all",
   );
+
+  // Sync selectedVariantId to defaultVariantId once product loads
+  // We use a ref-flag so this only runs once on first load.
+  const [initialized, setInitialized] = useState(false);
+  useMemo(() => {
+    if (product && !initialized) {
+      setSelectedVariantId(defaultVariantId);
+      setInitialized(true);
+      // Pre-set active image to first image of the first variant
+      if (defaultVariantId !== "all" && Array.isArray(product.variants)) {
+        const firstVariant = product.variants[0];
+        if (firstVariant?.images?.length > 0) {
+          setActiveImage(firstVariant.images[0]);
+        }
+      }
+    }
+  }, [product, initialized, defaultVariantId]);
 
   // 1. Collect all variant images across all variants
   const variantMediaAssets = useMemo<GalleryAsset[]>(() => {
@@ -98,21 +129,14 @@ const ProductDetails: React.FC = () => {
     return assets;
   }, [product]);
 
-  // 2. Base images (mainImage + featuredImages), used only when no variant images exist
+  // 2. FIX: For non-variant products, show ONLY featuredImages (not mainImage).
+  // mainImage is excluded because it is designed as the mobile fallback thumbnail.
   const baseMediaAssets = useMemo<GalleryAsset[]>(() => {
     if (!product) return [];
     const assets: GalleryAsset[] = [];
     const seen = new Set<string>();
 
-    if (product.mainImage) {
-      seen.add(product.mainImage);
-      assets.push({
-        url: product.mainImage,
-        source: "main",
-        label: "Main Image",
-      });
-    }
-
+    // mainImage intentionally excluded here — only featuredImages shown in gallery
     if (Array.isArray(product.featuredImages)) {
       product.featuredImages.forEach((img, idx) => {
         if (img && !seen.has(img)) {
@@ -130,8 +154,8 @@ const ProductDetails: React.FC = () => {
   }, [product]);
 
   // 3. Conditional Rule:
-  // If variant images exist -> show variant images ONLY (main image is excluded)
-  // If no variant images exist -> fallback to baseMediaAssets (mainImage + featuredImages)
+  // If variant images exist -> show variant images ONLY
+  // If no variant images -> show featuredImages only (mainImage excluded)
   const allMediaAssets = useMemo<GalleryAsset[]>(() => {
     if (variantMediaAssets.length > 0) {
       return variantMediaAssets;
@@ -148,8 +172,7 @@ const ProductDetails: React.FC = () => {
     return filtered.length > 0 ? filtered : allMediaAssets;
   }, [allMediaAssets, selectedVariantId]);
 
-  // 5. Active Previewed Image:
-  // Defaults to the first image of the resolved set (which will be the 1st variant image if variant images exist)
+  // 5. Active Previewed Image
   const currentImage = useMemo(() => {
     if (
       activeImage &&
@@ -159,6 +182,14 @@ const ProductDetails: React.FC = () => {
     }
     return displayedGallery[0]?.url || "";
   }, [activeImage, displayedGallery]);
+
+  // FIX: Derive the currently selected variant object so sidebar can reflect
+  // its price/stock instead of always showing product-level values.
+  const selectedVariant = useMemo(() => {
+    if (!product?.hasVariants || !Array.isArray(product.variants)) return null;
+    if (selectedVariantId === "all") return null;
+    return product.variants.find((v) => v._id === selectedVariantId) || null;
+  }, [product, selectedVariantId]);
 
   // Aggregate stock across variants if present
   const totalStock = useMemo(() => {
@@ -202,7 +233,8 @@ const ProductDetails: React.FC = () => {
 
   const handleVariantSelect = (variantId: string) => {
     const isClearing = selectedVariantId === variantId;
-    setSelectedVariantId(isClearing ? "all" : variantId);
+    const nextId = isClearing ? "all" : variantId;
+    setSelectedVariantId(nextId);
 
     if (!isClearing) {
       const firstTargetImg = allMediaAssets.find(
@@ -211,6 +243,9 @@ const ProductDetails: React.FC = () => {
       if (firstTargetImg) {
         setActiveImage(firstTargetImg.url);
       }
+    } else {
+      // Cleared: reset to first image of full gallery
+      setActiveImage(allMediaAssets[0]?.url || null);
     }
   };
 
@@ -256,6 +291,18 @@ const ProductDetails: React.FC = () => {
     );
   }
 
+  // FIX: Sidebar pricing and stock — use selected variant values when a variant
+  // is active, otherwise fall back to product-level values.
+  const displaySellingPrice =
+    selectedVariant?.sellingPrice ?? product.sellingPrice;
+  const displayCostPrice = selectedVariant?.costPrice ?? product.costPrice;
+  const displayMrp = selectedVariant?.price ?? product.price;
+  const displayStock =
+    selectedVariant?.stock ??
+    (product.hasVariants ? totalStock : product.stock);
+  const displayStockStatus =
+    selectedVariant?.stockStatus ?? product.stockStatus;
+
   return (
     <div className="pro-detail-canvas">
       {/* Top Banner Navigation */}
@@ -292,6 +339,12 @@ const ProductDetails: React.FC = () => {
             <span className="pro-detail-meta-tag">
               SKU: <strong>{product.sku || "N/A"}</strong>
             </span>
+            {product.unit && (
+              <span className="pro-detail-meta-tag">
+                Unit:{" "}
+                <span className="pro-detail-unit-badge">{product.unit}</span>
+              </span>
+            )}
             <span className="pro-detail-meta-tag">
               Slug: <code>{product.slug}</code>
             </span>
@@ -425,7 +478,10 @@ const ProductDetails: React.FC = () => {
                     <button
                       type="button"
                       className="pro-detail-btn-reset-filter"
-                      onClick={() => setSelectedVariantId("all")}
+                      onClick={() => {
+                        setSelectedVariantId("all");
+                        setActiveImage(allMediaAssets[0]?.url || null);
+                      }}
                     >
                       Clear Selection
                     </button>
@@ -578,26 +634,69 @@ const ProductDetails: React.FC = () => {
 
         {/* Right Sidebar: Commercials, Categorization & System Traces */}
         <aside className="pro-detail-secondary-pane">
+          {/* Store Identity Card */}
+          {product.store_id && (
+            <div className="pro-detail-card pro-detail-store-card">
+              <span className="pro-detail-metric-caption">Sold By</span>
+              <div className="pro-detail-store-identity">
+                {product.store_id.store_logo && (
+                  <img
+                    src={resolveImageUrl(product.store_id.store_logo)}
+                    alt={product.store_id.store_name}
+                    className="pro-detail-store-logo"
+                    onError={handleImageError}
+                  />
+                )}
+                <div className="pro-detail-store-meta">
+                  <span className="pro-detail-store-name">
+                    {product.store_id.store_name}
+                  </span>
+                  <code className="pro-detail-sub-id">
+                    {product.store_id._id}
+                  </code>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Revenue & Profitability Breakdown */}
           <div className="pro-detail-card pro-detail-finance-panel">
             <h2 className="pro-detail-section-heading">Financials & Pricing</h2>
 
+            {/* FIX: Show selected variant label when a variant is active */}
+            {selectedVariant && (
+              <p
+                className="pro-detail-section-sub"
+                style={{ marginTop: "0.5rem" }}
+              >
+                Showing:{" "}
+                {selectedVariant.combination
+                  .map(
+                    (c) =>
+                      `${c.variant_type_id?.name}: ${c.variant_option_id?.value}`,
+                  )
+                  .join(" | ")}
+              </p>
+            )}
+
             <div className="pro-detail-price-lead-box">
               <span className="pro-detail-metric-caption">
-                Baseline Selling Price
+                {selectedVariant
+                  ? "Variant Selling Price"
+                  : "Baseline Selling Price"}
               </span>
               <div className="pro-detail-lead-pricing">
                 <span className="pro-detail-figure-main">
-                  {formatCurrency(product.sellingPrice, product.currency)}
+                  {formatCurrency(displaySellingPrice, product.currency)}
                 </span>
-                {product.price > product.sellingPrice && (
+                {displayMrp > displaySellingPrice && (
                   <span className="pro-detail-figure-discount">
-                    -{calculateDiscount(product.price, product.sellingPrice)}%
+                    -{calculateDiscount(displayMrp, displaySellingPrice)}%
                   </span>
                 )}
               </div>
               <span className="pro-detail-figure-mrp">
-                MRP: {formatCurrency(product.price, product.currency)}
+                MRP: {formatCurrency(displayMrp, product.currency)}
               </span>
             </div>
 
@@ -605,13 +704,13 @@ const ProductDetails: React.FC = () => {
               <div className="pro-detail-kpi-box">
                 <span className="pro-detail-kpi-label">Cost Price</span>
                 <span className="pro-detail-kpi-val">
-                  {formatCurrency(product.costPrice, product.currency)}
+                  {formatCurrency(displayCostPrice, product.currency)}
                 </span>
               </div>
               <div className="pro-detail-kpi-box">
                 <span className="pro-detail-kpi-label">Gross Margin</span>
                 <span className="pro-detail-kpi-val text-green">
-                  {calculateMargin(product.costPrice, product.sellingPrice)}%
+                  {calculateMargin(displayCostPrice, displaySellingPrice)}%
                 </span>
               </div>
             </div>
@@ -653,12 +752,13 @@ const ProductDetails: React.FC = () => {
             )}
 
             <div className="pro-detail-inventory-metrics">
+              {/* FIX: Stock reflects selected variant when active */}
               <div className="pro-detail-metric-row">
                 <span className="pro-detail-metric-label">
-                  Aggregated Stock
+                  {selectedVariant ? "Variant Stock" : "Aggregated Stock"}
                 </span>
                 <span className="pro-detail-metric-value">
-                  {totalStock} units
+                  {displayStock} units
                 </span>
               </div>
               <div className="pro-detail-metric-row">
@@ -666,7 +766,7 @@ const ProductDetails: React.FC = () => {
                   Inventory Condition
                 </span>
                 <span className="pro-detail-metric-value capitalize">
-                  {product.stockStatus.replace("_", " ")}
+                  {displayStockStatus.replace("_", " ")}
                 </span>
               </div>
               <div className="pro-detail-metric-row">

@@ -58,6 +58,7 @@ export const productApi = baseApi.injectEndpoints({
           const formData = new FormData();
 
           formData.append("name", data.name);
+          formData.append("store_id", data.store_id);
           if (data.description)
             formData.append("description", data.description);
           if (data.short_description)
@@ -70,6 +71,10 @@ export const productApi = baseApi.injectEndpoints({
           formData.append("price", String(data.price));
           if (data.stock !== undefined)
             formData.append("stock", String(data.stock));
+
+          if (data.unit) {
+            formData.append("unit", data.unit);
+          }
 
           if (data.mainImage instanceof File) {
             formData.append("mainImage", data.mainImage);
@@ -138,6 +143,10 @@ export const productApi = baseApi.injectEndpoints({
       query: ({ productId, data }) => {
         const formData = new FormData();
 
+        if (data.store_id !== undefined) {
+          formData.append("store_id", data.store_id);
+        }
+
         if (data.name !== undefined) {
           formData.append("name", data.name);
         }
@@ -176,6 +185,10 @@ export const productApi = baseApi.injectEndpoints({
 
         if (data.stock !== undefined) {
           formData.append("stock", String(data.stock));
+        }
+
+        if (data.unit !== undefined) {
+          formData.append("unit", data.unit);
         }
 
         // Main image
