@@ -21,8 +21,6 @@ import AddCategory from "./pages/admin/category/AddCategory";
 import ProductList from "./pages/vendor/product/ProductList";
 import AddProduct from "./pages/vendor/product/AddProduct";
 import ProductDetails from "./pages/vendor/product/ProductDetails";
-import AllOrderList from "./pages/admin/orders/AllOrderList";
-import OrderDetails from "./pages/admin/orders/OrderDetails";
 import UserList from "./pages/admin/user/UserList";
 import VendorList from "./pages/admin/vendor/VendorList";
 import AddVendor from "./pages/admin/vendor/AddVendor";
@@ -43,6 +41,8 @@ import { default as AdminCouponList } from "./pages/admin/coupon/CouponList";
 import { default as AdminAddCoupon } from "./pages/admin/coupon/AddCoupon";
 import WalletSettings from "./pages/admin/wallet/WalletSettings";
 import AddWalletSettings from "./pages/admin/wallet/AddWalletSettings";
+import OrderList from "./pages/vendor/order/OrderList";
+import OrderDetails from "./pages/vendor/order/OrderDetails";
 
 function App() {
   return (
@@ -92,6 +92,12 @@ function App() {
               path={VENDOR_ROUTES.editCoupon}
               element={<VendorAddCoupon />}
             />
+
+            <Route path={VENDOR_ROUTES.orders} element={<OrderList />} />
+            <Route
+              path={VENDOR_ROUTES.orderDetails}
+              element={<OrderDetails />}
+            />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -101,9 +107,6 @@ function App() {
             <Route path={ROUTES.categories} element={<CategoryList />} />
             <Route path={ROUTES.addCategory} element={<AddCategory />} />
             <Route path={ROUTES.editCategory} element={<AddCategory />} />
-
-            <Route path={ROUTES.orders} element={<AllOrderList />} />
-            <Route path={ROUTES.orderDetails} element={<OrderDetails />} />
 
             <Route path={ROUTES.profile} element={<ProfilePage />} />
             <Route path={ROUTES.users} element={<UserList />} />

@@ -3,9 +3,8 @@ import type { ReactNode } from "react";
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
-  headerClassName?: string; // e.g. "d-none d-md-table-cell"
+  headerClassName?: string;
   cellClassName?: string;
-  /** This column gets the expand-chevron + depth-indent wrapper (usually the "name" column). */
   isPrimary?: boolean;
   render: (item: T, depth: number) => ReactNode;
 }
@@ -13,6 +12,9 @@ export interface DataTableColumn<T> {
 export interface DataTableFilterOption {
   value: string;
   label: string;
+  image?: string | null;
+  icon?: ReactNode;
+  badgeDot?: string;
 }
 
 export interface DataTableFilter {
@@ -20,6 +22,7 @@ export interface DataTableFilter {
   onChange: (value: string) => void;
   options: DataTableFilterOption[];
   className?: string;
+  placeholder?: string;
 }
 
 export interface DataTableStatPill {
@@ -34,4 +37,38 @@ export interface DataTablePaginationInfo {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+}
+
+export interface DataTableProps<T> {
+  columns: DataTableColumn<T>[];
+  data: T[];
+  getId: (item: T) => string;
+  getChildren?: (item: T) => T[] | undefined;
+
+  title?: string;
+  statPills?: DataTableStatPill[];
+
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+
+  filters?: DataTableFilter[];
+
+  addButtonLabel?: string;
+  onAddClick?: () => void;
+
+  headerExtra?: React.ReactNode;
+
+  isLoading?: boolean;
+  isFetching?: boolean;
+  isError?: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
+  emptyMessage?: string;
+  skeletonRows?: number;
+
+  pagination?: DataTablePaginationInfo;
+  onPageChange?: (page: number) => void;
+
+  rowClassName?: (item: T, depth: number) => string;
 }

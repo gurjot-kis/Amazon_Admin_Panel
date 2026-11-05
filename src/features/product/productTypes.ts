@@ -62,6 +62,7 @@ export interface GetProductsParams {
   search?: string;
   category_id?: string;
   status?: ProductStatus;
+  store_id?: string;
 }
 
 // ====================

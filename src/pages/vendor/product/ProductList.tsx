@@ -1,5 +1,3 @@
-// ProductList.tsx — full updated file
-
 import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +11,7 @@ import {
   useUpdateProductStatusMutation,
   useDeleteProductMutation,
 } from "../../../features/product/productApi";
+import { useFetchVendorActiveStoresQuery } from "../../../features/store/storeApi";
 import type {
   Product,
   ProductStatus,
@@ -242,9 +241,13 @@ const ProductList = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [storeFilter, setStoreFilter] = useState<string>("all");
 
   const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
+
+  const { data: storesData } = useFetchVendorActiveStoresQuery();
+  const stores = storesData?.data ?? [];
 
   const [updateProductStatus] = useUpdateProductStatusMutation();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
@@ -267,6 +270,7 @@ const ProductList = () => {
       limit: PAGE_LIMIT,
       search: search || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
+      store_id: storeFilter === "all" ? undefined : storeFilter,
     });
 
   const products = data?.data ?? [];
@@ -338,20 +342,22 @@ const ProductList = () => {
       headerClassName: "d-none d-md-table-cell",
       cellClassName: "d-none d-md-table-cell",
       render: (p) => (
-        <div className="pl-store-cell">
+        <div className="pl-store-pill">
           {p.store?.store_logo ? (
             <img
-              src={resolveImage(p.store.store_logo)}
+              src={resolveImage(p.store.store_logo) || undefined}
               alt={p.store.store_name}
-              className="pl-store-logo"
+              className="pl-store-pill-img"
               onError={(e) => (e.currentTarget.style.display = "none")}
             />
           ) : (
-            <div className="pl-store-logo-fallback">
+            <div className="pl-store-pill-avatar">
               {p.store?.store_name?.[0]?.toUpperCase() ?? "S"}
             </div>
           )}
-          <span className="pl-store-name">{p.store?.store_name ?? "—"}</span>
+          <span className="pl-store-pill-name" title={p.store?.store_name}>
+            {p.store?.store_name ?? "—"}
+          </span>
         </div>
       ),
     },
@@ -479,11 +485,26 @@ const ProductList = () => {
               setPage(1);
             },
             options: [
-              { value: "all", label: "All statuses" },
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
-              { value: "pending", label: "Pending" },
-              { value: "rejected", label: "Rejected" },
+              { value: "all", label: "All statuses", badgeDot: "#94a3b8" },
+              { value: "active", label: "Active", badgeDot: "#16a34a" },
+              { value: "inactive", label: "Inactive", badgeDot: "#64748b" },
+              { value: "pending", label: "Pending", badgeDot: "#d97706" },
+              { value: "rejected", label: "Rejected", badgeDot: "#e11d48" },
+            ],
+          },
+          {
+            value: storeFilter,
+            onChange: (v) => {
+              setStoreFilter(v);
+              setPage(1);
+            },
+            options: [
+              { value: "all", label: "All stores" },
+              ...stores.map((s) => ({
+                value: s._id,
+                label: s.store_name,
+                image: s.store_logo ? resolveImage(s.store_logo) : null,
+              })),
             ],
           },
         ]}

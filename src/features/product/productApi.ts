@@ -15,7 +15,7 @@ import type {
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query<GetProductsResponse, GetProductsParams>({
-      query: ({ page, limit, search, category_id, status }) => {
+      query: ({ page, limit, search, category_id, status, store_id }) => {
         const params = new URLSearchParams();
 
         if (page !== undefined) params.set("page", String(page));
@@ -23,6 +23,7 @@ export const productApi = baseApi.injectEndpoints({
         if (search?.trim()) params.set("search", search.trim());
         if (category_id) params.set("category_id", category_id);
         if (status) params.set("status", status);
+        if (store_id) params.set("store_id", store_id);
 
         const qs = params.toString();
 

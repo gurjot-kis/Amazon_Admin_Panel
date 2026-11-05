@@ -74,6 +74,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: <LuTicketPercent size={20} />,
   },
 
+  {
+    id: "Orders",
+    label: "Orders",
+    path: VENDOR_ROUTES.orders,
+    activePaths: [VENDOR_ROUTES.orders],
+    icon: <LuPackage size={20} />,
+  },
+
   // {
   //   id: "Support",
   //   label: "Support",

@@ -782,8 +782,8 @@ const AddProduct: React.FC = () => {
             v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
           price: v.price !== undefined ? String(v.price) : "",
           stock: v.stock !== undefined ? String(v.stock) : "",
-          images: [],
-          imagePreviews: [],
+          images: v.images || [],
+          imagePreviews: (v.images || []).map((img) => getImageUrl(img)),
         }),
       );
 

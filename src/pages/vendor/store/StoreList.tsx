@@ -8,12 +8,13 @@ import {
   Pencil,
   Trash2,
   Star,
-  ToggleLeft,
   ShieldCheck,
   Clock,
   ShieldX,
+  Power,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 import {
   useFetchMyStoresQuery,
@@ -23,17 +24,13 @@ import {
 } from "../../../features/store/storeApi";
 import type {
   Store,
-  StoreStatus,
   StoreVerificationStatus,
 } from "../../../features/store/storeTypes";
 import { ConfirmationModal } from "../../../components/common/ConfirmationModal";
 
 import "../../../styles/store/VendorStoreList.css";
-import { useNavigate } from "react-router-dom";
 
 const ASSET_URL = import.meta.env.VITE_API_ASSET_URL as string;
-
-// ─── helpers ────────────────────────────────────────────────────────────────
 
 const getInitials = (name: string) =>
   name
@@ -43,17 +40,32 @@ const getInitials = (name: string) =>
     .join("")
     .toUpperCase();
 
-const VerificationIcon: React.FC<{ status: StoreVerificationStatus }> = ({
+const VerificationBadge: React.FC<{ status: StoreVerificationStatus }> = ({
   status,
 }) => {
-  if (status === "verified")
-    return <ShieldCheck size={13} className="v-icon verified" />;
-  if (status === "pending")
-    return <Clock size={13} className="v-icon pending" />;
-  return <ShieldX size={13} className="v-icon rejected" />;
-};
+  const config = {
+    verified: {
+      icon: ShieldCheck,
+      label: "Verified",
+      cls: "sc-badge--verified",
+    },
+    pending: {
+      icon: Clock,
+      label: "Pending Verification",
+      cls: "sc-badge--pending",
+    },
+    rejected: { icon: ShieldX, label: "Rejected", cls: "sc-badge--rejected" },
+  }[status] || { icon: Clock, label: status, cls: "sc-badge--pending" };
 
-// ─── Store Card ──────────────────────────────────────────────────────────────
+  const Icon = config.icon;
+
+  return (
+    <span className={`sc-verify-chip ${config.cls}`}>
+      <Icon size={12} strokeWidth={2.4} />
+      <span>{config.label}</span>
+    </span>
+  );
+};
 
 interface StoreCardProps {
   store: Store;
@@ -90,7 +102,9 @@ const StoreCard: React.FC<StoreCardProps> = ({
   const isActive = status === "active";
 
   return (
-    <div className={`sc-card ${isActive ? "sc-active" : "sc-inactive"}`}>
+    <article
+      className={`sc-card ${isActive ? "sc-card--active" : "sc-card--inactive"}`}
+    >
       {/* ── Banner ── */}
       <div className="sc-banner">
         {store_banner ? (
@@ -100,144 +114,149 @@ const StoreCard: React.FC<StoreCardProps> = ({
             className="sc-banner-img"
           />
         ) : (
-          <div className="sc-banner-placeholder" aria-hidden="true" />
+          <div className="sc-banner-fallback" />
         )}
-
-        {/* Overlay gradient for readability */}
         <div className="sc-banner-overlay" />
 
-        {/* Top-left: DEFAULT pill */}
-        {is_default && (
-          <span className="sc-pill sc-pill-default">
-            <Star size={10} fill="currentColor" />
-            Default
+        {/* Top Badges */}
+        <div className="sc-banner-badges">
+          {is_default ? (
+            <span className="sc-badge-glass sc-badge-glass--default">
+              <Star size={11} fill="currentColor" />
+              Primary Store
+            </span>
+          ) : (
+            <span />
+          )}
+
+          <span
+            className={`sc-status-indicator sc-status-indicator--${status}`}
+          >
+            <span className="sc-dot" />
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
-        )}
+        </div>
 
-        {/* Top-right: status dot */}
-        <span className={`sc-status-dot sc-status-${status}`} title={status} />
-      </div>
-
-      {/* ── Identity Row: logo + name/desc ── */}
-      <div className="sc-identity">
-        <div className="sc-logo-wrap">
+        {/* Logo anchored over banner boundary */}
+        <div className="sc-logo-frame">
           {store_logo ? (
             <img
               src={`${ASSET_URL}${store_logo}`}
-              alt={`${store_name} logo`}
+              alt={store_name}
               className="sc-logo-img"
             />
           ) : (
             <div className="sc-logo-initials">{getInitials(store_name)}</div>
           )}
         </div>
+      </div>
 
-        <div className="sc-name-block">
-          <div className="sc-name-row">
-            <h3 className="sc-name" title={store_name}>
+      {/* ── Content on Pure White Background ── */}
+      <div className="sc-content">
+        <div className="sc-title-block">
+          <div className="sc-title-row">
+            <h3 className="sc-store-name" title={store_name}>
               {store_name}
             </h3>
-            <span
-              className={`sc-verification sc-verification-${verification_status}`}
-            >
-              <VerificationIcon status={verification_status} />
-              {verification_status.charAt(0).toUpperCase() +
-                verification_status.slice(1)}
-            </span>
+            <VerificationBadge status={verification_status} />
           </div>
-          {store_description && <p className="sc-desc">{store_description}</p>}
+
+          <p
+            className={`sc-store-desc ${!store_description ? "sc-store-desc--empty" : ""}`}
+          >
+            {store_description || "No store description added."}
+          </p>
+        </div>
+
+        <div className="sc-divider" />
+
+        {/* Metadata Details */}
+        <div className="sc-details-grid">
+          <div className="sc-detail-cell">
+            <span className="sc-detail-label">Location</span>
+            <div className="sc-detail-value">
+              <MapPin size={13} className="sc-detail-icon" />
+              <span title={location || "Not configured"}>
+                {location || "—"}
+              </span>
+            </div>
+          </div>
+
+          <div className="sc-detail-cell">
+            <span className="sc-detail-label">Contact Email</span>
+            <div className="sc-detail-value">
+              <Mail size={13} className="sc-detail-icon" />
+              <span title={email || "Not configured"}>{email || "—"}</span>
+            </div>
+          </div>
+
+          {phone && (
+            <div className="sc-detail-cell">
+              <span className="sc-detail-label">Phone</span>
+              <div className="sc-detail-value">
+                <Phone size={13} className="sc-detail-icon" />
+                <span>{phone}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Meta ── */}
-      <ul className="sc-meta">
-        {location && (
-          <li>
-            <MapPin size={13} />
-            <span>{location}</span>
-          </li>
-        )}
-        {email && (
-          <li>
-            <Mail size={13} />
-            <span>{email}</span>
-          </li>
-        )}
-        {phone && (
-          <li>
-            <Phone size={13} />
-            <span>{phone}</span>
-          </li>
-        )}
-      </ul>
-
-      {/* ── Status pill row ── */}
-      <div className="sc-status-row">
-        <span className={`sc-badge sc-badge-${status}`}>
-          <span className="sc-badge-dot" />
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
-      </div>
-
-      {/* ── Footer actions ── */}
-      <div className="sc-footer">
-        <button className="sc-btn sc-btn-primary" onClick={() => onEdit(store)}>
+      {/* ── Footer Actions ── */}
+      <div className="sc-action-bar">
+        <button
+          type="button"
+          className="sc-btn-main"
+          onClick={() => onEdit(store)}
+        >
           <Pencil size={13} />
-          Edit
+          Manage Store
         </button>
 
-        <button
-          className="sc-btn sc-btn-outline"
-          onClick={() => onToggleStatus(_id)}
-        >
-          <ToggleLeft size={14} />
-          {isActive ? "Deactivate" : "Activate"}
-        </button>
+        <div className="sc-action-group">
+          {!is_default && (
+            <button
+              type="button"
+              className="sc-btn-tool"
+              onClick={() => onSetDefault(_id)}
+              title="Set as primary default store"
+            >
+              <Star size={14} />
+            </button>
+          )}
 
-        {!is_default && (
           <button
-            className="sc-btn sc-btn-outline"
-            onClick={() => onSetDefault(_id)}
-            title="Set as default store"
+            type="button"
+            className={`sc-btn-tool ${isActive ? "is-on" : "is-off"}`}
+            onClick={() => onToggleStatus(_id)}
+            title={isActive ? "Deactivate store" : "Activate store"}
           >
-            <Star size={13} />
-            Set Default
+            <Power size={14} />
           </button>
-        )}
 
-        <button
-          className="sc-btn sc-btn-danger"
-          onClick={() => onDelete(store)}
-          title="Delete store"
-        >
-          <Trash2 size={14} />
-        </button>
+          <button
+            type="button"
+            className="sc-btn-tool sc-btn-tool--danger"
+            onClick={() => onDelete(store)}
+            title="Delete store"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
-    </div>
+    </article>
   );
 };
 
-// ─── Store List Page ─────────────────────────────────────────────────────────
-
 const StoreList: React.FC = () => {
   const navigate = useNavigate();
-
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StoreStatus | "">("");
-  const [verificationFilter, setVerificationFilter] = useState<
-    StoreVerificationStatus | ""
-  >("");
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
   const { data, isLoading, isError, isFetching } = useFetchMyStoresQuery({
     page,
-    limit: 10,
-    search: search || undefined,
-    status: statusFilter || undefined,
-    verification_status: verificationFilter || undefined,
+    limit: 12,
   });
 
   const [deleteMyStore, { isLoading: isDeleting }] = useDeleteMyStoreMutation();
@@ -267,36 +286,38 @@ const StoreList: React.FC = () => {
       await deleteMyStore(selectedStore._id).unwrap();
       closeDeleteModal();
       toast.success("Store deleted", {
-        description: `"${storeName}" has been successfully removed.`,
+        description: `"${storeName}" has been removed.`,
       });
     } catch (error: any) {
-      const errMsg =
-        error?.data?.message || "Something went wrong. Please try again.";
-      toast.error("Failed to delete store", { description: errMsg });
+      toast.error("Failed to delete store", {
+        description: error?.data?.message || "Something went wrong.",
+      });
     }
   };
 
   const handleToggleStatus = async (storeId: string) => {
     try {
       await toggleMyStoreStatus(storeId).unwrap();
+      toast.success("Store status updated");
     } catch {
-      console.error("Failed to toggle store status");
+      toast.error("Failed to update status");
     }
   };
 
   const handleSetDefault = async (storeId: string) => {
     try {
       await setDefaultStore(storeId).unwrap();
+      toast.success("Default store set");
     } catch {
-      console.error("Failed to set default store");
+      toast.error("Failed to set default store");
     }
   };
 
   if (isLoading) {
     return (
       <div className="sl-page">
-        <div className="sl-state">
-          <StoreIcon size={40} />
+        <div className="sl-loading-box">
+          <div className="sl-spinner" />
           <p>Loading your stores…</p>
         </div>
       </div>
@@ -306,10 +327,10 @@ const StoreList: React.FC = () => {
   if (isError) {
     return (
       <div className="sl-page">
-        <div className="sl-state">
-          <StoreIcon size={40} />
-          <h3>Something went wrong</h3>
-          <p>We couldn't load your stores. Please try again.</p>
+        <div className="sl-empty-state">
+          <StoreIcon size={38} className="sl-empty-icon" />
+          <h3>Unable to load stores</h3>
+          <p>Something went wrong while fetching your data.</p>
         </div>
       </div>
     );
@@ -317,98 +338,53 @@ const StoreList: React.FC = () => {
 
   return (
     <div className="sl-page">
-      {/* Header */}
-      <div className="sl-header">
-        <div className="sl-header-left">
-          <h1 className="sl-title">My Stores</h1>
-          {pagination && (
-            <span className="sl-count">
-              {pagination.total} store{pagination.total !== 1 ? "s" : ""}
-            </span>
-          )}
+      {/* ── Top Header ── */}
+      <div className="sl-top-bar">
+        <div>
+          <div className="sl-title-group">
+            <h1 className="sl-title">Stores</h1>
+            {pagination && (
+              <span className="sl-count-tag">{pagination.total} Stores</span>
+            )}
+          </div>
+          <p className="sl-lead">
+            Manage your retail branches, physical storefronts, and regional
+            logistics
+          </p>
         </div>
+
         <button
-          className="sl-add-btn"
+          type="button"
+          className="sl-create-btn"
           onClick={() => navigate("/vendor/stores/add")}
         >
-          <Plus size={15} />
-          Add Store
+          <Plus size={16} strokeWidth={2.5} />
+          <span>Add New Store</span>
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="sl-filters">
-        <div className="sl-search-wrap">
-          <svg
-            className="sl-search-icon"
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input
-            className="sl-search"
-            type="text"
-            placeholder="Search by name, city, email…"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
-        </div>
-
-        <select
-          className="sl-select"
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value as StoreStatus | "");
-            setPage(1);
-          }}
-        >
-          <option value="">All statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="suspended">Suspended</option>
-        </select>
-
-        <select
-          className="sl-select"
-          value={verificationFilter}
-          onChange={(e) => {
-            setVerificationFilter(
-              e.target.value as StoreVerificationStatus | "",
-            );
-            setPage(1);
-          }}
-        >
-          <option value="">All verifications</option>
-          <option value="verified">Verified</option>
-          <option value="pending">Pending</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-
-      {/* Grid */}
+      {/* ── Grid ── */}
       {stores.length === 0 ? (
-        <div className="sl-state">
-          <StoreIcon size={40} />
-          <h3>No stores found</h3>
-          <p>
-            {search || statusFilter || verificationFilter
-              ? "Try adjusting your filters."
-              : "Create your first store to get started."}
-          </p>
+        <div className="sl-empty-state">
+          <div className="sl-empty-icon-wrap">
+            <StoreIcon size={36} />
+          </div>
+          <h3>No stores registered</h3>
+          <p>Create your first store location to start serving customers.</p>
+          <button
+            type="button"
+            className="sl-create-btn"
+            style={{ marginTop: 14 }}
+            onClick={() => navigate("/vendor/stores/add")}
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>Create Store</span>
+          </button>
         </div>
       ) : (
         <div
           className="sl-grid"
-          style={{ opacity: isFetching ? 0.55 : 1, transition: "opacity 0.2s" }}
+          style={{ opacity: isFetching ? 0.6 : 1, transition: "opacity 0.2s" }}
         >
           {stores.map((store) => (
             <StoreCard
@@ -423,26 +399,31 @@ const StoreList: React.FC = () => {
         </div>
       )}
 
-      {/* Pagination */}
+      {/* ── Pagination ── */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="sl-pagination">
-          <span className="sl-page-info">
-            Page {pagination.page} of {pagination.totalPages}
+        <div className="sl-pagination-bar">
+          <span className="sl-page-indicator">
+            Showing page <strong>{pagination.page}</strong> of{" "}
+            <strong>{pagination.totalPages}</strong>
           </span>
-          <button
-            className="sl-page-btn"
-            disabled={!pagination.hasPrevPage}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            ← Previous
-          </button>
-          <button
-            className="sl-page-btn"
-            disabled={!pagination.hasNextPage}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next →
-          </button>
+          <div className="sl-page-buttons">
+            <button
+              type="button"
+              className="sl-nav-btn"
+              disabled={!pagination.hasPrevPage}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="sl-nav-btn"
+              disabled={!pagination.hasNextPage}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
@@ -455,8 +436,8 @@ const StoreList: React.FC = () => {
         message={
           <>
             Are you sure you want to delete{" "}
-            <strong>"{selectedStore?.store_name}"</strong>? This action cannot
-            be undone.
+            <strong>"{selectedStore?.store_name}"</strong>? This will
+            permanently remove its settings and disconnect attached inventory.
           </>
         }
       />

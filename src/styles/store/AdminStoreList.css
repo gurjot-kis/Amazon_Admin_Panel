@@ -1,5 +1,3 @@
-/* src/styles/store/storeList.css */
-
 /* ── Page wrapper ─────────────────────────────────────────── */
 .storelist-page {
   width: 100%;
@@ -108,7 +106,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Verification select ──────────────────────────────────── */
+/* ── Custom Verification Pill & Dropdown ──────────────────── */
 .storelist-verify-cell {
   display: flex;
   flex-direction: column;
@@ -116,81 +114,176 @@
   gap: 4px;
 }
 
-.storelist-verify-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 4px 28px 4px 10px;
-  border-radius: 20px;
-  border: 1.5px solid transparent;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  transition:
-    opacity 0.15s ease,
-    box-shadow 0.15s ease;
-  /* custom caret */
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 10px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a8d' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-
-.storelist-verify-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.storelist-verify-select:not(:disabled):hover {
-  box-shadow: 0 0 0 2px rgba(27, 58, 92, 0.15);
-}
-
-/* per-value colour themes */
-.storelist-verify-select--pending {
-  background-color: #fff8e6;
-  color: #a16207;
-  border-color: #f5d87a;
-}
-
-.storelist-verify-select--verified {
-  background-color: #e6f9f0;
-  color: #1a7f4b;
-  border-color: #7fdbb0;
-}
-
-.storelist-verify-select--rejected {
-  background-color: #fdecea;
-  color: #c0392b;
-  border-color: #f5a89e;
-}
-
-/* spinner shown while the mutation is in-flight */
-.storelist-verify-spinner {
+.store-v-dropdown-wrap {
+  position: relative;
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid #ccc;
-  border-top-color: #1b3a5c;
-  border-radius: 50%;
-  animation: storelist-spin 0.6s linear infinite;
 }
 
-@keyframes storelist-spin {
+.store-v-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.store-v-badge:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.store-v-badge:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.store-v-badge:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Pill Themes */
+.store-v--verified {
+  background-color: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.store-v--pending {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.store-v--rejected {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.store-v-badge-icon {
+  flex-shrink: 0;
+}
+
+.store-v-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.store-v-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+/* Mutation Spinner */
+.store-v-spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: store-v-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes store-v-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
+/* ── Floating Portal Menu ─────────────────────────────────── */
+.store-v-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -2px rgba(15, 23, 42, 0.05),
+    0 12px 24px -4px rgba(15, 23, 42, 0.12);
+  padding: 5px;
+  min-width: 140px;
+  animation: store-v-pop 0.15s ease-out;
+}
+
+@keyframes store-v-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.store-v-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: left;
+  font-family: inherit;
+}
+
+.store-v-option:hover {
+  background-color: #f8fafc;
+}
+
+.store-v-option.is-active {
+  background-color: #f1f5f9;
+  font-weight: 700;
+}
+
+.store-v-option-icon {
+  flex-shrink: 0;
+}
+
+.store-v-option.store-v--verified .store-v-option-icon {
+  color: #059669;
+}
+.store-v-option.store-v--pending .store-v-option-icon {
+  color: #b45309;
+}
+.store-v-option.store-v--rejected .store-v-option-icon {
+  color: #dc2626;
+}
+
+.store-v-option-label {
+  color: #334155;
+  flex: 1;
+}
+
+.store-v-check {
+  margin-left: auto;
+  color: #1b3a5c;
+  flex-shrink: 0;
+}
+
 /* ── Rejection hint ───────────────────────────────────────── */
 .storelist-rejection-hint {
   font-size: 11px;
-  color: #c0392b;
+  color: #dc2626;
   max-width: 160px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
   cursor: default;
+  margin-left: 4px;
 }
 
 /* ── Actions cell ─────────────────────────────────────────── */
@@ -205,10 +298,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background-color: #e8eef5;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -220,5 +313,5 @@
 }
 
 .storelist-action-btn svg {
-  font-size: 16px;
+  font-size: 17px;
 }

@@ -1,39 +1,40 @@
-import { baseApi } from '../../store/api/baseApi'
+import { baseApi } from "../../store/api/baseApi";
 import type {
   GetOrderByIdResponse,
   GetOrdersParams,
   GetOrdersResponse,
   UpdateOrderStatusRequest,
-  UpdateOrderStatusResponse
-} from './orderTypes'
+  UpdateOrderStatusResponse,
+} from "./orderTypes";
 
 export const orderApi = baseApi.injectEndpoints({
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllOrders: builder.query<GetOrdersResponse, GetOrdersParams>({
-      query: ({ page, limit, status, search }) => {
-        const params = new URLSearchParams()
-        if (page !== undefined) params.set('page', String(page))
-        if (limit !== undefined) params.set('limit', String(limit))
-        if (status) params.set('status', status)
-        if (search?.trim()) params.set('search', search.trim())
+      query: ({ page, limit, status, search, store_id }) => {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.set("page", String(page));
+        if (limit !== undefined) params.set("limit", String(limit));
+        if (status) params.set("status", status);
+        if (search) params.set("search", search);
+        if (store_id) params.set("store_id", store_id);
 
-        const qs = params.toString()
+        const qs = params.toString();
         return {
-          url: `/admin/order/all-orders${qs ? `?${qs}` : ''}`,
-          method: 'GET'
-        }
+          url: `/vendor/orders${qs ? `?${qs}` : ""}`,
+          method: "GET",
+        };
       },
       extraOptions: { requiresAuth: true },
-      providesTags: ['Order']
+      providesTags: ["Order"],
     }),
 
     getOrderById: builder.query<GetOrderByIdResponse, string>({
-      query: orderId => ({
-        url: `/admin/order/${orderId}`,
-        method: 'GET'
+      query: (orderId) => ({
+        url: `/vendor/orders/${orderId}`,
+        method: "GET",
       }),
       extraOptions: { requiresAuth: true },
-      providesTags: ['Order']
+      providesTags: ["Order"],
     }),
 
     updateOrderStatus: builder.mutation<
@@ -41,18 +42,18 @@ export const orderApi = baseApi.injectEndpoints({
       UpdateOrderStatusRequest
     >({
       query: ({ orderId, status }) => ({
-        url: `/admin/order/${orderId}/status`,
-        method: 'PATCH',
-        body: { status }
+        url: `/vendor/orders/${orderId}/status`,
+        method: "PATCH",
+        body: { status },
       }),
       extraOptions: { requiresAuth: true },
-      invalidatesTags: ['Order']
-    })
-  })
-})
+      invalidatesTags: ["Order"],
+    }),
+  }),
+});
 
 export const {
   useGetAllOrdersQuery,
   useGetOrderByIdQuery,
-  useUpdateOrderStatusMutation
-} = orderApi
+  useUpdateOrderStatusMutation,
+} = orderApi;

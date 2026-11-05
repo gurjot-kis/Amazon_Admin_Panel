@@ -1,9 +1,11 @@
 // src/pages/admin/store/StoreList.tsx
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { LuPhone, LuMail, LuMapPin } from "react-icons/lu";
 import { MdVisibility } from "react-icons/md";
+import { ShieldCheck, Clock, ShieldX, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -21,6 +23,178 @@ import "../../../styles/store/AdminStoreList.css";
 
 const PAGE_LIMIT = 10;
 const ASSET_URL = import.meta.env.VITE_API_ASSET_URL as string;
+
+const VERIFY_CONFIG: Record<
+  StoreVerificationStatus,
+  {
+    label: string;
+    className: string;
+    icon: React.FC<{ size?: number; className?: string }>;
+  }
+> = {
+  verified: {
+    label: "Verified",
+    className: "store-v--verified",
+    icon: ShieldCheck,
+  },
+  pending: {
+    label: "Pending",
+    className: "store-v--pending",
+    icon: Clock,
+  },
+  rejected: {
+    label: "Rejected",
+    className: "store-v--rejected",
+    icon: ShieldX,
+  },
+};
+
+const VerificationDropdown = ({
+  current,
+  store,
+  onUpdate,
+  isUpdating,
+}: {
+  current: StoreVerificationStatus;
+  store: Store;
+  onUpdate: (store: Store, status: StoreVerificationStatus) => void;
+  isUpdating: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const cfg = VERIFY_CONFIG[current] || VERIFY_CONFIG.pending;
+  const CurrentIcon = cfg.icon;
+
+  const toggleDropdown = () => {
+    if (isUpdating) return;
+
+    setOpen((prev) => {
+      if (!prev && btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect();
+        setCoords({
+          top: rect.bottom + window.scrollY + 6,
+          left: rect.left + window.scrollX,
+        });
+        return true;
+      }
+      return false;
+    });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handler = (e: MouseEvent) => {
+      const target = e.target as Node;
+      // If click is inside the portal panel OR inside the trigger button, let their own handlers manage it
+      if (
+        panelRef.current?.contains(target) ||
+        btnRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  return (
+    <div className="store-v-dropdown-wrap">
+      <button
+        ref={btnRef}
+        type="button"
+        className={`store-v-badge ${cfg.className} ${isUpdating ? "is-updating" : ""}`}
+        onClick={toggleDropdown}
+        disabled={isUpdating}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {isUpdating ? (
+          <span className="store-v-spinner" />
+        ) : (
+          <CurrentIcon size={12} className="store-v-badge-icon" />
+        )}
+        <span>{cfg.label}</span>
+        {!isUpdating && (
+          <svg
+            className={`store-v-chevron ${open ? "is-open" : ""}`}
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            ref={panelRef}
+            className="store-v-panel"
+            role="listbox"
+            style={{
+              position: "absolute",
+              top: coords.top,
+              left: coords.left,
+              zIndex: 9999,
+            }}
+          >
+            {(Object.keys(VERIFY_CONFIG) as StoreVerificationStatus[]).map(
+              (statusKey) => {
+                const optionCfg = VERIFY_CONFIG[statusKey];
+                const OptionIcon = optionCfg.icon;
+                const isActive = statusKey === current;
+
+                return (
+                  <button
+                    key={statusKey}
+                    type="button"
+                    className={`store-v-option ${optionCfg.className} ${
+                      isActive ? "is-active" : ""
+                    }`}
+                    role="option"
+                    aria-selected={isActive}
+                    onClick={() => {
+                      if (!isActive) onUpdate(store, statusKey);
+                      setOpen(false);
+                    }}
+                  >
+                    <OptionIcon size={13} className="store-v-option-icon" />
+                    <span className="store-v-option-label">
+                      {optionCfg.label}
+                    </span>
+                    {isActive && <Check size={13} className="store-v-check" />}
+                  </button>
+                );
+              },
+            )}
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+};
 
 export default function StoreList(): React.ReactElement {
   const navigate = useNavigate();
@@ -106,7 +280,7 @@ export default function StoreList(): React.ReactElement {
         verification_status: newStatus,
       }).unwrap();
       toast.success("Verification updated", {
-        description: `"${store.store_name}" is now ${newStatus}.`,
+        description: `"${store.store_name}" is now marked as ${newStatus}.`,
       });
     } catch (err: any) {
       toast.error("Failed to update verification", {
@@ -221,32 +395,20 @@ export default function StoreList(): React.ReactElement {
       header: "Verification",
       render: (store) => (
         <div className="storelist-verify-cell">
-          <select
-            className={`storelist-verify-select storelist-verify-select--${store.verification_status}`}
-            value={store.verification_status}
-            disabled={updatingVerify === store._id}
-            onChange={(e) =>
-              handleVerificationChange(
-                store,
-                e.target.value as StoreVerificationStatus,
-              )
-            }
-          >
-            <option value="pending">Pending</option>
-            <option value="verified">Verified</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          {updatingVerify === store._id && (
-            <span className="storelist-verify-spinner" />
-          )}
+          <VerificationDropdown
+            current={store.verification_status}
+            store={store}
+            onUpdate={handleVerificationChange}
+            isUpdating={updatingVerify === store._id}
+          />
           {store.verification_status === "rejected" &&
             store.rejection_reason && (
               <span
                 className="storelist-rejection-hint"
                 title={store.rejection_reason}
               >
-                {store.rejection_reason.length > 30
-                  ? `${store.rejection_reason.slice(0, 30)}…`
+                {store.rejection_reason.length > 28
+                  ? `${store.rejection_reason.slice(0, 28)}…`
                   : store.rejection_reason}
               </span>
             )}
@@ -297,9 +459,21 @@ export default function StoreList(): React.ReactElement {
             },
             options: [
               { value: "all", label: "All Verification" },
-              { value: "pending", label: "Pending" },
-              { value: "verified", label: "Verified" },
-              { value: "rejected", label: "Rejected" },
+              {
+                value: "pending",
+                label: "Pending",
+                icon: <Clock size={13} color="#d97706" />,
+              },
+              {
+                value: "verified",
+                label: "Verified",
+                icon: <ShieldCheck size={13} color="#16a34a" />,
+              },
+              {
+                value: "rejected",
+                label: "Rejected",
+                icon: <ShieldX size={13} color="#dc2626" />,
+              },
             ],
           },
         ]}

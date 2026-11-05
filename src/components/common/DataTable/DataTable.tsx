@@ -1,26 +1,20 @@
-import { useState } from "react";
-import type {
-  DataTableColumn,
-  DataTableFilter,
-  DataTablePaginationInfo,
-  DataTableStatPill,
-} from "./DataTable.types";
+import { useState, useRef, useEffect } from "react";
+import type { DataTableFilter, DataTableProps } from "./DataTable.types";
 import "../../../styles/DataTable.css";
 
 /* ---------- small internal icons ---------- */
-
 const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
   <svg
     className={`dt-chevron ${expanded ? "dt-chevron--open" : ""}`}
-    width="18"
-    height="18"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
   >
     <path
-      d="M9 6l6 6-6 6"
+      d="M6 9l6 6 6-6"
       stroke="currentColor"
-      strokeWidth="3.2"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -63,8 +57,7 @@ const ChevronRight = () => (
   </svg>
 );
 
-/* ---------- reusable status toggle (used inside a column's render) ---------- */
-
+/* ---------- reusable status toggle ---------- */
 export const DataTableStatusToggle = ({
   active,
   isUpdating,
@@ -83,21 +76,136 @@ export const DataTableStatusToggle = ({
     role="switch"
     aria-checked={active}
     disabled={isUpdating}
-    className={`dt-switch ${active ? "dt-switch--on" : "dt-switch--off"} ${isUpdating ? "dt-switch--busy" : ""}`}
+    className={`dt-switch ${active ? "dt-switch--on" : "dt-switch--off"} ${
+      isUpdating ? "dt-switch--busy" : ""
+    }`}
     onClick={onChange}
   >
     <span className="dt-switch-track">
       <span className="dt-switch-thumb" />
     </span>
     <span className="dt-switch-label">
-      {/* {isUpdating ? "…" : active ? activeLabel : inactiveLabel} */}
       {active ? activeLabel : inactiveLabel}
     </span>
   </button>
 );
 
-/* ---------- pagination window helper, e.g. [1,'…',4,5,6,'…',12] ---------- */
+/* ---------- Custom Dropdown Component ---------- */
+const CustomSelect = ({
+  value,
+  onChange,
+  options,
+  className = "",
+}: DataTableFilter) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <div className={`dt-custom-select-wrap ${className}`} ref={containerRef}>
+      <button
+        type="button"
+        className={`dt-custom-select-btn ${isOpen ? "is-open" : ""}`}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <span className="dt-custom-select-label-wrap">
+          {selectedOption?.image && (
+            <img
+              src={selectedOption.image}
+              alt=""
+              className="dt-select-thumb"
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
+          )}
+          {selectedOption?.icon && (
+            <span className="dt-select-icon">{selectedOption.icon}</span>
+          )}
+          {selectedOption?.badgeDot && (
+            <span
+              className="dt-select-dot"
+              style={{ backgroundColor: selectedOption.badgeDot }}
+            />
+          )}
+          <span className="dt-select-text">{selectedOption?.label}</span>
+        </span>
+        <ChevronIcon expanded={isOpen} />
+      </button>
+
+      {isOpen && (
+        <div className="dt-custom-select-menu">
+          {options.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                className={`dt-custom-select-item ${isSelected ? "is-active" : ""}`}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+              >
+                <div className="dt-item-content">
+                  {opt.image && (
+                    <img
+                      src={opt.image}
+                      alt=""
+                      className="dt-select-thumb"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                  )}
+                  {opt.icon && (
+                    <span className="dt-select-icon">{opt.icon}</span>
+                  )}
+                  {opt.badgeDot && (
+                    <span
+                      className="dt-select-dot"
+                      style={{ backgroundColor: opt.badgeDot }}
+                    />
+                  )}
+                  <span className="dt-item-label">{opt.label}</span>
+                </div>
+                {isSelected && (
+                  <svg
+                    className="dt-item-check"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M5 13l4 4L19 7"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ---------- Helpers ---------- */
 export const buildPageWindow = (
   current: number,
   totalPages: number,
@@ -123,8 +231,6 @@ export const buildPageWindow = (
   });
   return result;
 };
-
-/* ---------- tree flattening for expand/collapse rows ---------- */
 
 interface FlatRow<T> {
   item: T;
@@ -155,42 +261,6 @@ function flattenTree<T>(
   return rows;
 }
 
-/* ---------- main component ---------- */
-
-interface DataTableProps<T> {
-  columns: DataTableColumn<T>[];
-  data: T[];
-  getId: (item: T) => string;
-  getChildren?: (item: T) => T[] | undefined;
-
-  title?: string;
-  statPills?: DataTableStatPill[];
-
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  searchPlaceholder?: string;
-
-  filters?: DataTableFilter[];
-
-  addButtonLabel?: string;
-  onAddClick?: () => void;
-
-  headerExtra?: React.ReactNode;
-
-  isLoading?: boolean;
-  isFetching?: boolean;
-  isError?: boolean;
-  errorMessage?: string;
-  onRetry?: () => void;
-  emptyMessage?: string;
-  skeletonRows?: number;
-
-  pagination?: DataTablePaginationInfo;
-  onPageChange?: (page: number) => void;
-
-  rowClassName?: (item: T, depth: number) => string;
-}
-
 export function DataTable<T>({
   columns,
   data,
@@ -217,9 +287,6 @@ export function DataTable<T>({
   rowClassName,
 }: DataTableProps<T>) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  // const [expandedIds, setExpandedIds] = useState<Set<string>>(
-  //   () => new Set(data.map(getId)),
-  // );
 
   const toggleRow = (id: string) => {
     setExpandedIds((prev) => {
@@ -269,7 +336,9 @@ export function DataTable<T>({
                     {statPills.map((pill, i) => (
                       <span
                         key={i}
-                        className={`dt-stat-pill ${pill.navy ? "dt-stat-pill--navy" : ""}`}
+                        className={`dt-stat-pill ${
+                          pill.navy ? "dt-stat-pill--navy" : ""
+                        }`}
                       >
                         {pill.label}
                       </span>
@@ -280,19 +349,7 @@ export function DataTable<T>({
 
               <div className="d-flex flex-wrap gap-2 align-items-center">
                 {filters?.map((filter, i) => (
-                  <div className="dt-filter-wrap" key={i}>
-                    <select
-                      className={`form-select dt-filter-select ${filter.className ?? ""}`}
-                      value={filter.value}
-                      onChange={(e) => filter.onChange(e.target.value)}
-                    >
-                      {filter.options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect key={i} {...filter} />
                 ))}
 
                 {onSearchChange && (
@@ -383,7 +440,10 @@ export function DataTable<T>({
                   return (
                     <tr
                       key={id}
-                      className={`dt-row dt-row--depth-${Math.min(depth, 2)} ${rowClassName?.(item, depth) ?? ""}`}
+                      className={`dt-row dt-row--depth-${Math.min(
+                        depth,
+                        2,
+                      )} ${rowClassName?.(item, depth) ?? ""}`}
                     >
                       {columns.map((col) => {
                         const content = col.render(item, depth);
@@ -459,7 +519,9 @@ export function DataTable<T>({
                   <button
                     key={p}
                     type="button"
-                    className={`dt-pagination-num ${p === pagination.page ? "dt-pagination-num--active" : ""}`}
+                    className={`dt-pagination-num ${
+                      p === pagination.page ? "dt-pagination-num--active" : ""
+                    }`}
                     onClick={() => goToPage(p)}
                   >
                     {p}

@@ -64,4 +64,7 @@ export const VENDOR_ROUTES = {
   couponList: "/vendor/coupons",
   addCoupon: "/vendor/coupons/add",
   editCoupon: "/vendor/coupons/:id/edit",
+
+  orders: "/vendor/orders",
+  orderDetails: "/vendor/orders/:orderId/details",
 } as const;

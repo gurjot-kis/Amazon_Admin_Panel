@@ -36,7 +36,7 @@ const VariantTypeList = () => {
     "_id" | "name"
   > | null>(null);
 
-//   const navigate = useNavigate();
+  //   const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
 
   useEffect(() => {
@@ -211,9 +211,9 @@ const VariantTypeList = () => {
               setPage(1);
             },
             options: [
-              { value: "all", label: "All statuses" },
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
+              { value: "all", label: "All statuses", badgeDot: "#94a3b8" },
+              { value: "active", label: "Active", badgeDot: "#16a34a" },
+              { value: "inactive", label: "Inactive", badgeDot: "#64748b" },
             ],
           },
         ]}

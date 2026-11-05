@@ -328,9 +328,9 @@ export default function VendorList(): React.ReactElement {
               setPage(1);
             },
             options: [
-              { value: "all", label: "All Status" },
-              { value: "1", label: "Active" },
-              { value: "0", label: "Inactive" },
+              { value: "all", label: "All Status", badgeDot: "#94a3b8" },
+              { value: "1", label: "Active", badgeDot: "#16a34a" },
+              { value: "0", label: "Inactive", badgeDot: "#ef4444" },
             ],
           },
           {

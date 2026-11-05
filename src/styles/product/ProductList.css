@@ -383,7 +383,6 @@
   max-width: 120px;
 }
 
-
 /* ============================================================
    Store Identity Card
    ============================================================ */
@@ -425,4 +424,55 @@
   font-weight: 700;
   color: var(--pro-detail-text-primary);
   overflow-wrap: anywhere;
+}
+
+/* ── Enhanced Store Cell ────────────────────────────────── */
+.pl-store-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 5px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  max-width: 190px;
+  transition: all 0.15s ease;
+}
+
+.pl-store-pill:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.pl-store-pill-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.pl-store-pill-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1b3a5c 0%, #2563eb 100%);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pl-store-pill-name {
+  font-size: 0.81rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

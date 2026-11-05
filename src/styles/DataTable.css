@@ -384,6 +384,165 @@
   padding: 0 4px;
   font-size: 0.8rem;
 }
+
+/* ── Custom Filter Dropdown ────────────────────────────── */
+.dt-custom-select-wrap {
+  position: relative;
+  min-width: 170px;
+}
+
+.dt-custom-select-btn {
+  width: 100%;
+  height: 42px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+}
+
+.dt-custom-select-btn:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.dt-custom-select-btn.is-open {
+  border-color: #1b3a5c;
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.12);
+  background: #ffffff;
+}
+
+.dt-custom-select-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dt-select-text {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #1e2a35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dt-select-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.dt-select-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dt-custom-select-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: max-content;
+  min-width: 100%;
+  max-width: 280px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.12),
+    0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  padding: 5px;
+  z-index: 1050;
+  animation: dt-pop 0.15s ease-out;
+}
+
+@keyframes dt-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dt-custom-select-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+  font-family: inherit;
+}
+
+.dt-custom-select-item:hover {
+  background: #f1f5f9;
+}
+
+.dt-custom-select-item.is-active {
+  background: #eef4fb;
+}
+
+.dt-item-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dt-item-label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dt-custom-select-item.is-active .dt-item-label {
+  font-weight: 700;
+  color: #1b3a5c;
+}
+
+.dt-item-check {
+  color: #1b3a5c;
+  flex-shrink: 0;
+}
+
+.dt-select-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 @media (max-width: 576px) {
   .dt-pagination {
     justify-content: center;
