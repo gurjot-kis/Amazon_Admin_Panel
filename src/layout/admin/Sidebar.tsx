@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   LuLayoutDashboard,
   LuStore,
-  // LuUsers,
   LuUserRound,
   LuFolderTree,
-  // LuPackage,
-  // LuShoppingBag,
   LuLogOut,
   LuX,
   LuChevronDown,
@@ -19,16 +16,15 @@ import {
   LuWallet,
   LuUsers,
 } from "react-icons/lu";
+import { MdLayers, MdTune } from "react-icons/md";
+import { useDispatch } from "react-redux";
 
-import { getStoredUser, clearAuthSession } from "../../utils/auth";
-import { resolveMediaUrl } from "../../config/api";
+import { clearAuthSession } from "../../utils/auth";
 import { ROUTES } from "../../routes";
 import { useLayout } from "../LayoutContext";
 import "../../styles/Sidebar.css";
 import { logout } from "../../features/auth/authSlice";
 import { baseApi } from "../../store/api/baseApi";
-import { useDispatch } from "react-redux";
-import { MdLayers, MdTune } from "react-icons/md";
 
 interface NavSubItem {
   id: string;
@@ -47,154 +43,121 @@ interface NavItem {
   children?: NavSubItem[];
 }
 
-interface StoredUser {
-  name?: string;
-  email?: string;
-  profilePicture?: string;
-}
-
 const NAV_ITEMS: NavItem[] = [
   {
     id: "Dashboard",
     label: "Dashboard",
     path: ROUTES.dashboard,
     activePaths: [ROUTES.dashboard],
-    icon: <LuLayoutDashboard size={20} />,
+    icon: <LuLayoutDashboard size={19} />,
   },
   {
     id: "Profile",
     label: "Profile",
     path: ROUTES.profile,
     activePaths: [ROUTES.profile],
-    icon: <LuUserRound size={20} />,
+    icon: <LuUserRound size={19} />,
   },
   {
     id: "Vendors",
     label: "Vendors",
     path: ROUTES.vendors,
     activePaths: [ROUTES.vendors],
-    icon: <LuContactRound size={20} />,
+    icon: <LuContactRound size={19} />,
   },
   {
     id: "Users",
     label: "Users",
     path: ROUTES.users,
     activePaths: [ROUTES.users],
-    icon: <LuUsers size={20} />,
+    icon: <LuUsers size={19} />,
   },
   {
     id: "Stores",
     label: "Stores",
     path: ROUTES.stores,
     activePaths: [ROUTES.stores],
-    icon: <LuStore size={20} />,
+    icon: <LuStore size={19} />,
   },
-  // {
-  //   id: "Users",
-  //   label: "Users",
-  //   path: ROUTES.users,
-  //   activePaths: [ROUTES.users],
-  //   icon: <LuUsers size={20} />,
-  // },
   {
     id: "Category",
     label: "Categories",
     path: ROUTES.categories,
     activePaths: [ROUTES.categories, "/admin/sub-categories"],
-    icon: <LuFolderTree size={20} />,
+    icon: <LuFolderTree size={19} />,
   },
   {
     id: "variants",
     label: "Variants",
-    icon: <MdLayers size={20} />,
+    icon: <MdLayers size={19} />,
     children: [
       {
         id: "variant-type",
         label: "Variant Type",
         path: ROUTES.variantType,
         activePaths: [ROUTES.variantType, "/admin/variant-type"],
-        icon: <MdTune size={18} />,
+        icon: <MdTune size={17} />,
       },
       {
         id: "variant-option",
         label: "Variant Option",
         path: ROUTES.variantOption,
         activePaths: [ROUTES.variantOption, "/admin/variant-option"],
-        icon: <LuListChecks size={18} />,
+        icon: <LuListChecks size={17} />,
       },
     ],
   },
-
   {
     id: "settings",
     label: "Settings",
-    icon: <LuSettings size={20} />,
+    icon: <LuSettings size={19} />,
     children: [
       {
         id: "CartSettings",
         label: "Cart Settings",
         path: ROUTES.cartSettings,
         activePaths: [ROUTES.cartSettings],
-        icon: <LuShoppingCart size={20} />,
+        icon: <LuShoppingCart size={17} />,
       },
       {
         id: "wallet-settings",
         label: "Wallet",
         path: ROUTES.walletSettings,
         activePaths: [ROUTES.walletSettings, "/admin/wallet-settings"],
-        icon: <LuWallet size={18} />,
+        icon: <LuWallet size={17} />,
       },
     ],
   },
-
   {
     id: "Coupons",
     label: "Coupons",
     path: ROUTES.couponList,
     activePaths: [ROUTES.couponList],
-    icon: <LuTicketPercent size={20} />,
+    icon: <LuTicketPercent size={19} />,
   },
-
-  // {
-  //   id: "Orders",
-  //   label: "Orders",
-  //   path: ROUTES.orders,
-  //   activePaths: [ROUTES.orders],
-  //   icon: <LuShoppingBag size={20} />,
-  // },
-  // {
-  //   id: "Support",
-  //   label: "Support",
-  //   path: ROUTES.support,
-  //   activePaths: [ROUTES.support],
-  //   icon: <LuLifeBuoy size={20} />,
-  // },
 ];
 
 export default function Sidebar(): React.ReactElement {
-  const user = getStoredUser() as StoredUser | null;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   const { isSidebarOpen, setIsSidebarOpen } = useLayout();
 
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  // Accordion state: holds the single open menu ID or null
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
-    NAV_ITEMS.forEach((item) => {
-      if (item.children) {
-        const isChildActive = item.children.some((child) =>
-          child.activePaths.some((p) => pathname.startsWith(p)),
-        );
-        if (isChildActive) {
-          setOpenMenus((prev) => ({ ...prev, [item.id]: true }));
-        }
-      }
-    });
+    const activeParent = NAV_ITEMS.find((item) =>
+      item.children?.some((child) =>
+        child.activePaths.some((p) => pathname.startsWith(p)),
+      ),
+    );
+    // Automatically close submenus if navigating to a non-child route like Profile
+    setOpenMenuId(activeParent ? activeParent.id : null);
   }, [pathname]);
 
   const toggleSubMenu = (menuId: string) => {
-    setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
+    setOpenMenuId((prev) => (prev === menuId ? null : menuId));
   };
 
   const handleNavClick = (path: string) => {
@@ -222,52 +185,32 @@ export default function Sidebar(): React.ReactElement {
       <aside
         className={`sidebar-container ${isSidebarOpen ? "sidebar-open" : ""}`}
       >
-        {/* Brand / Close Header */}
+        {/* Brand Header */}
         <div className="sidebar-brand-header">
-          <div className="sidebar-brand-logo">
-            <span className="sidebar-brand-accent">Ever</span>Mart
-          </div>
+          <Link to={ROUTES.dashboard} className="sidebar-brand-logo-link">
+            <div className="sidebar-logo-icon">E</div>
+            <span className="sidebar-brand-logo">
+              <span className="sidebar-brand-accent">Ever</span>Mart
+            </span>
+            <span className="sidebar-brand-badge">Admin</span>
+          </Link>
           <button
             type="button"
             className="sidebar-close-btn d-lg-none"
             onClick={() => setIsSidebarOpen(false)}
             aria-label="Close sidebar"
           >
-            <LuX size={20} />
+            <LuX size={18} />
           </button>
         </div>
 
-        {/* User Card */}
-        <div className="sidebar-user-card">
-          <div className="sidebar-avatar-wrapper">
-            {user?.profilePicture ? (
-              <img
-                src={resolveMediaUrl(user.profilePicture)}
-                alt={user?.name || "User Avatar"}
-                className="sidebar-avatar-img"
-              />
-            ) : (
-              <div className="sidebar-avatar-fallback">
-                {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
-              </div>
-            )}
-            <span className="sidebar-status-badge" />
-          </div>
-          <div className="sidebar-user-info">
-            <p className="sidebar-user-name">{user?.name || "Administrator"}</p>
-            <p className="sidebar-user-role">
-              {user?.email || "admin@domain.com"}
-            </p>
-          </div>
-        </div>
-
-        {/* Navigation Section */}
+        {/* Navigation List */}
         <div className="sidebar-nav-wrapper">
           <span className="sidebar-nav-heading">Main Navigation</span>
           <nav className="sidebar-nav-list">
             {NAV_ITEMS.map((item) => {
               if (item.children && item.children.length > 0) {
-                const isOpen = !!openMenus[item.id];
+                const isOpen = openMenuId === item.id;
                 const isParentActive = item.children.some((child) =>
                   child.activePaths.some((p) => pathname.startsWith(p)),
                 );
@@ -284,7 +227,7 @@ export default function Sidebar(): React.ReactElement {
                       <span className="sidebar-nav-icon">{item.icon}</span>
                       <span className="sidebar-nav-label">{item.label}</span>
                       <LuChevronDown
-                        size={16}
+                        size={15}
                         className={`sidebar-arrow-icon ${isOpen ? "sidebar-arrow-open" : ""}`}
                       />
                     </button>
@@ -321,10 +264,10 @@ export default function Sidebar(): React.ReactElement {
                 );
               }
 
-              // Standard Item
               const isActive = item.activePaths?.some((p) =>
                 pathname.startsWith(p),
               );
+
               return (
                 <button
                   key={item.id}
@@ -340,14 +283,14 @@ export default function Sidebar(): React.ReactElement {
           </nav>
         </div>
 
-        {/* Footer Actions */}
+        {/* Clean Footer Sign Out */}
         <div className="sidebar-footer">
           <button
             type="button"
             className="sidebar-logout-btn"
             onClick={handleLogout}
           >
-            <LuLogOut size={18} />
+            <LuLogOut size={16} />
             <span>Sign Out</span>
           </button>
         </div>

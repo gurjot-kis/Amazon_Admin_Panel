@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   LuLayoutDashboard,
   LuUserRound,
@@ -8,10 +8,10 @@ import {
   LuPackage,
   LuStore,
   LuTicketPercent,
+  LuShoppingBag,
 } from "react-icons/lu";
 
-import { getStoredUser, clearAuthSession } from "../../utils/auth";
-import { resolveMediaUrl } from "../../config/api";
+import { clearAuthSession } from "../../utils/auth";
 import { VENDOR_ROUTES, ROUTES } from "../../routes";
 import { useAppDispatch } from "../../store/hooks";
 import { logout } from "../../features/auth/authSlice";
@@ -28,71 +28,52 @@ interface NavItem {
   icon: React.ReactElement;
 }
 
-interface StoredUser {
-  name?: string;
-  email?: string;
-  profilePicture?: string;
-}
-
 const NAV_ITEMS: NavItem[] = [
   {
     id: "Dashboard",
     label: "Dashboard",
     path: VENDOR_ROUTES.dashboard,
     activePaths: [VENDOR_ROUTES.dashboard],
-    icon: <LuLayoutDashboard size={20} />,
+    icon: <LuLayoutDashboard size={19} />,
   },
   {
     id: "Profile",
     label: "Profile",
     path: VENDOR_ROUTES.profile,
     activePaths: [VENDOR_ROUTES.profile],
-    icon: <LuUserRound size={20} />,
+    icon: <LuUserRound size={19} />,
   },
-
   {
     id: "Product",
     label: "Products",
     path: VENDOR_ROUTES.products,
     activePaths: [VENDOR_ROUTES.products],
-    icon: <LuPackage size={20} />,
+    icon: <LuPackage size={19} />,
   },
-
   {
     id: "Stores",
     label: "Stores",
     path: VENDOR_ROUTES.stores,
     activePaths: [VENDOR_ROUTES.stores],
-    icon: <LuStore size={20} />,
+    icon: <LuStore size={19} />,
   },
-
   {
     id: "Coupons",
     label: "Coupons",
     path: VENDOR_ROUTES.couponList,
     activePaths: [VENDOR_ROUTES.couponList],
-    icon: <LuTicketPercent size={20} />,
+    icon: <LuTicketPercent size={19} />,
   },
-
   {
     id: "Orders",
     label: "Orders",
     path: VENDOR_ROUTES.orders,
     activePaths: [VENDOR_ROUTES.orders],
-    icon: <LuPackage size={20} />,
+    icon: <LuShoppingBag size={19} />,
   },
-
-  // {
-  //   id: "Support",
-  //   label: "Support",
-  //   path: VENDOR_ROUTES.support,
-  //   activePaths: [VENDOR_ROUTES.support],
-  //   icon: <LuLifeBuoy size={20} />,
-  // },
 ];
 
 export default function VendorSidebar(): React.ReactElement {
-  const user = getStoredUser() as StoredUser | null;
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
@@ -124,45 +105,26 @@ export default function VendorSidebar(): React.ReactElement {
       <aside
         className={`vendor-sidebar-container ${isSidebarOpen ? "vendor-sidebar-open" : ""}`}
       >
-        {/* Brand / Close Header */}
+        {/* Brand Header with Emerald Icon & Vendor Badge */}
         <div className="vendor-sidebar-brand-header">
-          <div className="vendor-sidebar-brand-logo">
-            <span className="vendor-sidebar-brand-accent">Ever</span>Mart
-          </div>
+          <Link
+            to={VENDOR_ROUTES.dashboard}
+            className="vendor-sidebar-brand-logo-link"
+          >
+            <div className="vendor-sidebar-logo-icon">E</div>
+            <span className="vendor-sidebar-brand-logo">
+              <span className="vendor-sidebar-brand-accent">Ever</span>Mart
+            </span>
+            <span className="vendor-sidebar-brand-badge">Vendor</span>
+          </Link>
           <button
             type="button"
             className="vendor-sidebar-close-btn d-lg-none"
             onClick={() => setIsSidebarOpen(false)}
             aria-label="Close sidebar"
           >
-            <LuX size={20} />
+            <LuX size={18} />
           </button>
-        </div>
-
-        {/* User Card */}
-        <div className="vendor-sidebar-user-card">
-          <div className="vendor-sidebar-avatar-wrapper">
-            {user?.profilePicture ? (
-              <img
-                src={resolveMediaUrl(user.profilePicture)}
-                alt={user?.name || "Vendor Avatar"}
-                className="vendor-sidebar-avatar-img"
-              />
-            ) : (
-              <div className="vendor-sidebar-avatar-fallback">
-                {user?.name ? user.name.charAt(0).toUpperCase() : "V"}
-              </div>
-            )}
-            <span className="vendor-sidebar-status-badge" />
-          </div>
-          <div className="vendor-sidebar-user-info">
-            <p className="vendor-sidebar-user-name">
-              {user?.name || "Vendor Partner"}
-            </p>
-            <p className="vendor-sidebar-user-role">
-              {user?.email || "vendor@domain.com"}
-            </p>
-          </div>
         </div>
 
         {/* Navigation Section */}
@@ -190,14 +152,14 @@ export default function VendorSidebar(): React.ReactElement {
           </nav>
         </div>
 
-        {/* Footer Actions */}
+        {/* Clean Footer Sign Out */}
         <div className="vendor-sidebar-footer">
           <button
             type="button"
             className="vendor-sidebar-logout-btn"
             onClick={handleLogout}
           >
-            <LuLogOut size={18} />
+            <LuLogOut size={16} />
             <span>Sign Out</span>
           </button>
         </div>
