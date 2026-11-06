@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { LuPhone, LuMail, LuMapPin } from "react-icons/lu";
-import { MdModeEdit } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
-
 import {
   useGetAllUsersQuery,
   useUpdateUserStatusMutation,
@@ -18,9 +15,14 @@ import { useHeader } from "../../../layout/LayoutContext";
 import "../../../styles/user/UserList.css";
 
 const PAGE_LIMIT = 10;
+const ASSET_URL = import.meta.env.VITE_API_ASSET_URL as string;
+
+const resolveImage = (path?: string | null) => {
+  if (!path) return null;
+  return path.startsWith("http") ? path : `${ASSET_URL}${path}`;
+};
 
 export default function UserList(): React.ReactElement {
-  const navigate = useNavigate();
   const { setHeaderConfig } = useHeader();
 
   const [page, setPage] = useState<number>(1);
@@ -37,7 +39,7 @@ export default function UserList(): React.ReactElement {
     });
   }, [setHeaderConfig]);
 
-  // Debounced search query
+  // Debounce search query so server isn't hit on every keystroke
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
@@ -49,30 +51,19 @@ export default function UserList(): React.ReactElement {
   const activeStatusQuery: UserStatus | undefined =
     statusFilter === "all" ? undefined : (Number(statusFilter) as UserStatus);
 
-  // RTK Query Hooks
+  // RTK Query with server-side search and pagination
   const { data, isLoading, isFetching, isError, error, refetch } =
     useGetAllUsersQuery({
       page,
       limit: PAGE_LIMIT,
       status: activeStatusQuery,
+      search: search || undefined,
     });
 
   const [updateUserStatus] = useUpdateUserStatusMutation();
 
-  const rawUsers = data?.data ?? [];
+  const users = data?.data ?? [];
   const pagination = data?.pagination;
-
-  // Filter client-side if full-text search is not part of API params
-  const users = useMemo(() => {
-    if (!search) return rawUsers;
-    const lower = search.toLowerCase();
-    return rawUsers.filter(
-      (u) =>
-        u.fullName?.toLowerCase().includes(lower) ||
-        u.email?.toLowerCase().includes(lower) ||
-        u.phone?.toLowerCase().includes(lower),
-    );
-  }, [rawUsers, search]);
 
   const stats = useMemo(() => {
     const active = users.filter((u) => u.status === 1).length;
@@ -126,17 +117,41 @@ export default function UserList(): React.ReactElement {
       key: "fullName",
       header: "User",
       isPrimary: true,
-      render: (user) => (
-        <div className="user-table-profile">
-          <div className="user-table-avatar">{getInitials(user.fullName)}</div>
-          <div className="user-table-name-wrapper">
-            <span className="user-table-name">{user.fullName || "—"}</span>
-            <span className="user-table-subtext d-md-none">
-              {user.email || user.phone}
-            </span>
+      render: (user) => {
+        const imageSrc = resolveImage(user.profilePicture);
+        return (
+          <div className="user-table-profile">
+            <div className="user-table-avatar-frame">
+              {imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt={user.fullName || "User"}
+                  className="user-table-avatar-img"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    const fallback = e.currentTarget
+                      .nextElementSibling as HTMLElement | null;
+                    if (fallback) fallback.style.display = "flex";
+                  }}
+                />
+              ) : null}
+              <div
+                className="user-table-avatar"
+                style={{ display: imageSrc ? "none" : "flex" }}
+              >
+                {getInitials(user.fullName)}
+              </div>
+            </div>
+
+            <div className="user-table-name-wrapper">
+              <span className="user-table-name">{user.fullName || "—"}</span>
+              <span className="user-table-subtext d-md-none">
+                {user.email || user.phone}
+              </span>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "email",
@@ -187,31 +202,16 @@ export default function UserList(): React.ReactElement {
         </div>
       ),
     },
-    // {
-    //   key: "actions",
-    //   header: "Actions",
-    //   headerClassName: "text-end",
-    //   cellClassName: "text-end",
-    //   render: (user) => (
-    //     <div className="user-table-actions">
-    //       <button
-    //         type="button"
-    //         className="user-table-action-btn"
-    //         title="Edit User"
-    //         onClick={() => navigate(`/admin/users/${user.user_id}/edit`)}
-    //       >
-    //         <MdModeEdit size={18} />
-    //       </button>
-    //     </div>
-    //   ),
-    // },
   ];
 
   return (
     <div className="user-list-page">
       <DataTable
         statPills={[
-          { label: `${stats.total} total users`, navy: true },
+          {
+            label: `${pagination?.total ?? users.length} total users`,
+            navy: true,
+          },
           { label: `${stats.active} active · this page` },
           { label: `${stats.inactive} inactive · this page` },
         ]}
@@ -230,8 +230,8 @@ export default function UserList(): React.ReactElement {
             },
             options: [
               { value: "all", label: "All Status" },
-              { value: "1", label: "Active" },
-              { value: "0", label: "Inactive" },
+              { value: "1", label: "Active", badgeDot: "#16a34a" },
+              { value: "0", label: "Inactive", badgeDot: "#ef4444" },
             ],
           },
         ]}

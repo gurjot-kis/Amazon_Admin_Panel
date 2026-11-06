@@ -13,11 +13,11 @@ import {
   LuChevronDown,
   LuListChecks,
   LuShoppingCart,
-  // LuUsers,
   LuContactRound,
   LuTicketPercent,
   LuSettings,
   LuWallet,
+  LuUsers,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -74,6 +74,13 @@ const NAV_ITEMS: NavItem[] = [
     path: ROUTES.vendors,
     activePaths: [ROUTES.vendors],
     icon: <LuContactRound size={20} />,
+  },
+  {
+    id: "Users",
+    label: "Users",
+    path: ROUTES.users,
+    activePaths: [ROUTES.users],
+    icon: <LuUsers size={20} />,
   },
   {
     id: "Stores",
