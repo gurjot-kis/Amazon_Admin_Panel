@@ -509,7 +509,7 @@ const OrderList: React.FC = () => {
               setPage(1);
             },
             options: [
-              { value: "all", label: "All Statuses" },
+              { value: "all", label: "All Status" },
               ...FILTER_STATUSES.map((s) => ({
                 value: s,
                 label: getCfg(s).label,

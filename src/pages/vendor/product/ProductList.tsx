@@ -485,7 +485,7 @@ const ProductList = () => {
               setPage(1);
             },
             options: [
-              { value: "all", label: "All statuses", badgeDot: "#94a3b8" },
+              { value: "all", label: "All status", badgeDot: "#94a3b8" },
               { value: "active", label: "Active", badgeDot: "#16a34a" },
               { value: "inactive", label: "Inactive", badgeDot: "#64748b" },
               { value: "pending", label: "Pending", badgeDot: "#d97706" },

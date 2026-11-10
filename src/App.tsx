@@ -43,6 +43,9 @@ import WalletSettings from "./pages/admin/wallet/WalletSettings";
 import AddWalletSettings from "./pages/admin/wallet/AddWalletSettings";
 import OrderList from "./pages/vendor/order/OrderList";
 import OrderDetails from "./pages/vendor/order/OrderDetails";
+import BannerList from "./pages/vendor/banner/BannerList";
+import CreateBanner from "./pages/vendor/banner/CreateBanner";
+import FaqList from "./pages/admin/faq/FaqList";
 
 function App() {
   return (
@@ -98,6 +101,10 @@ function App() {
               path={VENDOR_ROUTES.orderDetails}
               element={<OrderDetails />}
             />
+
+            <Route path={VENDOR_ROUTES.banners} element={<BannerList />} />
+            <Route path={VENDOR_ROUTES.addBanner} element={<CreateBanner />} />
+            <Route path={VENDOR_ROUTES.editBanner} element={<CreateBanner />} />
           </Route>
         </Route>
         <Route element={<AdminProtectedRoute />}>
@@ -152,6 +159,8 @@ function App() {
               path={ROUTES.editWalletSetings}
               element={<AddWalletSettings />}
             />
+
+            <Route path={ROUTES.faqlist} element={<FaqList />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

@@ -44,6 +44,8 @@ export const ROUTES = {
   addWalletSetings: "/admin/wallet-settings/add",
   editWalletSetings: "/admin/wallet-settings/:id/edit",
 
+  faqlist: "/admin/faqs",
+
   support: "/admin/support",
 } as const;
 
@@ -67,4 +69,8 @@ export const VENDOR_ROUTES = {
 
   orders: "/vendor/orders",
   orderDetails: "/vendor/orders/:orderId/details",
+
+  banners: "/vendor/banners",
+  addBanner: "/vendor/banners/add",
+  editBanner: "/vendor/banners/:id/edit",
 } as const;

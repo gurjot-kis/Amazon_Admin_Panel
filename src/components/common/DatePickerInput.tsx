@@ -59,6 +59,17 @@ export const DatePickerInput = ({
   const [viewY, setViewY] = useState(parsed?.y ?? t.y);
   const [viewM, setViewM] = useState(parsed?.m ?? t.m);
   const ref = useRef<HTMLDivElement>(null);
+  const [openUpward, setOpenUpward] = useState(false);
+
+useEffect(() => {
+  if (open && ref.current) {
+    const rect = ref.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const popoverHeight = 320; // approximate
+    setOpenUpward(spaceBelow < popoverHeight && spaceAbove > spaceBelow);
+  }
+}, [open]);
 
   // sync view when value changes externally
   useEffect(() => {
@@ -162,7 +173,12 @@ export const DatePickerInput = ({
       </button>
 
       {open && (
-        <div className="dpi-popover">
+        <div
+          className="dpi-popover"
+          style={
+            openUpward ? { bottom: "calc(100% + 6px)", top: "auto" } : undefined
+          }
+        >
           {/* Header */}
           <div className="dpi-nav">
             <button type="button" className="dpi-nav-btn" onClick={prevMonth}>

@@ -1,0 +1,630 @@
+/* ==================== MODERN SAAS BANNER FORM ==================== */
+
+.banner-create-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 0.5rem 3rem 0.5rem;
+}
+
+/* Header */
+.banner-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.banner-top-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.banner-top-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* Back Button */
+.banner-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.banner-back-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  transform: translateX(-2px);
+}
+
+/* 2-Column Responsive Grid Layout (Prevents blowing out viewport) */
+.banner-grid-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 1.5rem;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+@media (max-width: 1140px) {
+  .banner-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .banner-preview-pane {
+    position: static !important;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+}
+
+.banner-main-col {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Form Cards */
+.banner-card {
+  position: relative;
+  overflow: visible;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.banner-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.banner-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #6d28d9;
+  flex-shrink: 0;
+}
+
+.banner-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.banner-card-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0.15rem 0 0;
+}
+
+/* ==================== DRAG & DROP UPLOAD ==================== */
+
+.banner-upload-box {
+  position: relative;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 2.2rem 1.25rem;
+  text-align: center;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.banner-upload-box:hover {
+  border-color: #6366f1;
+  background: #f5f3ff;
+}
+
+.banner-upload-box--active {
+  border-color: #4f46e5;
+  background: #ede9fe;
+  transform: scale(0.995);
+}
+
+.banner-upload-ring {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #6366f1;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  transition: transform 0.2s;
+}
+
+.banner-upload-box:hover .banner-upload-ring {
+  transform: scale(1.08);
+}
+
+.banner-upload-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.banner-upload-title span {
+  color: #6366f1;
+  cursor: pointer;
+}
+
+.banner-upload-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.banner-upload-badge {
+  margin-top: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* Image Active Preview Inside Form */
+.banner-uploaded-view {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.banner-uploaded-view img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner-uploaded-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.banner-icon-action-btn {
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.banner-icon-action-btn:hover {
+  background: #ef4444;
+  transform: scale(1.08);
+}
+
+/* ==================== FORM INPUTS ==================== */
+
+.banner-input-group {
+  margin-bottom: 1.15rem;
+}
+
+.banner-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.4rem;
+}
+
+.banner-label-req {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.banner-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.banner-input-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.banner-field {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem 0.6rem 2.35rem;
+  font-size: 0.85rem;
+  color: #0f172a;
+  background-color: #ffffff;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.banner-field--noicon {
+  padding-left: 0.85rem;
+}
+
+.banner-field:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+textarea.banner-field {
+  padding-left: 0.85rem;
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Platform Segmented Selector Cards */
+.banner-platform-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 1.15rem;
+}
+
+.banner-platform-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem;
+  cursor: pointer;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.banner-platform-card:hover {
+  border-color: #c7d2fe;
+  background: #fafbfc;
+}
+
+.banner-platform-card--active {
+  border-color: #6366f1;
+  background: #f5f3ff;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.banner-platform-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.banner-platform-card--active .banner-platform-card-icon {
+  background: #6366f1;
+  color: #ffffff;
+}
+
+.banner-platform-card-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.banner-platform-card-sub {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin: 0.15rem 0 0;
+}
+
+.banner-error-msg {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+/* ==================== STICKY PREVIEW CARD ==================== */
+
+.banner-preview-pane {
+  position: sticky;
+  top: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.banner-mockup-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #edf2f7;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.banner-mockup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.banner-mockup-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #ede9fe;
+  color: #6d28d9;
+  text-transform: uppercase;
+}
+
+/* Screen Shell */
+.banner-screen-shell {
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.banner-screen-bar {
+  background: #1e293b;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.banner-screen-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #475569;
+}
+
+.banner-mockup-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 165px;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.banner-mockup-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-mockup-placeholder {
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.banner-mockup-overlay-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.92), transparent);
+  color: #ffffff;
+}
+
+.banner-mockup-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.banner-mockup-link {
+  font-size: 0.68rem;
+  color: #93c5fd;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 3px;
+  word-break: break-all;
+}
+
+/* Meta Specs in Preview */
+.banner-mockup-specs {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.banner-spec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.banner-spec-label {
+  color: #64748b;
+}
+
+.banner-spec-val {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==================== SUBMIT FOOTER ==================== */
+
+.banner-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.banner-form-footer .banner-back-btn {
+  flex: 1;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+}
+
+.banner-save-btn {
+  flex: 2;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.banner-save-btn:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
+}
+
+.banner-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==================== ERROR INPUT & DROPZONE STATES ==================== */
+
+.banner-field.banner-field--error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.banner-field.banner-field--error:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
+
+.banner-upload-box.banner-upload-box--error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.banner-upload-box.banner-upload-box--error .banner-upload-ring {
+  background-color: #fee2e2 !important;
+  color: #ef4444 !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Spinner */
+.spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+.banner-card .row {
+  overflow: visible;
+}
+
+.banner-card .col-md-6,
+.banner-card [class*="col-"] {
+  overflow: visible;
+}

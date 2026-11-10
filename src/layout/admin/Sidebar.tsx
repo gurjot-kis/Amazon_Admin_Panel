@@ -18,6 +18,7 @@ import {
   LuSettings,
   LuWallet,
   LuUsers,
+  LuCircleHelp,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -155,13 +156,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: <LuTicketPercent size={20} />,
   },
 
-  // {
-  //   id: "Orders",
-  //   label: "Orders",
-  //   path: ROUTES.orders,
-  //   activePaths: [ROUTES.orders],
-  //   icon: <LuShoppingBag size={20} />,
-  // },
+  {
+    id: "FAQs",
+    label: "FAQs",
+    path: ROUTES.faqlist,
+    activePaths: [ROUTES.faqlist],
+    icon: <LuCircleHelp size={20} />,
+  },
+
   // {
   //   id: "Support",
   //   label: "Support",
