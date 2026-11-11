@@ -1,5 +1,7 @@
 import { baseApi } from "../../store/api/baseApi";
 import type {
+  GetAdminOrderCountParams,
+  GetAdminOrderCountResponse,
   GetOrderByIdResponse,
   GetOrdersParams,
   GetOrdersResponse,
@@ -49,6 +51,29 @@ export const orderApi = baseApi.injectEndpoints({
       extraOptions: { requiresAuth: true },
       invalidatesTags: ["Order"],
     }),
+
+    getAdminOrderCount: builder.query<
+      GetAdminOrderCountResponse,
+      GetAdminOrderCountParams
+    >({
+      query: ({ search, vendor_id, page, limit } = {}) => {
+        const params = new URLSearchParams();
+
+        if (search) params.set("search", search);
+        if (vendor_id) params.set("vendor_id", vendor_id);
+        if (page !== undefined) params.set("page", String(page));
+        if (limit !== undefined) params.set("limit", String(limit));
+
+        const qs = params.toString();
+
+        return {
+          url: `/admin/order/count${qs ? `?${qs}` : ""}`,
+          method: "GET",
+        };
+      },
+      extraOptions: { requiresAuth: true },
+      providesTags: ["Order"],
+    }),
   }),
 });
 
@@ -56,4 +81,5 @@ export const {
   useGetAllOrdersQuery,
   useGetOrderByIdQuery,
   useUpdateOrderStatusMutation,
+  useGetAdminOrderCountQuery,
 } = orderApi;

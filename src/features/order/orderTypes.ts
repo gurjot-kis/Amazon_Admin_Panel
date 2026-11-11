@@ -57,6 +57,13 @@ export interface GetOrdersParams {
   store_id?: string;
 }
 
+export interface GetAdminOrderCountParams {
+  search?: string;
+  vendor_id?: string;
+  page?: number;
+  limit?: number;
+}
+
 // Get orders API response
 export interface GetOrdersResponse {
   success: boolean;
@@ -208,4 +215,26 @@ export interface GetOrderByIdResponse {
   code: number;
   message: string;
   data: OrderDetails;
+}
+
+export interface AdminOrderStore {
+  store_id: string;
+  store_name: string;
+  store_logo: string;
+  vendor_id: string;
+  vendor_name: string;
+  vendor_image: string;
+  orderCount: number;
+  orderAmount: number;
+  itemsAmount: number;
+}
+
+export interface GetAdminOrderCountResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: {
+    stores: AdminOrderStore[];
+    pagination: OrderPagination;
+  };
 }

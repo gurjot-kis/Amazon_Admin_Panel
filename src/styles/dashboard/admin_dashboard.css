@@ -19,9 +19,10 @@
   justify-content: space-between;
   min-height: 140px;
   overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s ease;
 }
 
 .db-stat-card:hover {
@@ -180,9 +181,22 @@
   border-radius: var(--radius-12);
 }
 
+.db-stat-card {
+  cursor: pointer;
+}
+
+.db-stat-card--products {
+  cursor: default;
+}
+
 @keyframes dbPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Responsive Grid */

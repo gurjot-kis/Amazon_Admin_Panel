@@ -19,6 +19,7 @@ import {
   LuWallet,
   LuUsers,
   LuCircleHelp,
+  LuPackage,
 } from "react-icons/lu";
 
 import { getStoredUser, clearAuthSession } from "../../utils/auth";
@@ -146,6 +147,14 @@ const NAV_ITEMS: NavItem[] = [
         icon: <LuWallet size={18} />,
       },
     ],
+  },
+
+  {
+    id: "Orders",
+    label: "Orders",
+    path: ROUTES.orders,
+    activePaths: [ROUTES.orders],
+    icon: <LuPackage size={20} />,
   },
 
   {

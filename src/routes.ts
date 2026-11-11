@@ -20,7 +20,6 @@ export const ROUTES = {
   editVariantOption: "/admin/variant-option/:id/edit",
 
   orders: "/admin/orders",
-  orderDetails: "/admin/orders/:orderId/details",
 
   users: "/admin/users",
   profile: "/admin/profile",

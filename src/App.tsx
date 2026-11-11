@@ -46,6 +46,7 @@ import OrderDetails from "./pages/vendor/order/OrderDetails";
 import BannerList from "./pages/vendor/banner/BannerList";
 import CreateBanner from "./pages/vendor/banner/CreateBanner";
 import FaqList from "./pages/admin/faq/FaqList";
+import AdminOrderList from "./pages/admin/orders/OrderList";
 
 function App() {
   return (
@@ -161,6 +162,7 @@ function App() {
             />
 
             <Route path={ROUTES.faqlist} element={<FaqList />} />
+            <Route path={ROUTES.orders} element={<AdminOrderList />} />
 
             <Route path={ROUTES.support} element={<SupportPage />} />
           </Route>

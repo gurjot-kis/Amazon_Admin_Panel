@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useGetDashboardQuery } from "../../features/dashboard/dashboardApi";
 import "../../styles/dashboard/admin_dashboard.css";
 import { useHeader } from "../../layout/LayoutContext";
+import { useNavigate } from "react-router-dom";
 
 const Icons = {
   Wallet: () => (
@@ -80,6 +81,7 @@ const Icons = {
 export default function Dashboard(): React.ReactElement {
   const { data: response, isLoading } = useGetDashboardQuery();
   const dashboard = response?.data;
+  const navigate = useNavigate();
 
   const { setHeaderConfig } = useHeader();
 
@@ -111,6 +113,7 @@ export default function Dashboard(): React.ReactElement {
       icon: <Icons.Wallet />,
       badge: "Platform Volume",
       caption: "All time completed",
+      navigatePath: "orders",
     },
     {
       id: "orders",
@@ -120,6 +123,7 @@ export default function Dashboard(): React.ReactElement {
       icon: <Icons.Orders />,
       badge: "Fulfilled",
       caption: "Total bookings & sales",
+      navigatePath: "orders",
     },
     {
       id: "products",
@@ -129,6 +133,7 @@ export default function Dashboard(): React.ReactElement {
       icon: <Icons.Products />,
       badge: "Active",
       caption: "Live services & products",
+      navigatePath: "",
     },
     {
       id: "users",
@@ -138,6 +143,7 @@ export default function Dashboard(): React.ReactElement {
       icon: <Icons.Users />,
       badge: "Accounts",
       caption: "Registered platform users",
+      navigatePath: "users",
     },
   ];
 
@@ -146,7 +152,11 @@ export default function Dashboard(): React.ReactElement {
       {cards.map((card) => {
         if (isLoading) {
           return (
-            <div key={card.id} className="db-stat-card">
+            <div
+              key={card.id}
+              className="db-stat-card"
+              style={{ cursor: card.navigatePath ? "pointer" : "default" }}
+            >
               <div className="db-card-header">
                 <div>
                   <div className="db-card-skeleton db-card-skeleton--title" />
@@ -162,6 +172,11 @@ export default function Dashboard(): React.ReactElement {
           <div
             key={card.id}
             className={`db-stat-card db-stat-card--${card.variant}`}
+            onClick={() => {
+              if (card.navigatePath) {
+                navigate(`/admin/${card.navigatePath}`);
+              }
+            }}
           >
             <div className="db-card-header">
               <div>

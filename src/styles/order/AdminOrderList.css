@@ -1,0 +1,93 @@
+/* ==================== ADMIN ORDER LIST STYLES ==================== */
+
+.aol-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.aol-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aol-thumb-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.aol-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ede9fe;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.aol-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aol-store-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.aol-store-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.aol-vendor-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* Stat Badge Pills */
+.aol-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.aol-amount-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.aol-sub-amount {
+  font-size: 0.775rem;
+  color: #64748b;
+  margin-top: 2px;
+}
