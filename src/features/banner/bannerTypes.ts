@@ -26,10 +26,16 @@ export interface Banner {
   end_date: string;
   vendor_id: string;
   store_id: string;
+  store: StoreDetails;
   status: BannerStatus;
   createdAt?: string;
   updatedAt?: string;
   __v?: number;
+}
+
+export interface StoreDetails {
+  store_name: string;
+  store_logo: string;
 }
 
 export interface BannerPagination {

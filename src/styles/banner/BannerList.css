@@ -98,3 +98,93 @@
 .banner-list-pill--web .banner-list-pill-icon {
   background: linear-gradient(135deg, #f97316, #ea580c);
 }
+/* ==================== STORE COLUMN STYLES ==================== */
+
+.banner-store-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 210px;
+}
+
+.banner-store-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 3px;
+}
+
+.banner-store-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+.banner-store-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.banner-store-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner-store-name--muted {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* ==================== EXPIRED ON COLUMN STYLES ==================== */
+
+.banner-expiry-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.banner-expiry-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.banner-expiry-cell--expired {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.banner-expiry-cell--expired .banner-expiry-icon {
+  color: #dc2626;
+}
+
+.banner-expiry-cell--none {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.banner-expiry-cell--none .banner-expiry-icon {
+  color: #cbd5e1;
+}

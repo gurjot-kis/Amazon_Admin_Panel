@@ -6,6 +6,8 @@ import {
   MdImage,
   MdSmartphone,
   MdLanguage,
+  MdStorefront,
+  MdCalendarToday,
 } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
@@ -152,6 +154,24 @@ const BannerList = () => {
     });
   };
 
+  const formatExpiryDate = (endDate?: string | null) => {
+    if (!endDate) return null;
+    const parsed = new Date(endDate);
+    if (Number.isNaN(parsed.getTime())) return null;
+
+    const formatted = parsed.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isExpired = parsed < today;
+
+    return { formatted, isExpired };
+  };
+
   const columns: DataTableColumn<Banner>[] = [
     {
       key: "title",
@@ -197,6 +217,51 @@ const BannerList = () => {
       ),
     },
     {
+      key: "store",
+      header: "Store",
+      render: (banner) => {
+        const storeName = banner.store?.store_name;
+        const storeLogo = banner.store?.store_logo;
+
+        return (
+          <div className="banner-store-cell">
+            <div className="banner-store-avatar">
+              {storeLogo ? (
+                <img
+                  src={`${ASSET_URL}${storeLogo}`}
+                  alt={storeName || "Store"}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "d-none",
+                    );
+                  }}
+                />
+              ) : null}
+
+              <span
+                className={`banner-store-avatar-fallback ${
+                  storeLogo ? "d-none" : ""
+                }`}
+              >
+                <MdStorefront size={17} />
+              </span>
+            </div>
+
+            <span
+              className={`banner-store-name ${
+                !storeName ? "banner-store-name--muted" : ""
+              }`}
+              title={storeName || "No store assigned"}
+            >
+              {storeName || "N/A"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       key: "upload_area",
       header: "Platform",
       render: (banner) => {
@@ -211,6 +276,38 @@ const BannerList = () => {
               {isApp ? <MdSmartphone size={12} /> : <MdLanguage size={12} />}
             </span>
             <span>{isApp ? "APP" : "WEB"}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "end_date",
+      header: "Expired On",
+      render: (banner) => {
+        const expiry = formatExpiryDate(banner.end_date);
+
+        if (!expiry) {
+          return (
+            <div className="banner-expiry-cell banner-expiry-cell--none">
+              <MdCalendarToday size={14} className="banner-expiry-icon" />
+              <span>No expiry</span>
+            </div>
+          );
+        }
+
+        return (
+          <div
+            className={`banner-expiry-cell ${
+              expiry.isExpired ? "banner-expiry-cell--expired" : ""
+            }`}
+            title={
+              expiry.isExpired
+                ? `Expired on ${expiry.formatted}`
+                : `Expires on ${expiry.formatted}`
+            }
+          >
+            <MdCalendarToday size={14} className="banner-expiry-icon" />
+            <span>{expiry.formatted}</span>
           </div>
         );
       },
