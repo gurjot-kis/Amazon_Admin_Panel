@@ -344,7 +344,7 @@ const StoreList: React.FC = () => {
           <div className="sl-title-group">
             <h1 className="sl-title">Stores</h1>
             {pagination && (
-              <span className="sl-count-tag">{pagination.total} Stores</span>
+              <span className="sl-count-tag">{pagination.total} Store</span>
             )}
           </div>
           <p className="sl-lead">
@@ -353,14 +353,14 @@ const StoreList: React.FC = () => {
           </p>
         </div>
 
-        <button
+        {/* <button
           type="button"
           className="sl-create-btn"
           onClick={() => navigate("/vendor/stores/add")}
         >
           <Plus size={16} strokeWidth={2.5} />
           <span>Add New Store</span>
-        </button>
+        </button> */}
       </div>
 
       {/* ── Grid ── */}

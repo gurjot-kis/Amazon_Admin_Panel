@@ -336,31 +336,31 @@ const ProductList = () => {
       ),
     },
 
-    {
-      key: "store",
-      header: "Store",
-      headerClassName: "d-none d-md-table-cell",
-      cellClassName: "d-none d-md-table-cell",
-      render: (p) => (
-        <div className="pl-store-pill">
-          {p.store?.store_logo ? (
-            <img
-              src={resolveImage(p.store.store_logo) || undefined}
-              alt={p.store.store_name}
-              className="pl-store-pill-img"
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-          ) : (
-            <div className="pl-store-pill-avatar">
-              {p.store?.store_name?.[0]?.toUpperCase() ?? "S"}
-            </div>
-          )}
-          <span className="pl-store-pill-name" title={p.store?.store_name}>
-            {p.store?.store_name ?? "—"}
-          </span>
-        </div>
-      ),
-    },
+    // {
+    //   key: "store",
+    //   header: "Store",
+    //   headerClassName: "d-none d-md-table-cell",
+    //   cellClassName: "d-none d-md-table-cell",
+    //   render: (p) => (
+    //     <div className="pl-store-pill">
+    //       {p.store?.store_logo ? (
+    //         <img
+    //           src={resolveImage(p.store.store_logo) || undefined}
+    //           alt={p.store.store_name}
+    //           className="pl-store-pill-img"
+    //           onError={(e) => (e.currentTarget.style.display = "none")}
+    //         />
+    //       ) : (
+    //         <div className="pl-store-pill-avatar">
+    //           {p.store?.store_name?.[0]?.toUpperCase() ?? "S"}
+    //         </div>
+    //       )}
+    //       <span className="pl-store-pill-name" title={p.store?.store_name}>
+    //         {p.store?.store_name ?? "—"}
+    //       </span>
+    //     </div>
+    //   ),
+    // },
     {
       key: "sku",
       header: "SKU",
@@ -492,21 +492,21 @@ const ProductList = () => {
               { value: "rejected", label: "Rejected", badgeDot: "#e11d48" },
             ],
           },
-          {
-            value: storeFilter,
-            onChange: (v) => {
-              setStoreFilter(v);
-              setPage(1);
-            },
-            options: [
-              { value: "all", label: "All stores" },
-              ...stores.map((s) => ({
-                value: s._id,
-                label: s.store_name,
-                image: s.store_logo ? resolveImage(s.store_logo) : null,
-              })),
-            ],
-          },
+          // {
+          //   value: storeFilter,
+          //   onChange: (v) => {
+          //     setStoreFilter(v);
+          //     setPage(1);
+          //   },
+          //   options: [
+          //     { value: "all", label: "All stores" },
+          //     ...stores.map((s) => ({
+          //       value: s._id,
+          //       label: s.store_name,
+          //       image: s.store_logo ? resolveImage(s.store_logo) : null,
+          //     })),
+          //   ],
+          // },
         ]}
         addButtonLabel="Add Product"
         onAddClick={() => navigate("/vendor/products/add")}

@@ -359,31 +359,31 @@ const OrderList: React.FC = () => {
         </div>
       ),
     },
-    {
-      key: "store",
-      header: "Store",
-      headerClassName: "d-none d-md-table-cell",
-      cellClassName: "d-none d-md-table-cell",
-      render: (order) => (
-        <div className="ol-store-pill">
-          {order.store?.logo ? (
-            <img
-              src={resolveImage(order.store.logo) || undefined}
-              alt={order.store.name}
-              className="ol-store-pill-img"
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-          ) : (
-            <div className="ol-store-pill-avatar">
-              {order.store?.name?.[0]?.toUpperCase() ?? "S"}
-            </div>
-          )}
-          <span className="ol-store-pill-name" title={order.store?.name}>
-            {order.store?.name ?? "—"}
-          </span>
-        </div>
-      ),
-    },
+    // {
+    //   key: "store",
+    //   header: "Store",
+    //   headerClassName: "d-none d-md-table-cell",
+    //   cellClassName: "d-none d-md-table-cell",
+    //   render: (order) => (
+    //     <div className="ol-store-pill">
+    //       {order.store?.logo ? (
+    //         <img
+    //           src={resolveImage(order.store.logo) || undefined}
+    //           alt={order.store.name}
+    //           className="ol-store-pill-img"
+    //           onError={(e) => (e.currentTarget.style.display = "none")}
+    //         />
+    //       ) : (
+    //         <div className="ol-store-pill-avatar">
+    //           {order.store?.name?.[0]?.toUpperCase() ?? "S"}
+    //         </div>
+    //       )}
+    //       <span className="ol-store-pill-name" title={order.store?.name}>
+    //         {order.store?.name ?? "—"}
+    //       </span>
+    //     </div>
+    //   ),
+    // },
     {
       key: "customerName",
       header: "Customer",
@@ -517,21 +517,21 @@ const OrderList: React.FC = () => {
               })),
             ],
           },
-          {
-            value: storeFilter,
-            onChange: (v) => {
-              setStoreFilter(v);
-              setPage(1);
-            },
-            options: [
-              { value: "all", label: "All Stores" },
-              ...stores.map((s) => ({
-                value: s._id,
-                label: s.store_name,
-                image: resolveImage(s.store_logo),
-              })),
-            ],
-          },
+          // {
+          //   value: storeFilter,
+          //   onChange: (v) => {
+          //     setStoreFilter(v);
+          //     setPage(1);
+          //   },
+          //   options: [
+          //     { value: "all", label: "All Stores" },
+          //     ...stores.map((s) => ({
+          //       value: s._id,
+          //       label: s.store_name,
+          //       image: resolveImage(s.store_logo),
+          //     })),
+          //   ],
+          // },
         ]}
         isLoading={isLoading}
         isFetching={isFetching}

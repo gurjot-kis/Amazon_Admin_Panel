@@ -216,51 +216,51 @@ const BannerList = () => {
         </div>
       ),
     },
-    {
-      key: "store",
-      header: "Store",
-      render: (banner) => {
-        const storeName = banner.store?.store_name;
-        const storeLogo = banner.store?.store_logo;
+    // {
+    //   key: "store",
+    //   header: "Store",
+    //   render: (banner) => {
+    //     const storeName = banner.store?.store_name;
+    //     const storeLogo = banner.store?.store_logo;
 
-        return (
-          <div className="banner-store-cell">
-            <div className="banner-store-avatar">
-              {storeLogo ? (
-                <img
-                  src={`${ASSET_URL}${storeLogo}`}
-                  alt={storeName || "Store"}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
-                    e.currentTarget.nextElementSibling?.classList.remove(
-                      "d-none",
-                    );
-                  }}
-                />
-              ) : null}
+    //     return (
+    //       <div className="banner-store-cell">
+    //         <div className="banner-store-avatar">
+    //           {storeLogo ? (
+    //             <img
+    //               src={`${ASSET_URL}${storeLogo}`}
+    //               alt={storeName || "Store"}
+    //               onError={(e) => {
+    //                 (e.currentTarget as HTMLImageElement).style.display =
+    //                   "none";
+    //                 e.currentTarget.nextElementSibling?.classList.remove(
+    //                   "d-none",
+    //                 );
+    //               }}
+    //             />
+    //           ) : null}
 
-              <span
-                className={`banner-store-avatar-fallback ${
-                  storeLogo ? "d-none" : ""
-                }`}
-              >
-                <MdStorefront size={17} />
-              </span>
-            </div>
+    //           <span
+    //             className={`banner-store-avatar-fallback ${
+    //               storeLogo ? "d-none" : ""
+    //             }`}
+    //           >
+    //             <MdStorefront size={17} />
+    //           </span>
+    //         </div>
 
-            <span
-              className={`banner-store-name ${
-                !storeName ? "banner-store-name--muted" : ""
-              }`}
-              title={storeName || "No store assigned"}
-            >
-              {storeName || "N/A"}
-            </span>
-          </div>
-        );
-      },
-    },
+    //         <span
+    //           className={`banner-store-name ${
+    //             !storeName ? "banner-store-name--muted" : ""
+    //           }`}
+    //           title={storeName || "No store assigned"}
+    //         >
+    //           {storeName || "N/A"}
+    //         </span>
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       key: "upload_area",
       header: "Platform",
