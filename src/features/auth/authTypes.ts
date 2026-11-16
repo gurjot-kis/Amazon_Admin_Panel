@@ -46,3 +46,20 @@ export interface ApiResponse<T> {
 export interface ProfileResponse {
   userObj: User;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+export interface ResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface VerifyOtpResponse {
+  resetToken: string;
+}

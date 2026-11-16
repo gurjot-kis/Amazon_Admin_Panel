@@ -39,11 +39,12 @@ export interface Product {
   _id: string;
   name: string;
   mainImage: string;
-  sku: string;
-  currency: string;
-  costPrice: number;
-  sellingPrice: number;
-  price: number;
+  // sku / currency / prices are optional: variant products don't have them
+  sku?: string;
+  currency?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  price?: number;
   stock: number;
   stockStatus: StockStatus;
   status: ProductStatus;
@@ -90,11 +91,12 @@ export interface CreateProductPayload {
   description?: string;
   short_description?: string;
   category_id: string;
-  sku: string;
-  currency: string;
-  costPrice: number;
-  sellingPrice: number;
-  price: number;
+  // required only when hasVariants is false
+  sku?: string;
+  currency?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  price?: number;
   stock?: number;
   mainImage: File | string;
   featuredImages?: File[];
@@ -165,12 +167,13 @@ export interface ProductDetails {
   short_description: string;
   mainImage: string;
   featuredImages: string[];
-  sku: string;
+  // optional: variant products don't have these at product level
+  sku?: string;
   slug: string;
-  currency: string;
-  costPrice: number;
-  sellingPrice: number;
-  price: number;
+  currency?: string;
+  costPrice?: number;
+  sellingPrice?: number;
+  price?: number;
   stock: number;
   stockStatus: StockStatus;
   status: ProductStatus;

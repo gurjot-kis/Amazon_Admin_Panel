@@ -368,7 +368,7 @@ const ProductList = () => {
       cellClassName: "d-none d-md-table-cell",
       render: (p) => (
         <div className="pl-sku-cell">
-          <span className="pl-sku-badge">{p.sku}</span>
+          {!p.hasVariants && <span className="pl-sku-badge">{p.sku}</span>}
           {p.hasVariants && (
             <span className="pl-variants-pill">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none">

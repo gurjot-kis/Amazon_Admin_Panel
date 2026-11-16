@@ -1,136 +1,308 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import React, {
+  useState,
+  useRef,
+  type FormEvent,
+  type KeyboardEvent,
+  type ClipboardEvent,
+} from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { LuMail, LuShieldCheck, LuArrowLeft } from "react-icons/lu";
+
+import { ROUTES } from "../routes";
+import { getStoredToken, getStoredUser } from "../utils/auth";
+import { getPostLoginRoute } from "../utils/roles";
+import { useVerifyOtpMutation } from "../features/auth/authApi";
+import "../styles/VerifyOtpPage.css";
 
 interface LocationState {
-  email?: string
+  email?: string;
 }
 
-function VerifyOtpPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const prefillEmail = (location.state as LocationState)?.email ?? ''
+const OTP_LENGTH = 6;
 
-  const [email, setEmail] = useState(prefillEmail)
-  const [otp, setOtp] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+export default function VerifyOtpPage(): React.ReactElement {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const prefillEmail = (location.state as LocationState)?.email ?? "";
 
-    try {
-      const res = await fetch('/api/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
-      })
+  const [email, setEmail] = useState(prefillEmail);
+  const [otpDigits, setOtpDigits] = useState<string[]>(
+    Array(OTP_LENGTH).fill(""),
+  );
 
-      const json = await res.json()
+  const [otpStatus, setOtpStatus] = useState<"idle" | "error" | "success">(
+    "idle",
+  );
 
-      if (!res.ok) {
-        throw new Error(json?.message || 'Invalid or expired OTP. Please try again.')
-      }
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
 
-      const resetToken: string = json?.data?.resetToken ?? json?.resetToken ?? ''
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-      if (!resetToken) {
-        throw new Error('No reset token received. Please try again.')
-      }
-
-      navigate('/reset-password', { state: { resetToken } })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
-    } finally {
-      setLoading(false)
-    }
+  if (getStoredToken()) {
+    return <Navigate to={getPostLoginRoute(getStoredUser()?.role)} replace />;
   }
 
+  const handleOtpChange = (index: number, rawValue: string) => {
+    const digit = rawValue.replace(/\D/g, "").slice(-1);
+
+    if (otpStatus !== "idle") {
+      setOtpStatus("idle");
+    }
+
+    const updated = [...otpDigits];
+    updated[index] = digit;
+    setOtpDigits(updated);
+
+    if (digit && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    index: number,
+    e: KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace") {
+      if (otpStatus !== "idle") {
+        setOtpStatus("idle");
+      }
+
+      if (otpDigits[index]) {
+        const updated = [...otpDigits];
+        updated[index] = "";
+        setOtpDigits(updated);
+      } else if (index > 0) {
+        const updated = [...otpDigits];
+        updated[index - 1] = "";
+        setOtpDigits(updated);
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < OTP_LENGTH - 1) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+
+    const pastedDigits = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, OTP_LENGTH)
+      .split("");
+
+    if (pastedDigits.length === 0) return;
+
+    if (otpStatus !== "idle") {
+      setOtpStatus("idle");
+    }
+
+    const updated = Array(OTP_LENGTH).fill("");
+    pastedDigits.forEach((digit, idx) => {
+      updated[idx] = digit;
+    });
+
+    setOtpDigits(updated);
+
+    const nextFocusIndex = Math.min(pastedDigits.length, OTP_LENGTH - 1);
+    inputRefs.current[nextFocusIndex]?.focus();
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedEmail = email.trim();
+    const otpCode = otpDigits.join("");
+
+    if (!trimmedEmail || otpCode.length !== OTP_LENGTH) {
+      setOtpStatus("error");
+
+      toast.error("Validation error", {
+        description: `Please enter your email and all ${OTP_LENGTH} digits of the OTP.`,
+      });
+
+      return;
+    }
+
+    setOtpStatus("idle");
+
+    try {
+      const response = await verifyOtp({
+        email: trimmedEmail,
+        otp: otpCode,
+      }).unwrap();
+
+      const resetToken = response?.data?.resetToken ?? "";
+
+      if (!resetToken) {
+        throw new Error("No reset token received. Please try again.");
+      }
+
+      setOtpStatus("success");
+
+      toast.success("OTP verified", {
+        description: "Redirecting to reset your password...",
+      });
+
+      setTimeout(() => {
+        navigate(ROUTES.resetPassword || "/reset-password", {
+          state: { resetToken },
+        });
+      }, 650);
+    } catch (err: any) {
+      console.error("OTP verification failed:", err);
+
+      setOtpStatus("error");
+
+      const errMsg =
+        err?.data?.message ||
+        err?.message ||
+        "Invalid or expired OTP. Please try again.";
+
+      toast.error("Verification failed", {
+        description: errMsg,
+      });
+    }
+  };
+
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center login-bg">
-      <div className="card shadow-lg border-0 rounded-4" style={{ width: '100%', maxWidth: 420 }}>
-        <div className="card-body p-4 p-md-5">
-          <div className="text-center mb-4">
-            <div className="login-avatar-wrap mx-auto mb-3">
-              <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-                <circle cx="40" cy="40" r="40" fill="#1b3a5c" />
-                <circle cx="40" cy="30" r="15" fill="#7da8cc" />
-                <ellipse cx="40" cy="70" rx="26" ry="18" fill="#7da8cc" />
-              </svg>
-            </div>
-            <h4 className="fw-bold mb-1" style={{ color: '#1b3a5c' }}>Verify OTP</h4>
-            <p className="text-muted small mb-0">Enter the code sent to your email</p>
+    <div className="verify-otp-page-wrapper">
+      <div className="verify-otp-ambient-shape verify-otp-ambient-shape-1" />
+      <div className="verify-otp-ambient-shape verify-otp-ambient-shape-2" />
+
+      <div className="verify-otp-card-container">
+        <div className="verify-otp-card-header">
+          <div className="verify-otp-logo-badge">
+            <LuShieldCheck size={28} />
           </div>
 
-          {error && (
-            <div className="alert alert-danger py-2 small" role="alert">
-              {error}
-            </div>
-          )}
+          <h2 className="verify-otp-brand-title">
+            Verify <span>OTP</span>
+          </h2>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label fw-semibold small">
-                Email address
-              </label>
+          <p className="verify-otp-brand-subtitle">
+            Enter the {OTP_LENGTH}-digit code sent to your email address.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="verify-otp-form-body">
+          <div className="verify-otp-input-group">
+            <label className="verify-otp-input-label" htmlFor="verifyOtpEmail">
+              Email Address
+            </label>
+
+            <div className="verify-otp-field-box">
+              <LuMail className="verify-otp-field-icon" size={18} />
+
               <input
-                id="email"
+                id="verifyOtpEmail"
                 type="email"
-                className="form-control form-control-lg"
-                placeholder="admin@example.com"
+                className="verify-otp-input-control"
+                placeholder="name@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
+          </div>
 
-            <div className="mb-4">
-              <label htmlFor="otp" className="form-label fw-semibold small">
+          <div className="verify-otp-input-group">
+            <div className="verify-otp-label-row">
+              <label
+                className="verify-otp-input-label"
+                htmlFor="verifyOtpDigit0"
+              >
                 One-Time Code
               </label>
-              <input
-                id="otp"
-                type="text"
-                className="form-control form-control-lg"
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                maxLength={8}
-                inputMode="numeric"
-                required
-              />
+
+              {otpStatus === "error" && (
+                <span className="verify-otp-status-text verify-otp-status-text--error">
+                  Invalid code
+                </span>
+              )}
+
+              {otpStatus === "success" && (
+                <span className="verify-otp-status-text verify-otp-status-text--success">
+                  Verified
+                </span>
+              )}
             </div>
 
-            <div className="d-grid mb-3">
-              <button
-                type="submit"
-                className="btn btn-lg fw-semibold text-white"
-                style={{ background: '#1b3a5c' }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Verify OTP'
-                )}
-              </button>
-            </div>
+            <div className="verify-otp-boxes-row">
+              {otpDigits.map((digit, index) => {
+                const statusClass =
+                  otpStatus === "error"
+                    ? "verify-otp-box--error"
+                    : otpStatus === "success"
+                      ? "verify-otp-box--success"
+                      : digit
+                        ? "verify-otp-box--filled"
+                        : "";
 
-            <div className="text-center">
-              <Link to="/forgot-password" className="small text-decoration-none" style={{ color: '#1b3a5c' }}>
-                &larr; Resend OTP
-              </Link>
+                return (
+                  <input
+                    key={index}
+                    id={`verifyOtpDigit${index}`}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
+                    maxLength={1}
+                    value={digit}
+                    autoFocus={index === 0 && Boolean(prefillEmail)}
+                    disabled={isLoading || otpStatus === "success"}
+                    aria-label={`OTP digit ${index + 1}`}
+                    className={`verify-otp-box ${statusClass}`}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onPaste={handleOtpPaste}
+                    onFocus={(e) => e.target.select()}
+                  />
+                );
+              })}
             </div>
-          </form>
+          </div>
+
+          <button
+            type="submit"
+            className="verify-otp-submit-btn"
+            disabled={isLoading || otpStatus === "success"}
+          >
+            {isLoading ? (
+              <div className="verify-otp-btn-loading">
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                />
+                <span>Verifying...</span>
+              </div>
+            ) : otpStatus === "success" ? (
+              "Verified ✓"
+            ) : (
+              "Verify OTP"
+            )}
+          </button>
+        </form>
+
+        <div className="verify-otp-card-footer">
+          <Link
+            to={ROUTES.forgotPassword || "/forgot-password"}
+            className="verify-otp-back-link"
+          >
+            <LuArrowLeft size={15} />
+            <span>Resend OTP</span>
+          </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-export default VerifyOtpPage

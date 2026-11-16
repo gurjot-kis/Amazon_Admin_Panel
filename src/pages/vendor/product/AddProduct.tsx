@@ -1,4 +1,3 @@
-// AddProduct.tsx
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -561,199 +560,6 @@ const AddProduct: React.FC = () => {
     [variantTypesData],
   );
 
-  // useEffect(() => {
-  //   if (isEditMode && productData?.data) {
-  //     const prod = productData.data;
-
-  //     const resolvedVariantTypes = (prod.variantTypes || []).map((vt) =>
-  //       typeof vt === "object" ? vt._id : vt,
-  //     );
-
-  //     const populatedVariants: VariantRow[] = (prod.variants || []).map(
-  //       (v) => ({
-  //         _id: v._id,
-  //         id: uid(),
-  //         combination: (v.combination || []).map((c) => ({
-  //           variant_type_id:
-  //             typeof c.variant_type_id === "object"
-  //               ? c.variant_type_id._id
-  //               : c.variant_type_id,
-  //           variant_option_id:
-  //             typeof c.variant_option_id === "object"
-  //               ? (c.variant_option_id as any)._id
-  //               : c.variant_option_id,
-  //         })),
-  //         sku: v.sku || "",
-  //         costPrice: v.costPrice !== undefined ? String(v.costPrice) : "",
-  //         sellingPrice:
-  //           v.sellingPrice !== undefined ? String(v.sellingPrice) : "",
-  //         price: v.price !== undefined ? String(v.price) : "",
-  //         stock: v.stock !== undefined ? String(v.stock) : "",
-  //         images: [],
-  //         imagePreviews: [],
-  //       }),
-  //     );
-
-  //     // Reconstruct selectedOptions from existing variants
-  //     const reconstructedSelectedOptions: Record<string, string[]> = {};
-  //     populatedVariants.forEach((row) => {
-  //       row.combination.forEach((c) => {
-  //         if (!reconstructedSelectedOptions[c.variant_type_id])
-  //           reconstructedSelectedOptions[c.variant_type_id] = [];
-  //         if (
-  //           !reconstructedSelectedOptions[c.variant_type_id].includes(
-  //             c.variant_option_id,
-  //           )
-  //         )
-  //           reconstructedSelectedOptions[c.variant_type_id].push(
-  //             c.variant_option_id,
-  //           );
-  //       });
-  //     });
-
-  //     // Detect imageGroupTypeId
-  //     let detectedImageGroupTypeId: string | null = null;
-
-  //     if (resolvedVariantTypes.length === 1) {
-  //       detectedImageGroupTypeId = resolvedVariantTypes[0];
-  //     } else {
-  //       // Find the type where different options have DIFFERENT image sets
-  //       // That type is the one driving image differences (e.g. Color)
-  //       for (const typeId of resolvedVariantTypes) {
-  //         const optionIds = reconstructedSelectedOptions[typeId] ?? [];
-  //         const imageSetsPerOption = optionIds.map((optId) => {
-  //           const matchingVariant = (prod.variants || []).find((v) =>
-  //             v.combination.some((c) => {
-  //               const cOptId =
-  //                 typeof c.variant_option_id === "object"
-  //                   ? (c.variant_option_id as any)._id
-  //                   : c.variant_option_id;
-  //               return cOptId === optId;
-  //             }),
-  //           );
-  //           return JSON.stringify(matchingVariant?.images || []);
-  //         });
-
-  //         const uniqueImageSets = new Set(imageSetsPerOption);
-  //         if (uniqueImageSets.size > 1) {
-  //           detectedImageGroupTypeId = typeId;
-  //           break;
-  //         }
-  //       }
-
-  //       // Fallback: pick the type with FEWER options (Color usually < Size)
-  //       if (!detectedImageGroupTypeId) {
-  //         let minOptions = Infinity;
-  //         for (const typeId of resolvedVariantTypes) {
-  //           const count = reconstructedSelectedOptions[typeId]?.length ?? 0;
-  //           if (count < minOptions && count > 0) {
-  //             minOptions = count;
-  //             detectedImageGroupTypeId = typeId;
-  //           }
-  //         }
-  //       }
-  //     }
-
-  //     // Reconstruct perGroupOptions from existing variants
-  //     const reconstructedPerGroupOptions: Record<
-  //       string,
-  //       Record<string, string[]>
-  //     > = {};
-
-  //     if (detectedImageGroupTypeId) {
-  //       const otherTypeIds = resolvedVariantTypes.filter(
-  //         (id) => id !== detectedImageGroupTypeId,
-  //       );
-
-  //       populatedVariants.forEach((row) => {
-  //         const groupOptId = row.combination.find(
-  //           (c) => c.variant_type_id === detectedImageGroupTypeId,
-  //         )?.variant_option_id;
-
-  //         if (!groupOptId) return;
-
-  //         otherTypeIds.forEach((typeId) => {
-  //           const optId = row.combination.find(
-  //             (c) => c.variant_type_id === typeId,
-  //           )?.variant_option_id;
-
-  //           if (!optId) return;
-
-  //           if (!reconstructedPerGroupOptions[typeId])
-  //             reconstructedPerGroupOptions[typeId] = {};
-  //           if (!reconstructedPerGroupOptions[typeId][groupOptId])
-  //             reconstructedPerGroupOptions[typeId][groupOptId] = [];
-  //           if (
-  //             !reconstructedPerGroupOptions[typeId][groupOptId].includes(optId)
-  //           )
-  //             reconstructedPerGroupOptions[typeId][groupOptId].push(optId);
-  //         });
-  //       });
-  //     }
-
-  //     // Reconstruct image groups
-  //     const reconstructedImageGroups: Record<string, VariantImageGroup> = {};
-
-  //     if (detectedImageGroupTypeId) {
-  //       const optionIds =
-  //         reconstructedSelectedOptions[detectedImageGroupTypeId] ?? [];
-
-  //       optionIds.forEach((optionId) => {
-  //         const matchingApiVariant = (prod.variants || []).find((v) =>
-  //           v.combination.some((c) => {
-  //             const cOptId =
-  //               typeof c.variant_option_id === "object"
-  //                 ? (c.variant_option_id as any)._id
-  //                 : c.variant_option_id;
-  //             return cOptId === optionId;
-  //           }),
-  //         );
-
-  //         const images: string[] = matchingApiVariant?.images || [];
-
-  //         reconstructedImageGroups[optionId] = {
-  //           optionId,
-  //           typeId: detectedImageGroupTypeId!,
-  //           images,
-  //           imagePreviews: images.map((img) => getImageUrl(img)),
-  //         };
-  //       });
-  //     }
-
-  //     setForm({
-  //       name: prod.name || "",
-  //       description: prod.description || "",
-  //       short_description: prod.short_description || "",
-  //       category_id:
-  //         typeof prod.category_id === "object"
-  //           ? prod.category_id._id
-  //           : prod.category_id,
-  //       sku: prod.sku || "",
-  //       currency: prod.currency || "INR",
-  //       costPrice: prod.costPrice !== undefined ? String(prod.costPrice) : "",
-  //       sellingPrice:
-  //         prod.sellingPrice !== undefined ? String(prod.sellingPrice) : "",
-  //       price: prod.price !== undefined ? String(prod.price) : "",
-  //       stock: prod.stock !== undefined ? String(prod.stock) : "",
-  //       mainImage: prod.mainImage || null,
-  //       featuredImages: prod.featuredImages || [],
-  //       hasVariants: prod.hasVariants || false,
-  //       variantTypes: resolvedVariantTypes,
-  //       selectedOptions: reconstructedSelectedOptions,
-  //       perGroupOptions: reconstructedPerGroupOptions,
-  //       imageGroupTypeId: detectedImageGroupTypeId,
-  //       variantImageGroups: reconstructedImageGroups,
-  //       variants: populatedVariants,
-  //       status: prod.status || "pending",
-  //     });
-
-  //     if (prod.mainImage) setMainPreview(getImageUrl(prod.mainImage));
-  //     if (prod.featuredImages?.length)
-  //       setFeaturedPreviews(prod.featuredImages.map((img) => getImageUrl(img)));
-  //     if (populatedVariants.length > 0) setCombosGenerated(true);
-  //   }
-  // }, [isEditMode, productData]);
-
   useEffect(() => {
     if (isEditMode && productData?.data) {
       const prod = productData.data;
@@ -804,7 +610,6 @@ const AddProduct: React.FC = () => {
         });
       });
 
-      // ── REPLACE entire detection block with this one line ──
       const detectedImageGroupTypeId: string | null = prod.imageGroupTypeId
         ? typeof prod.imageGroupTypeId === "object"
           ? (prod.imageGroupTypeId as any)._id
@@ -887,10 +692,10 @@ const AddProduct: React.FC = () => {
             : prod.category_id,
         sku: prod.sku || "",
         currency: prod.currency || "INR",
-        costPrice: prod.costPrice !== undefined ? String(prod.costPrice) : "",
+        costPrice: prod.costPrice != null ? String(prod.costPrice) : "",
         sellingPrice:
-          prod.sellingPrice !== undefined ? String(prod.sellingPrice) : "",
-        price: prod.price !== undefined ? String(prod.price) : "",
+          prod.sellingPrice != null ? String(prod.sellingPrice) : "",
+        price: prod.price != null ? String(prod.price) : "",
         stock: prod.stock !== undefined ? String(prod.stock) : "",
         mainImage: prod.mainImage || null,
         featuredImages: prod.featuredImages || [],
@@ -982,7 +787,6 @@ const AddProduct: React.FC = () => {
       return {
         ...p,
         selectedOptions: { ...p.selectedOptions, [typeId]: next },
-        // variants: [],
       };
     });
     setCombosGenerated(false);
@@ -1071,12 +875,10 @@ const AddProduct: React.FC = () => {
     }[][] = [];
 
     for (const groupOptId of groupOptionIds) {
-      // Start with the group option itself (e.g. Color: White-Blue)
       let combos: { variant_type_id: string; variant_option_id: string }[][] = [
         [{ variant_type_id: groupTypeId, variant_option_id: groupOptId }],
       ];
 
-      // Cross with each other type's selections FOR THIS group option
       for (const typeId of otherTypeIds) {
         const optionIds = form.perGroupOptions[typeId]?.[groupOptId] ?? [];
         combos = combos.flatMap((existing) =>
@@ -1307,18 +1109,23 @@ const AddProduct: React.FC = () => {
     }));
   };
 
+  const isVar = form.hasVariants;
+
+  // SKU / prices are required ONLY when the product has no variants
   const errors = {
     name: touched.name && !form.name.trim() ? "Product name is required." : "",
     category_id:
       touched.category_id && !form.category_id ? "Category is required." : "",
-    sku: touched.sku && !form.sku.trim() ? "SKU is required." : "",
+    sku: !isVar && touched.sku && !form.sku.trim() ? "SKU is required." : "",
     costPrice:
-      touched.costPrice && !form.costPrice ? "Cost price is required." : "",
+      !isVar && touched.costPrice && !form.costPrice
+        ? "Cost price is required."
+        : "",
     sellingPrice:
-      touched.sellingPrice && !form.sellingPrice
+      !isVar && touched.sellingPrice && !form.sellingPrice
         ? "Selling price is required."
         : "",
-    price: touched.price && !form.price ? "Price is required." : "",
+    price: !isVar && touched.price && !form.price ? "Price is required." : "",
     mainImage:
       mainImageError ??
       (touched.mainImage && !form.mainImage ? "Main image is required." : ""),
@@ -1338,35 +1145,47 @@ const AddProduct: React.FC = () => {
     form.price,
   );
 
-  const variantsPricingOk = form.variants.every((r) =>
-    pricingOk(
-      r.costPrice || form.costPrice,
-      r.sellingPrice || form.sellingPrice,
-      r.price || form.price,
-    ),
+  // Each variant now needs its own prices (there is no product-level fallback)
+  const variantPricingComplete = (r: VariantRow) =>
+    !!r.costPrice && !!r.sellingPrice && !!r.price;
+
+  const variantsPricingOk = form.variants.every(
+    (r) =>
+      variantPricingComplete(r) &&
+      pricingOk(r.costPrice, r.sellingPrice, r.price),
   );
 
-  const isFormValid =
+  const variantPricingInvalid = form.variants.some(
+    (r) =>
+      variantPricingComplete(r) &&
+      !pricingOk(r.costPrice, r.sellingPrice, r.price),
+  );
+
+  const baseOk =
     !!form.store_id &&
     !!form.name.trim() &&
     !!form.category_id &&
+    !!form.mainImage &&
+    !mainImageError;
+
+  const simpleProductOk =
     !!form.sku.trim() &&
     !!form.costPrice &&
     !!form.sellingPrice &&
     !!form.price &&
-    !!form.mainImage &&
-    !mainImageError &&
-    productPricingOk &&
-    (!form.hasVariants ||
-      (form.variantTypes.length > 0 &&
-        form.variants.length > 0 &&
-        variantsPricingOk &&
-        form.variants.every(
-          (r) =>
-            r.sku.trim() && r.combination.every((c) => c.variant_option_id),
-        ) &&
-        new Set(form.variants.map((r) => r.sku.trim().toUpperCase())).size ===
-          form.variants.length));
+    productPricingOk;
+
+  const variantProductOk =
+    form.variantTypes.length > 0 &&
+    form.variants.length > 0 &&
+    variantsPricingOk &&
+    form.variants.every(
+      (r) => r.sku.trim() && r.combination.every((c) => c.variant_option_id),
+    ) &&
+    new Set(form.variants.map((r) => r.sku.trim().toUpperCase())).size ===
+      form.variants.length;
+
+  const isFormValid = baseOk && (isVar ? variantProductOk : simpleProductOk);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1388,19 +1207,21 @@ const AddProduct: React.FC = () => {
       description: form.description.trim(),
       short_description: form.short_description.trim(),
       category_id: form.category_id,
-      sku: form.sku.trim(),
+      // product-level SKU / prices / stock only for non-variant products
+      sku: isVar ? undefined : form.sku.trim(),
       currency: form.currency,
-      costPrice: Number(form.costPrice),
-      sellingPrice: Number(form.sellingPrice),
-      price: Number(form.price),
-      stock: form.stock ? Number(form.stock) : 0,
+      costPrice: isVar ? undefined : Number(form.costPrice),
+      sellingPrice: isVar ? undefined : Number(form.sellingPrice),
+      price: isVar ? undefined : Number(form.price),
+      stock: isVar ? undefined : form.stock ? Number(form.stock) : 0,
       mainImage: form.mainImage!,
-      featuredImages: form.featuredImages.filter(
-        (f) => f instanceof File,
-      ) as File[],
-      existingFeaturedImages: form.featuredImages.filter(
-        (f): f is string => typeof f === "string",
-      ),
+      // gallery images are not used for variant products
+      featuredImages: isVar
+        ? []
+        : (form.featuredImages.filter((f) => f instanceof File) as File[]),
+      existingFeaturedImages: isVar
+        ? []
+        : form.featuredImages.filter((f): f is string => typeof f === "string"),
       hasVariants: form.hasVariants,
       variantTypes: form.hasVariants ? form.variantTypes : [],
       imageGroupTypeId: form.hasVariants ? form.imageGroupTypeId : null,
@@ -1419,10 +1240,10 @@ const AddProduct: React.FC = () => {
             return {
               _id: r._id,
               combination: r.combination,
-              sku: r.sku || undefined,
-              costPrice: r.costPrice ? Number(r.costPrice) : undefined,
-              sellingPrice: r.sellingPrice ? Number(r.sellingPrice) : undefined,
-              price: r.price ? Number(r.price) : undefined,
+              sku: r.sku.trim(),
+              costPrice: Number(r.costPrice),
+              sellingPrice: Number(r.sellingPrice),
+              price: Number(r.price),
               stock: r.stock ? Number(r.stock) : 0,
               images,
             };
@@ -1462,6 +1283,21 @@ const AddProduct: React.FC = () => {
     if (sp <= 0) return null;
     return (((sp - cp) / sp) * 100).toFixed(1);
   }, [form.sellingPrice, form.costPrice]);
+
+  // Live preview helpers for variant products
+  const previewPrice = useMemo(() => {
+    if (!form.hasVariants)
+      return form.sellingPrice ? Number(form.sellingPrice) : null;
+    const vals = form.variants
+      .filter((r) => r.sellingPrice !== "")
+      .map((r) => Number(r.sellingPrice));
+    return vals.length ? Math.min(...vals) : null;
+  }, [form.hasVariants, form.sellingPrice, form.variants]);
+
+  const totalVariantStock = useMemo(
+    () => form.variants.reduce((sum, r) => sum + (Number(r.stock) || 0), 0),
+    [form.variants],
+  );
 
   const totalSelectedOptions = form.variantTypes.reduce(
     (sum, typeId) => sum + (form.selectedOptions[typeId]?.length ?? 0),
@@ -1510,6 +1346,40 @@ const AddProduct: React.FC = () => {
     }, 0);
   })();
 
+  // Readiness checklist differs for variant / non-variant products
+  const checklist = isVar
+    ? [
+        { label: "Product name", done: !!form.name.trim() },
+        { label: "Category selected", done: !!form.category_id },
+        { label: "Main image uploaded", done: !!form.mainImage },
+        {
+          label: "Variants configured",
+          done:
+            form.variants.length > 0 &&
+            form.variants.every((r) =>
+              r.combination.every((c) => c.variant_option_id),
+            ),
+        },
+        {
+          label: "Variant SKU & pricing complete",
+          done:
+            form.variants.length > 0 &&
+            form.variants.every((r) => !!r.sku.trim()) &&
+            variantsPricingOk,
+        },
+      ]
+    : [
+        { label: "Product name", done: !!form.name.trim() },
+        { label: "Category selected", done: !!form.category_id },
+        { label: "SKU set", done: !!form.sku.trim() },
+        { label: "Main image uploaded", done: !!form.mainImage },
+        {
+          label: "Pricing complete",
+          done: !!form.costPrice && !!form.sellingPrice && !!form.price,
+        },
+        { label: "Stock entered", done: !!form.stock },
+      ];
+
   if (isEditMode && isFetchingProduct) {
     return (
       <FullScreenLoader
@@ -1518,6 +1388,45 @@ const AddProduct: React.FC = () => {
       />
     );
   }
+
+  const unitField = (
+    <div className="ap-field">
+      <label className="ap-label" htmlFor="pro-unit">
+        Unit <span className="ap-muted">(optional)</span>
+      </label>
+      <input
+        id="pro-unit"
+        type="text"
+        className="ap-input"
+        placeholder="e.g. kg, pcs, litre, box"
+        value={form.unit}
+        onChange={(e) => set("unit", e.target.value)}
+      />
+    </div>
+  );
+
+  const currencyField = (
+    <div className="ap-field">
+      <label className="ap-label" htmlFor="pro-currency">
+        Currency
+      </label>
+      <div className="ap-select-box">
+        <select
+          id="pro-currency"
+          className="ap-select"
+          value={form.currency}
+          onChange={(e) => set("currency", e.target.value)}
+        >
+          {CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="ap-select-arrow" size={14} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="ap-wrapper">
@@ -1591,7 +1500,6 @@ const AddProduct: React.FC = () => {
                             touch("store_id");
                           }}
                           onBlur={() => touch("store_id")}
-                          // disabled={isEditMode} // store can't change on edit
                         >
                           <option value="">
                             {storesLoading
@@ -1666,229 +1574,7 @@ const AddProduct: React.FC = () => {
                   </div>
                 </section>
 
-                {/* Pricing & Inventory */}
-                <section className="ap-card">
-                  <div className="ap-card-head">
-                    <div className="ap-card-icon-box ap-icon-emerald">
-                      <DollarSign size={18} />
-                    </div>
-                    <div>
-                      <h2 className="ap-card-title">Pricing & Inventory</h2>
-                      <p className="ap-card-desc">
-                        SKU, currency, prices, and stock count.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="ap-card-body">
-                    <div className="ap-row-3">
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-sku">
-                          SKU <span className="ap-required">*</span>
-                        </label>
-                        <input
-                          id="pro-sku"
-                          type="text"
-                          className={`ap-input ap-mono ${errors.sku ? "is-invalid" : ""}`}
-                          placeholder="e.g. TSHIRT-COTTON-L"
-                          value={form.sku}
-                          onChange={(e) =>
-                            set("sku", e.target.value.toUpperCase())
-                          }
-                          onBlur={() => touch("sku")}
-                        />
-                        {errors.sku && (
-                          <p className="ap-error-msg">
-                            <AlertCircle size={13} /> {errors.sku}
-                          </p>
-                        )}
-                      </div>
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-unit">
-                          Unit <span className="ap-muted">(optional)</span>
-                        </label>
-                        <input
-                          id="pro-unit"
-                          type="text"
-                          className="ap-input"
-                          placeholder="e.g. kg, pcs, litre, box"
-                          value={form.unit}
-                          onChange={(e) => set("unit", e.target.value)}
-                        />
-                      </div>
-                      <div className="ap-field">
-                        <label className="ap-label" htmlFor="pro-currency">
-                          Currency
-                        </label>
-                        <div className="ap-select-box">
-                          <select
-                            id="pro-currency"
-                            className="ap-select"
-                            value={form.currency}
-                            onChange={(e) => set("currency", e.target.value)}
-                          >
-                            {CURRENCIES.map((c) => (
-                              <option key={c} value={c}>
-                                {c}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="ap-select-arrow" size={14} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="ap-row-3">
-                      {[
-                        {
-                          id: "pro-cost",
-                          label: "Cost price",
-                          field: "costPrice" as const,
-                          error: errors.costPrice,
-                        },
-                        {
-                          id: "pro-selling",
-                          label: "Selling price",
-                          field: "sellingPrice" as const,
-                          error: errors.sellingPrice,
-                        },
-                        {
-                          id: "pro-price",
-                          label: "MRP / Price",
-                          field: "price" as const,
-                          error: errors.price,
-                        },
-                      ].map(({ id, label, field, error }) => (
-                        <div className="ap-field" key={field}>
-                          <label className="ap-label" htmlFor={id}>
-                            {label} <span className="ap-required">*</span>
-                          </label>
-                          <div className="ap-price-input-group">
-                            <span className="ap-currency-symbol">
-                              {form.currency}
-                            </span>
-                            <input
-                              id={id}
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              onKeyDown={blockBadNumberKeys}
-                              className={`ap-input ${error ? "is-invalid" : ""}`}
-                              placeholder="0.00"
-                              value={form[field]}
-                              onChange={(e) => set(field, e.target.value)}
-                              onBlur={() => touch(field)}
-                            />
-                          </div>
-                          {error && (
-                            <p className="ap-error-msg">
-                              <AlertCircle size={13} /> {error}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {form.costPrice &&
-                      form.sellingPrice &&
-                      form.price &&
-                      !productPricingOk && (
-                        <p className="ap-error-msg">
-                          <AlertCircle size={13} /> Cost ≤ Selling price ≤ MRP
-                          is required.
-                        </p>
-                      )}
-
-                    {!form.hasVariants && (
-                      <div className="ap-row-2">
-                        <div className="ap-field">
-                          <label className="ap-label" htmlFor="pro-stock">
-                            Stock qty
-                          </label>
-                          <input
-                            id="pro-stock"
-                            type="number"
-                            min="0"
-                            onKeyDown={blockBadNumberKeys}
-                            className="ap-input"
-                            placeholder="0"
-                            value={form.stock}
-                            onChange={(e) => set("stock", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* Media */}
-                <section className="ap-card">
-                  <div className="ap-card-head">
-                    <div className="ap-card-icon-box ap-icon-violet">
-                      <UploadCloud size={18} />
-                    </div>
-                    <div>
-                      <h2 className="ap-card-title">Media & Visual Assets</h2>
-                      <p className="ap-card-desc">
-                        {form.hasVariants
-                          ? "Upload the primary hero image. Variant images are managed below."
-                          : "Main product image and up to 6 gallery images."}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="ap-card-body">
-                    <ImageDropzone
-                      label="Main hero image *"
-                      preview={mainPreview}
-                      error={errors.mainImage}
-                      onFile={handleMainImage}
-                      onRemove={removeMainImage}
-                    />
-                    <div className="ap-field" style={{ marginTop: 20 }}>
-                      <label className="ap-label">
-                        Gallery images{" "}
-                        <span className="ap-muted">(up to 6)</span>
-                      </label>
-                      <div className="ap-gallery-grid">
-                        {featuredPreviews.map((src, i) => (
-                          <div key={i} className="ap-gallery-thumb">
-                            <img src={getImageUrl(src)} alt="Gallery item" />
-                            <button
-                              type="button"
-                              className="ap-gallery-remove"
-                              onClick={() => removeFeatured(i)}
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        ))}
-                        {featuredPreviews.length < 6 && (
-                          <button
-                            type="button"
-                            className="ap-gallery-add-card"
-                            onClick={() => featuredRef.current?.click()}
-                          >
-                            <Plus size={20} />
-                            <span>Add Photo</span>
-                          </button>
-                        )}
-                      </div>
-                      <input
-                        ref={featuredRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        hidden
-                        onChange={(e) => {
-                          if (e.target.files)
-                            handleFeaturedImages(e.target.files);
-                          e.target.value = "";
-                        }}
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                {/* Variants */}
+                {/* Variants (moved ABOVE pricing so the vendor decides first) */}
                 <section className="ap-card">
                   <div className="ap-card-head ap-flex-between">
                     <div className="ap-head-group">
@@ -1899,7 +1585,7 @@ const AddProduct: React.FC = () => {
                         <h2 className="ap-card-title">Product Variants</h2>
                         <p className="ap-card-desc">
                           Enable if product has sizes, colors, and separate
-                          images.
+                          images. SKU, price and stock are then set per variant.
                         </p>
                       </div>
                     </div>
@@ -1920,7 +1606,16 @@ const AddProduct: React.FC = () => {
                             }));
                             setCombosGenerated(false);
                           } else {
-                            set("hasVariants", true);
+                            // clear product-level values; they live on variants now
+                            setForm((p) => ({
+                              ...p,
+                              hasVariants: true,
+                              sku: "",
+                              costPrice: "",
+                              sellingPrice: "",
+                              price: "",
+                              stock: "",
+                            }));
                           }
                         }}
                       />
@@ -1966,7 +1661,6 @@ const AddProduct: React.FC = () => {
                       </div>
 
                       {/* STEP 2: Select options per type + designate image group type */}
-
                       {form.variantTypes.length > 0 && (
                         <div className="ap-variant-step">
                           <div className="ap-variant-step-label">
@@ -2028,7 +1722,6 @@ const AddProduct: React.FC = () => {
                                     )}
                                   </div>
 
-                                  {/* Image group type (Color): flat chip selection as before */}
                                   {isImageType || !form.imageGroupTypeId ? (
                                     <VariantOptionChips
                                       typeId={typeId}
@@ -2040,7 +1733,6 @@ const AddProduct: React.FC = () => {
                                       }
                                     />
                                   ) : (
-                                    // Non-image-group type (Size): show chips PER color option
                                     <div className="ap-per-group-options">
                                       {(
                                         form.selectedOptions[
@@ -2269,14 +1961,7 @@ const AddProduct: React.FC = () => {
                             </div>
                           )}
 
-                          {form.variants.some(
-                            (r) =>
-                              !pricingOk(
-                                r.costPrice || form.costPrice,
-                                r.sellingPrice || form.sellingPrice,
-                                r.price || form.price,
-                              ),
-                          ) && (
+                          {variantPricingInvalid && (
                             <p
                               className="ap-error-msg"
                               style={{ marginBottom: 8 }}
@@ -2357,65 +2042,49 @@ const AddProduct: React.FC = () => {
                                         }
                                       />
                                     </div>
-                                    <div className="ap-field-sm">
-                                      <label>Cost</label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        onKeyDown={blockBadNumberKeys}
-                                        className="ap-input ap-input-sm"
-                                        placeholder={form.costPrice || "0.00"}
-                                        value={row.costPrice}
-                                        onChange={(e) =>
-                                          updateVariantRow(
-                                            row.id,
-                                            "costPrice",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                    <div className="ap-field-sm">
-                                      <label>Selling</label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        onKeyDown={blockBadNumberKeys}
-                                        className="ap-input ap-input-sm"
-                                        placeholder={
-                                          form.sellingPrice || "0.00"
-                                        }
-                                        value={row.sellingPrice}
-                                        onChange={(e) =>
-                                          updateVariantRow(
-                                            row.id,
-                                            "sellingPrice",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                    <div className="ap-field-sm">
-                                      <label>MRP</label>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        onKeyDown={blockBadNumberKeys}
-                                        className="ap-input ap-input-sm"
-                                        placeholder={form.price || "0.00"}
-                                        value={row.price}
-                                        onChange={(e) =>
-                                          updateVariantRow(
-                                            row.id,
-                                            "price",
-                                            e.target.value,
-                                          )
-                                        }
-                                      />
-                                    </div>
+
+                                    {(
+                                      [
+                                        { label: "Cost", field: "costPrice" },
+                                        {
+                                          label: "Selling",
+                                          field: "sellingPrice",
+                                        },
+                                        { label: "MRP", field: "price" },
+                                      ] as const
+                                    ).map(({ label, field }) => (
+                                      <div className="ap-field-sm" key={field}>
+                                        <label>{label} *</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          onKeyDown={blockBadNumberKeys}
+                                          className={`ap-input ap-input-sm ${
+                                            touched[`v${field}_${row.id}`] &&
+                                            !row[field]
+                                              ? "is-invalid"
+                                              : ""
+                                          }`}
+                                          placeholder="0.00"
+                                          value={row[field]}
+                                          onChange={(e) =>
+                                            updateVariantRow(
+                                              row.id,
+                                              field,
+                                              e.target.value,
+                                            )
+                                          }
+                                          onBlur={() =>
+                                            setTouched((p) => ({
+                                              ...p,
+                                              [`v${field}_${row.id}`]: true,
+                                            }))
+                                          }
+                                        />
+                                      </div>
+                                    ))}
+
                                     <div className="ap-field-sm">
                                       <label>Stock</label>
                                       <input
@@ -2511,6 +2180,210 @@ const AddProduct: React.FC = () => {
                     </div>
                   )}
                 </section>
+
+                {/* Pricing & Inventory */}
+                <section className="ap-card">
+                  <div className="ap-card-head">
+                    <div className="ap-card-icon-box ap-icon-emerald">
+                      <DollarSign size={18} />
+                    </div>
+                    <div>
+                      <h2 className="ap-card-title">Pricing & Inventory</h2>
+                      <p className="ap-card-desc">
+                        {isVar
+                          ? "SKU, prices and stock are managed per variant above."
+                          : "SKU, currency, prices, and stock count."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="ap-card-body">
+                    {isVar ? (
+                      <div className="ap-row-2">
+                        {unitField}
+                        {currencyField}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="ap-row-3">
+                          <div className="ap-field">
+                            <label className="ap-label" htmlFor="pro-sku">
+                              SKU <span className="ap-required">*</span>
+                            </label>
+                            <input
+                              id="pro-sku"
+                              type="text"
+                              className={`ap-input ap-mono ${errors.sku ? "is-invalid" : ""}`}
+                              placeholder="e.g. TSHIRT-COTTON-L"
+                              value={form.sku}
+                              onChange={(e) =>
+                                set("sku", e.target.value.toUpperCase())
+                              }
+                              onBlur={() => touch("sku")}
+                            />
+                            {errors.sku && (
+                              <p className="ap-error-msg">
+                                <AlertCircle size={13} /> {errors.sku}
+                              </p>
+                            )}
+                          </div>
+                          {unitField}
+                          {currencyField}
+                        </div>
+
+                        <div className="ap-row-3">
+                          {[
+                            {
+                              id: "pro-cost",
+                              label: "Cost price",
+                              field: "costPrice" as const,
+                              error: errors.costPrice,
+                            },
+                            {
+                              id: "pro-selling",
+                              label: "Selling price",
+                              field: "sellingPrice" as const,
+                              error: errors.sellingPrice,
+                            },
+                            {
+                              id: "pro-price",
+                              label: "MRP / Price",
+                              field: "price" as const,
+                              error: errors.price,
+                            },
+                          ].map(({ id, label, field, error }) => (
+                            <div className="ap-field" key={field}>
+                              <label className="ap-label" htmlFor={id}>
+                                {label} <span className="ap-required">*</span>
+                              </label>
+                              <div className="ap-price-input-group">
+                                <span className="ap-currency-symbol">
+                                  {form.currency}
+                                </span>
+                                <input
+                                  id={id}
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  onKeyDown={blockBadNumberKeys}
+                                  className={`ap-input ${error ? "is-invalid" : ""}`}
+                                  placeholder="0.00"
+                                  value={form[field]}
+                                  onChange={(e) => set(field, e.target.value)}
+                                  onBlur={() => touch(field)}
+                                />
+                              </div>
+                              {error && (
+                                <p className="ap-error-msg">
+                                  <AlertCircle size={13} /> {error}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {form.costPrice &&
+                          form.sellingPrice &&
+                          form.price &&
+                          !productPricingOk && (
+                            <p className="ap-error-msg">
+                              <AlertCircle size={13} /> Cost ≤ Selling price ≤
+                              MRP is required.
+                            </p>
+                          )}
+
+                        <div className="ap-row-2">
+                          <div className="ap-field">
+                            <label className="ap-label" htmlFor="pro-stock">
+                              Stock qty
+                            </label>
+                            <input
+                              id="pro-stock"
+                              type="number"
+                              min="0"
+                              onKeyDown={blockBadNumberKeys}
+                              className="ap-input"
+                              placeholder="0"
+                              value={form.stock}
+                              onChange={(e) => set("stock", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </section>
+
+                {/* Media */}
+                <section className="ap-card">
+                  <div className="ap-card-head">
+                    <div className="ap-card-icon-box ap-icon-violet">
+                      <UploadCloud size={18} />
+                    </div>
+                    <div>
+                      <h2 className="ap-card-title">Media & Visual Assets</h2>
+                      <p className="ap-card-desc">
+                        {form.hasVariants
+                          ? "Upload the primary hero image. Variant images are managed in the variants section."
+                          : "Main product image and up to 6 gallery images."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="ap-card-body">
+                    <ImageDropzone
+                      label="Main hero image *"
+                      preview={mainPreview}
+                      error={errors.mainImage}
+                      onFile={handleMainImage}
+                      onRemove={removeMainImage}
+                    />
+
+                    {/* Gallery is hidden for variant products */}
+                    {!form.hasVariants && (
+                      <div className="ap-field" style={{ marginTop: 20 }}>
+                        <label className="ap-label">
+                          Gallery images{" "}
+                          <span className="ap-muted">(up to 6)</span>
+                        </label>
+                        <div className="ap-gallery-grid">
+                          {featuredPreviews.map((src, i) => (
+                            <div key={i} className="ap-gallery-thumb">
+                              <img src={getImageUrl(src)} alt="Gallery item" />
+                              <button
+                                type="button"
+                                className="ap-gallery-remove"
+                                onClick={() => removeFeatured(i)}
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ))}
+                          {featuredPreviews.length < 6 && (
+                            <button
+                              type="button"
+                              className="ap-gallery-add-card"
+                              onClick={() => featuredRef.current?.click()}
+                            >
+                              <Plus size={20} />
+                              <span>Add Photo</span>
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          ref={featuredRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          hidden
+                          onChange={(e) => {
+                            if (e.target.files)
+                              handleFeaturedImages(e.target.files);
+                            e.target.value = "";
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </section>
               </div>
 
               {/* ── RIGHT SIDEBAR ── */}
@@ -2545,9 +2418,11 @@ const AddProduct: React.FC = () => {
                           <span className="ap-preview-ph">Product name</span>
                         )}
                       </h4>
-                      <p className="ap-preview-sku-line">
-                        SKU: <span>{form.sku || "—"}</span>
-                      </p>
+                      {!isVar && (
+                        <p className="ap-preview-sku-line">
+                          SKU: <span>{form.sku || "—"}</span>
+                        </p>
+                      )}
                       {form.category_id && (
                         <p className="ap-preview-meta-line">
                           <span className="ap-preview-meta-key">Category</span>
@@ -2563,19 +2438,22 @@ const AddProduct: React.FC = () => {
                       )}
                       <div className="ap-preview-pricing">
                         <div className="ap-main-price">
+                          {isVar && previewPrice !== null ? "From " : ""}
                           {form.currency}{" "}
-                          {form.sellingPrice
-                            ? Number(form.sellingPrice).toLocaleString("en-IN")
+                          {previewPrice !== null
+                            ? previewPrice.toLocaleString("en-IN")
                             : "0"}
                         </div>
-                        {form.price &&
+                        {!isVar &&
+                          form.price &&
                           Number(form.price) > Number(form.sellingPrice) && (
                             <div className="ap-mrp-price">
                               {form.currency}{" "}
                               {Number(form.price).toLocaleString("en-IN")}
                             </div>
                           )}
-                        {form.price &&
+                        {!isVar &&
+                          form.price &&
                           form.sellingPrice &&
                           Number(form.price) > Number(form.sellingPrice) && (
                             <span className="ap-preview-discount-badge">
@@ -2607,8 +2485,17 @@ const AddProduct: React.FC = () => {
                               : "Out of stock"}
                           </span>
                         )}
+                        {form.hasVariants && form.variants.length > 0 && (
+                          <span
+                            className={`ap-preview-tag-pill ${totalVariantStock > 0 ? "ap-tag-instock" : "ap-tag-outstock"}`}
+                          >
+                            {totalVariantStock > 0
+                              ? `${totalVariantStock} in stock`
+                              : "Out of stock"}
+                          </span>
+                        )}
                       </div>
-                      {featuredPreviews.length > 0 && (
+                      {!isVar && featuredPreviews.length > 0 && (
                         <div className="ap-preview-gallery-strip">
                           {featuredPreviews.slice(0, 4).map((src, i) => (
                             <div key={i} className="ap-preview-gallery-dot">
@@ -2652,93 +2539,65 @@ const AddProduct: React.FC = () => {
                     </div>
                   </div>
 
-                  {(form.costPrice || form.sellingPrice || form.price) && (
-                    <div className="ap-metrics-card">
-                      <h4 className="ap-metrics-title">Price Breakdown</h4>
-                      {[
-                        { label: "Cost price", val: form.costPrice },
-                        { label: "Selling price", val: form.sellingPrice },
-                        { label: "MRP", val: form.price },
-                      ].map(({ label, val }) => (
-                        <div className="ap-metric-row" key={label}>
-                          <span className="ap-metric-label">{label}</span>
-                          <span className="ap-metric-val ap-font-mono">
-                            {val
-                              ? `${form.currency} ${Number(val).toLocaleString("en-IN")}`
+                  {!isVar &&
+                    (form.costPrice || form.sellingPrice || form.price) && (
+                      <div className="ap-metrics-card">
+                        <h4 className="ap-metrics-title">Price Breakdown</h4>
+                        {[
+                          { label: "Cost price", val: form.costPrice },
+                          { label: "Selling price", val: form.sellingPrice },
+                          { label: "MRP", val: form.price },
+                        ].map(({ label, val }) => (
+                          <div className="ap-metric-row" key={label}>
+                            <span className="ap-metric-label">{label}</span>
+                            <span className="ap-metric-val ap-font-mono">
+                              {val
+                                ? `${form.currency} ${Number(val).toLocaleString("en-IN")}`
+                                : "—"}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="ap-metric-divider" />
+                        <div className="ap-metric-row">
+                          <span className="ap-metric-label">Gross margin</span>
+                          <span
+                            className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
+                          >
+                            {form.sellingPrice && form.costPrice
+                              ? `${form.currency} ${(Number(form.sellingPrice) - Number(form.costPrice)).toLocaleString("en-IN")}`
                               : "—"}
                           </span>
                         </div>
-                      ))}
-                      <div className="ap-metric-divider" />
-                      <div className="ap-metric-row">
-                        <span className="ap-metric-label">Gross margin</span>
-                        <span
-                          className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
-                        >
-                          {form.sellingPrice && form.costPrice
-                            ? `${form.currency} ${(Number(form.sellingPrice) - Number(form.costPrice)).toLocaleString("en-IN")}`
-                            : "—"}
-                        </span>
+                        <div className="ap-metric-row">
+                          <span className="ap-metric-label">Margin %</span>
+                          <span
+                            className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
+                          >
+                            {marginVal ? `${marginVal}%` : "—"}
+                          </span>
+                        </div>
+                        <div className="ap-metric-progress">
+                          <div
+                            className="ap-metric-bar"
+                            style={{
+                              width: `${Math.min(Math.max(Number(marginVal || 0), 0), 100)}%`,
+                            }}
+                          />
+                        </div>
+                        <p className="ap-metric-hint">
+                          {Number(marginVal) > 30
+                            ? "✓ Healthy margin"
+                            : Number(marginVal) > 10
+                              ? "⚠ Low margin"
+                              : "✗ Review pricing"}
+                        </p>
                       </div>
-                      <div className="ap-metric-row">
-                        <span className="ap-metric-label">Margin %</span>
-                        <span
-                          className={`ap-metric-val ap-font-mono ${Number(marginVal) > 0 ? "ap-metric-positive" : "ap-metric-negative"}`}
-                        >
-                          {marginVal ? `${marginVal}%` : "—"}
-                        </span>
-                      </div>
-                      <div className="ap-metric-progress">
-                        <div
-                          className="ap-metric-bar"
-                          style={{
-                            width: `${Math.min(Math.max(Number(marginVal || 0), 0), 100)}%`,
-                          }}
-                        />
-                      </div>
-                      <p className="ap-metric-hint">
-                        {Number(marginVal) > 30
-                          ? "✓ Healthy margin"
-                          : Number(marginVal) > 10
-                            ? "⚠ Low margin"
-                            : "✗ Review pricing"}
-                      </p>
-                    </div>
-                  )}
+                    )}
 
                   <div className="ap-checklist-card">
                     <h4 className="ap-checklist-title">Readiness</h4>
                     <ul className="ap-checklist">
-                      {[
-                        { label: "Product name", done: !!form.name.trim() },
-                        {
-                          label: "Category selected",
-                          done: !!form.category_id,
-                        },
-                        { label: "SKU set", done: !!form.sku.trim() },
-                        {
-                          label: "Main image uploaded",
-                          done: !!form.mainImage,
-                        },
-                        {
-                          label: "Pricing complete",
-                          done:
-                            !!form.costPrice &&
-                            !!form.sellingPrice &&
-                            !!form.price,
-                        },
-                        {
-                          label: form.hasVariants
-                            ? "Variants configured"
-                            : "Stock entered",
-                          done: form.hasVariants
-                            ? form.variants.length > 0 &&
-                              form.variants.every((r) =>
-                                r.combination.every((c) => c.variant_option_id),
-                              )
-                            : !!form.stock,
-                        },
-                      ].map(({ label, done }) => (
+                      {checklist.map(({ label, done }) => (
                         <li key={label} className={done ? "done" : ""}>
                           {done ? (
                             <CheckCircle2 size={15} color="#16a34a" />
