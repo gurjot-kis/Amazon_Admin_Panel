@@ -403,9 +403,22 @@ const ProductList = () => {
       cellClassName: "d-none d-md-table-cell",
       render: (p) => (
         <div className="pl-price-cell">
-          <span className="pl-price-selling">
-            {fmt(p.sellingPrice, p.currency)}
-          </span>
+          {p.hasVariants ? (
+            p.priceRange ? (
+              <span className="pl-price-selling">
+                {fmt(p.priceRange.min, p.currency)}
+                {p.priceRange.min !== p.priceRange.max && (
+                  <> – {fmt(p.priceRange.max, p.currency)}</>
+                )}
+              </span>
+            ) : (
+              <span className="pl-price-variants">See variants</span>
+            )
+          ) : (
+            <span className="pl-price-selling">
+              {p.sellingPrice != null ? fmt(p.sellingPrice, p.currency) : "—"}
+            </span>
+          )}
         </div>
       ),
     },

@@ -53,6 +53,7 @@ export interface Product {
   category: ProductCategory;
   store?: ProductStore;
   unit?: string;
+  priceRange?: { min: number; max: number } | null;
 }
 
 export type GetProductsResponse = ApiResponse<Product[]>;
