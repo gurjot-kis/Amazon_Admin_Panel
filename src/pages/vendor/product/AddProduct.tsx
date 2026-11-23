@@ -443,7 +443,9 @@ const ImageDropzone = ({
 
   return (
     <div className="ap-field">
-      <label className="ap-label">{label}</label>
+      <label className="ap-label">
+        {label} <span className="form-required-field">*</span>
+      </label>
       <div
         className={`ap-dropzone ${dragging ? "is-dragging" : ""} ${error ? "is-invalid" : ""}`}
         onClick={() => !preview && ref.current?.click()}
@@ -2016,7 +2018,12 @@ const AddProduct: React.FC = () => {
 
                                   <div className="ap-variant-inputs-grid">
                                     <div className="ap-field-sm">
-                                      <label>SKU *</label>
+                                      <label>
+                                        SKU
+                                        <span className="form-required-field">
+                                          *
+                                        </span>
+                                      </label>
                                       <input
                                         type="text"
                                         className={`ap-input ap-input-sm ap-mono ${
@@ -2054,7 +2061,12 @@ const AddProduct: React.FC = () => {
                                       ] as const
                                     ).map(({ label, field }) => (
                                       <div className="ap-field-sm" key={field}>
-                                        <label>{label} *</label>
+                                        <label>
+                                          {label}
+                                          <span className="form-required-field">
+                                            *
+                                          </span>
+                                        </label>
                                         <input
                                           type="number"
                                           min="0"
@@ -2330,7 +2342,7 @@ const AddProduct: React.FC = () => {
                   </div>
                   <div className="ap-card-body">
                     <ImageDropzone
-                      label="Main hero image *"
+                      label="Main hero image"
                       preview={mainPreview}
                       error={errors.mainImage}
                       onFile={handleMainImage}

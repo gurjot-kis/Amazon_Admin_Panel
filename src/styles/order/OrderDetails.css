@@ -391,7 +391,7 @@
   flex-shrink: 0;
 }
 
-/* ── Financial Summary ── */
+/* ── Financial & Bill Breakdown Summary ── */
 .od-summary-section {
   display: flex;
   flex-direction: column;
@@ -407,6 +407,11 @@
   justify-content: space-between;
   font-size: 0.82rem;
   color: #64748b;
+}
+
+.od-summary-row--discount {
+  color: #16a34a;
+  font-weight: 600;
 }
 
 .od-free-chip {

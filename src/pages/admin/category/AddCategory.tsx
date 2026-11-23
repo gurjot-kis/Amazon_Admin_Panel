@@ -446,7 +446,10 @@ const CategoryForm: React.FC = () => {
                   </div>
 
                   <div className="cc-field">
-                    <label htmlFor="cc-name">Category name</label>
+                    <label htmlFor="cc-name">
+                      Category name{" "}
+                      <span className="form-required-field">*</span>
+                    </label>
                     <input
                       id="cc-name"
                       type="text"
@@ -464,7 +467,9 @@ const CategoryForm: React.FC = () => {
                   </div>
 
                   <div className="cc-field">
-                    <label htmlFor="cc-description">Description</label>
+                    <label htmlFor="cc-description">
+                      Description <span className="form-required-field">*</span>
+                    </label>
                     <textarea
                       id="cc-description"
                       className={`form-control cc-input cc-textarea ${errors.description ? "is-invalid" : ""}`}

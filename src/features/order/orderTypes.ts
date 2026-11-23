@@ -28,6 +28,7 @@ export interface Order {
   city: string;
   totalItems: number;
   vendorTotal: number;
+  grandTotal: number;
   paymentMethod: PaymentMethod;
   paymentReceived: 0 | 1;
   status: OrderStatus;
@@ -187,6 +188,7 @@ export interface OrderShippingAddress {
   phone: string;
   addressLine1: string;
   addressLine2: string;
+  label: string;
   landmark: string;
   city: string;
   state: string;
@@ -196,15 +198,37 @@ export interface OrderShippingAddress {
   longitude: number;
 }
 
+export interface OrderCoupon {
+  applied: boolean;
+  code: string | null;
+  discount: number;
+}
+
+export interface OrderBillBreakdown {
+  price_total: number;
+  discount: number;
+  items_total: number;
+  handling_charge: number;
+  delivery_charge: number;
+  delivery_waived: boolean;
+  small_cart_charge: number;
+  coupon: OrderCoupon;
+  grandTotal: number;
+}
+
 export interface OrderDetails {
   _id: string;
+  orderId: string;
   items: OrderDetailItem[];
   totalItems: number;
   vendorTotal: number;
+  billBreakdown: OrderBillBreakdown;
+  grandTotal: number;
   shippingAddress: OrderShippingAddress;
   paymentMethod: PaymentMethod;
   paymentReceived: 0 | 1;
   status: OrderStatus;
+  nextStatuses: OrderStatus[];
   createdAt: string;
   updatedAt: string;
   store: OrderStore;

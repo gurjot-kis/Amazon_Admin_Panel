@@ -249,7 +249,10 @@ const AddVariantOption: React.FC = () => {
 
                   {/* Variant Type */}
                   <div className="avo-field">
-                    <label htmlFor="avo-type">Variant type</label>
+                    <label htmlFor="avo-type">
+                      Variant type{" "}
+                      <span className="form-required-field">*</span>
+                    </label>
                     <div className="avo-select-wrap">
                       <select
                         id="avo-type"
@@ -290,7 +293,9 @@ const AddVariantOption: React.FC = () => {
                   {/* Value + Label side by side */}
                   <div className="avo-row-2">
                     <div className="avo-field">
-                      <label htmlFor="avo-value">Value</label>
+                      <label htmlFor="avo-value">
+                        Value <span className="form-required-field">*</span>
+                      </label>
                       <div className="avo-input-wrap">
                         {isColorType && form.value && (
                           <span
@@ -319,13 +324,12 @@ const AddVariantOption: React.FC = () => {
                       {errors.value && (
                         <div className="avo-error">{errors.value}</div>
                       )}
-                      <p className="avo-hint">
-                        Internal identifier — used in filters and logic.
-                      </p>
                     </div>
 
                     <div className="avo-field">
-                      <label htmlFor="avo-label">Label</label>
+                      <label htmlFor="avo-label">
+                        Label <span className="form-required-field">*</span>
+                      </label>
                       <input
                         id="avo-label"
                         type="text"
@@ -342,9 +346,6 @@ const AddVariantOption: React.FC = () => {
                       {errors.label && (
                         <div className="avo-error">{errors.label}</div>
                       )}
-                      <p className="avo-hint">
-                        Display name shown to customers.
-                      </p>
                     </div>
                   </div>
                 </section>

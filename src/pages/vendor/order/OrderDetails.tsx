@@ -194,6 +194,10 @@ const OrderDetails: React.FC = () => {
   const isCancelled = order.status === "cancelled";
   const isPaid = order.paymentReceived === 1;
 
+  const breakdown = order.billBreakdown;
+  const itemsSubtotal = breakdown?.items_total ?? order.grandTotal ?? 0;
+  const finalGrandTotal = breakdown?.grandTotal ?? order.grandTotal ?? 0;
+
   return (
     <div className="od-page">
       {/* ── Top Bar ── */}
@@ -386,20 +390,66 @@ const OrderDetails: React.FC = () => {
               ))}
             </div>
 
-            {/* Financial Summary */}
+            {/* Financial & Bill Breakdown Summary */}
             <div className="od-summary-section">
+              {breakdown && breakdown.price_total > breakdown.items_total && (
+                <div className="od-summary-row">
+                  <span>MRP Total</span>
+                  <span>{fmt(breakdown.price_total)}</span>
+                </div>
+              )}
+
               <div className="od-summary-row">
-                <span>Subtotal ({order.totalItems} items)</span>
-                <span>{fmt(order.vendorTotal)}</span>
+                <span>Items Subtotal ({order.totalItems} items)</span>
+                <span>{fmt(itemsSubtotal)}</span>
               </div>
+
+              {breakdown && breakdown.discount > 0 && (
+                <div className="od-summary-row od-summary-row--discount">
+                  <span>Item Discount</span>
+                  <span>−{fmt(breakdown.discount)}</span>
+                </div>
+              )}
+
+              {breakdown?.coupon?.applied && breakdown.coupon.discount > 0 && (
+                <div className="od-summary-row od-summary-row--discount">
+                  <span>
+                    Coupon Discount
+                    {breakdown.coupon.code ? ` (${breakdown.coupon.code})` : ""}
+                  </span>
+                  <span>−{fmt(breakdown.coupon.discount)}</span>
+                </div>
+              )}
+
+              {breakdown && breakdown.handling_charge > 0 && (
+                <div className="od-summary-row">
+                  <span>Handling Charge</span>
+                  <span>{fmt(breakdown.handling_charge)}</span>
+                </div>
+              )}
+
+              {breakdown && breakdown.small_cart_charge > 0 && (
+                <div className="od-summary-row">
+                  <span>Small Cart Charge</span>
+                  <span>{fmt(breakdown.small_cart_charge)}</span>
+                </div>
+              )}
+
               <div className="od-summary-row">
                 <span>Delivery Charge</span>
-                <span className="od-free-chip">Free</span>
+                {breakdown?.delivery_waived ||
+                !breakdown?.delivery_charge ||
+                breakdown.delivery_charge === 0 ? (
+                  <span className="od-free-chip">Free</span>
+                ) : (
+                  <span>{fmt(breakdown.delivery_charge)}</span>
+                )}
               </div>
+
               <div className="od-summary-divider" />
               <div className="od-summary-row od-summary-total">
-                <span>Vendor Total</span>
-                <span className="od-grand-price">{fmt(order.vendorTotal)}</span>
+                <span>Grand Total</span>
+                <span className="od-grand-price">{fmt(finalGrandTotal)}</span>
               </div>
             </div>
           </div>

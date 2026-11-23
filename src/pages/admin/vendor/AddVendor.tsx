@@ -239,7 +239,9 @@ const AddVendor: React.FC = () => {
                 {/* Full name */}
                 <div className="col-12 col-md-6">
                   <div className="av-field">
-                    <label htmlFor="av-fullName">Full Name</label>
+                    <label htmlFor="av-fullName">
+                      Full Name <span className="form-required-field">*</span>
+                    </label>
                     <input
                       id="av-fullName"
                       type="text"
@@ -262,7 +264,10 @@ const AddVendor: React.FC = () => {
                 {/* Phone */}
                 <div className="col-12 col-md-6">
                   <div className="av-field">
-                    <label htmlFor="av-phone">Phone Number</label>
+                    <label htmlFor="av-phone">
+                      Phone Number{" "}
+                      <span className="form-required-field">*</span>
+                    </label>
                     <input
                       id="av-phone"
                       type="tel"
@@ -288,7 +293,9 @@ const AddVendor: React.FC = () => {
                 {/* Email */}
                 <div className="col-12 col-md-6">
                   <div className="av-field">
-                    <label htmlFor="av-email">Work Email</label>
+                    <label htmlFor="av-email">
+                      Work Email <span className="form-required-field">*</span>
+                    </label>
                     <input
                       id="av-email"
                       type="email"
@@ -310,11 +317,16 @@ const AddVendor: React.FC = () => {
                 <div className="col-12 col-md-6">
                   <div className="av-field">
                     <label htmlFor="av-password">
-                      {isEditMode ? "New Password" : "Login Password"}
-                      {isEditMode && (
-                        <span className="av-hint-inline">
-                          {" "}(optional)
-                        </span>
+                      {isEditMode ? (
+                        <>
+                          New Password
+                          <span className="av-hint-inline">(optional)</span>
+                        </>
+                      ) : (
+                        <>
+                          Login Password {""}
+                          <span className="form-required-field">*</span>
+                        </>
                       )}
                     </label>
                     <div className="av-password-wrap">
@@ -354,7 +366,10 @@ const AddVendor: React.FC = () => {
                 {/* Address */}
                 <div className="col-12">
                   <div className="av-field">
-                    <label htmlFor="av-address">Business Address</label>
+                    <label htmlFor="av-address">
+                      Business Address{" "}
+                      <span className="form-required-field">*</span>
+                    </label>
                     <textarea
                       id="av-address"
                       className={`form-control av-input av-textarea ${errors.address ? "is-invalid" : ""}`}

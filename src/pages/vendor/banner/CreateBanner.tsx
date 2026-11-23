@@ -259,7 +259,7 @@ const CreateBanner: React.FC = () => {
     if (!isEditMode && !bannerFile) {
       newErrors.banner_image = "Banner image is required.";
     }
-    if (formData.redirect_type !== "none" && !formData.redirect_url.trim()) {
+    if (!formData.redirect_url.trim()) {
       newErrors.redirect_url = "Redirect path is required.";
     }
     if (
@@ -626,14 +626,16 @@ const CreateBanner: React.FC = () => {
                 </div>
 
                 <div className="col-md-5 banner-input-group">
-                  <label className="banner-label">Redirect Type</label>
+                  <label className="banner-label">
+                    Redirect Type <span className="banner-label-req">*</span>
+                  </label>
                   <select
                     name="redirect_type"
                     className="banner-field banner-field--noicon"
                     value={formData.redirect_type}
                     onChange={handleInputChange}
                   >
-                    <option value="none">None (Display Only)</option>
+                    {/* <option value="none">None (Display Only)</option> */}
                     <option value="internal">Internal Route</option>
                     <option value="external">External Link</option>
                   </select>
@@ -642,9 +644,7 @@ const CreateBanner: React.FC = () => {
                 <div className="col-md-7 banner-input-group">
                   <label className="banner-label">
                     Destination URL / Path{" "}
-                    {formData.redirect_type !== "none" && (
-                      <span className="banner-label-req">*</span>
-                    )}
+                    <span className="banner-label-req">*</span>
                   </label>
                   <div className="banner-input-wrap">
                     <span className="banner-input-icon">
@@ -663,7 +663,6 @@ const CreateBanner: React.FC = () => {
                       }
                       value={formData.redirect_url}
                       onChange={handleInputChange}
-                      disabled={formData.redirect_type === "none"}
                     />
                   </div>
                   {errors.redirect_url && (

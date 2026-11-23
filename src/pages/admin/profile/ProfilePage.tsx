@@ -266,7 +266,9 @@ export default function ProfilePage(): React.ReactElement {
             <div className="user-profile-form-grid">
               {/* Full Name */}
               <div className="user-profile-field">
-                <label className="user-profile-label">Full Name</label>
+                <label className="user-profile-label">
+                  Full Name <span className="form-required-field">*</span>
+                </label>
                 <div className="user-profile-input-box">
                   <LuUser className="user-profile-field-icon" size={18} />
                   <input
@@ -283,7 +285,9 @@ export default function ProfilePage(): React.ReactElement {
 
               {/* Email Address */}
               <div className="user-profile-field">
-                <label className="user-profile-label">Email Address</label>
+                <label className="user-profile-label">
+                  Email Address <span className="form-required-field">*</span>
+                </label>
                 <div className="user-profile-input-box">
                   <LuMail className="user-profile-field-icon" size={18} />
                   <input

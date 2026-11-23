@@ -20,7 +20,6 @@
   font-size: 0.9rem;
 }
 
-
 /* Premium WhatsApp-like repeating background pattern */
 /* .bg-whatsapp-pattern {
   background-image: radial-gradient(#e0e7e2 1.2px, transparent 1.2px);
@@ -37,7 +36,6 @@
   background-image: radial-gradient(#1c221e 1.2px, transparent 1.2px);
   background-size: 24px 24px;
 } */
-
 
 /* Hardware-accelerated smooth scroll container */
 .smooth-scroll-container {
@@ -177,4 +175,9 @@
 
 .highlight-flash {
   animation: highlightFlash 1.5s ease-in-out;
+}
+
+.form-required-field {
+  color: #ef4444;
+  margin-left: 2px;
 }

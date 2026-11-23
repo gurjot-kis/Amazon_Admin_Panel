@@ -162,6 +162,9 @@ const AddCoupon = () => {
       e.discount_value = "Percentage cannot exceed 100%";
     if (!form.start_date) e.start_date = "Select start date";
     if (!isLifetime && !form.end_date) e.end_date = "Select end date";
+    if (!form.usage_limit) e.usage_limit = "Usage limit must be at least 1";
+    if (!form.per_user_limit)
+      e.per_user_limit = "Per user limit must be at least 1";
     if (
       !isLifetime &&
       form.start_date &&
@@ -503,7 +506,7 @@ const AddCoupon = () => {
                         <input
                           type="number"
                           className="ac-text-input ac-addon-input"
-                          placeholder="Unlimited"
+                          placeholder="e.g., 500"
                           min={0}
                           value={form.max_discount_amount ?? ""}
                           onChange={(e) =>
@@ -645,36 +648,45 @@ const AddCoupon = () => {
               <div className="ac-panel-body">
                 <div className="ac-form-row">
                   <div className="ac-form-group" style={{ flex: 1 }}>
-                    <label className="ac-label">Global Usage Limit</label>
+                    <label className="ac-label">
+                      Global Usage Limit <span className="ac-asterisk">*</span>
+                    </label>
                     <input
                       type="number"
-                      className="ac-text-input"
-                      placeholder="Unlimited"
+                      className={`ac-text-input ${errors.usage_limit ? "ac-input--invalid" : ""}`}
+                      placeholder="e.g., 100"
                       min={0}
                       value={form.usage_limit || ""}
                       onChange={(e) =>
                         set("usage_limit", Number(e.target.value))
                       }
                     />
-                    <span className="ac-hint-text">
-                      Total coupon activations allowed
-                    </span>
+                    {errors.usage_limit && (
+                      <span className="ac-field-error">
+                        {errors.usage_limit}
+                      </span>
+                    )}
                   </div>
                   <div className="ac-form-group" style={{ flex: 1 }}>
-                    <label className="ac-label">Usage Limit Per Customer</label>
+                    <label className="ac-label">
+                      Usage Limit Per Customer
+                      <span className="ac-asterisk">*</span>
+                    </label>
                     <input
                       type="number"
-                      className="ac-text-input"
-                      placeholder="Unlimited"
+                      className={`ac-text-input ${errors.per_user_limit ? "ac-input--invalid" : ""}`}
+                      placeholder="e.g., 1"
                       min={0}
                       value={form.per_user_limit || ""}
                       onChange={(e) =>
                         set("per_user_limit", Number(e.target.value))
                       }
                     />
-                    <span className="ac-hint-text">
-                      Max claims per registered user
-                    </span>
+                    {errors.per_user_limit && (
+                      <span className="ac-field-error">
+                        {errors.per_user_limit}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -142,20 +142,23 @@ const validate = (f: StoreFormState): FormErrors => {
   if (f.gst_number.trim() && !GST_REGEX.test(f.gst_number.trim().toUpperCase()))
     errors.gst_number = "Enter a valid 15-character GSTIN.";
 
-  const hasLat = f.latitude.trim() !== "";
-  const hasLng = f.longitude.trim() !== "";
-  if (hasLat || hasLng) {
-    const lat = Number(f.latitude);
-    const lng = Number(f.longitude);
-    if (!hasLat)
-      errors.latitude = "Latitude is required when longitude is set.";
-    else if (Number.isNaN(lat) || lat < -90 || lat > 90)
-      errors.latitude = "Latitude must be between -90 and 90.";
+  const latStr = f.latitude.trim();
+  const lngStr = f.longitude.trim();
 
-    if (!hasLng)
-      errors.longitude = "Longitude is required when latitude is set.";
-    else if (Number.isNaN(lng) || lng < -180 || lng > 180)
-      errors.longitude = "Longitude must be between -180 and 180.";
+  if (!latStr) {
+    errors.latitude = "Latitude is required.";
+  } else {
+    const lat = Number(latStr);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90)
+      errors.latitude = "Latitude must be a number between -90 and 90.";
+  }
+
+  if (!lngStr) {
+    errors.longitude = "Longitude is required.";
+  } else {
+    const lng = Number(lngStr);
+    if (!Number.isFinite(lng) || lng < -180 || lng > 180)
+      errors.longitude = "Longitude must be a number between -180 and 180.";
   }
 
   return errors;
@@ -420,6 +423,7 @@ const AddStore: React.FC = () => {
           latitude: pos.coords.latitude.toFixed(6),
           longitude: pos.coords.longitude.toFixed(6),
         }));
+        setTouched((t) => ({ ...t, latitude: true, longitude: true })); // add
         setIsLocating(false);
       },
       () => {
@@ -435,9 +439,6 @@ const AddStore: React.FC = () => {
 
   /* -------------------------------- Submit --------------------------------- */
   const buildPayload = (): CreateStorePayload => {
-    const hasCoords =
-      form.latitude.trim() !== "" && form.longitude.trim() !== "";
-
     return {
       store_name: form.store_name.trim(),
       store_description: form.store_description.trim(),
@@ -449,8 +450,8 @@ const AddStore: React.FC = () => {
       city: form.city.trim(),
       postal_code: form.postal_code.trim(),
       gst_number: form.gst_number.trim().toUpperCase(),
-      latitude: hasCoords ? form.latitude.trim() : undefined,
-      longitude: hasCoords ? form.longitude.trim() : undefined,
+      latitude: form.latitude.trim(),
+      longitude: form.longitude.trim(),
       is_default: form.is_default,
       store_logo: logo.file,
       store_banner: banner.file,
@@ -770,7 +771,8 @@ const AddStore: React.FC = () => {
                     <div>
                       <h2>Map location</h2>
                       <p>
-                        Optional. Used to show your store to nearby customers.
+                        Required. Used to show your store to nearby customers
+                        and for delivery.
                       </p>
                     </div>
                   </header>
@@ -779,10 +781,12 @@ const AddStore: React.FC = () => {
                     {renderInput("latitude", "Latitude", {
                       inputMode: "decimal",
                       placeholder: "30.704649",
+                      required: true,
                     })}
                     {renderInput("longitude", "Longitude", {
                       inputMode: "decimal",
                       placeholder: "76.717873",
+                      required: true,
                     })}
                   </div>
 

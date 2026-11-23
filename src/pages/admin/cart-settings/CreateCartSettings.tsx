@@ -307,7 +307,8 @@ const CreateCartSettings = () => {
                 <div className="cs-field" key={key}>
                   <label className="cs-label" htmlFor={`cs-${key}`}>
                     {label}
-                    <span className="cs-label-hint">({hint})</span>
+                    <span className="form-required-field">*</span>
+                    {/* <span className="cs-label-hint">({hint})</span> */}
                   </label>
                   <div className="cs-input-wrap">
                     <span className="cs-input-prefix">₹</span>

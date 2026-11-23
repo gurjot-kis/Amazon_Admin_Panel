@@ -426,7 +426,7 @@ const OrderList: React.FC = () => {
       header: "Total",
       render: (order) => (
         <div className="ol-amount-cell">
-          <span className="ol-amount-total">{fmt(order.vendorTotal)}</span>
+          <span className="ol-amount-total">{fmt(order.grandTotal)}</span>
           <span className="ol-amount-items">
             {order.totalItems} item{order.totalItems !== 1 ? "s" : ""}
           </span>

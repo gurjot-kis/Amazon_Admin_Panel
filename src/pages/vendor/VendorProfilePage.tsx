@@ -301,7 +301,9 @@ export default function VendorProfilePage(): React.ReactElement {
             <div className="vendor-profile-form-grid">
               {/* Name */}
               <div className="vendor-profile-field">
-                <label className="vendor-profile-label">Name</label>
+                <label className="vendor-profile-label">
+                  Name <span className="form-required-field">*</span>
+                </label>
                 <div className="vendor-profile-input-box">
                   <LuUser className="vendor-profile-field-icon" size={18} />
                   <input
@@ -334,7 +336,9 @@ export default function VendorProfilePage(): React.ReactElement {
 
               {/* Email */}
               <div className="vendor-profile-field">
-                <label className="vendor-profile-label">Email Address</label>
+                <label className="vendor-profile-label">
+                  Email Address <span className="form-required-field">*</span>
+                </label>
                 <div className="vendor-profile-input-box">
                   <LuMail className="vendor-profile-field-icon" size={18} />
                   <input
