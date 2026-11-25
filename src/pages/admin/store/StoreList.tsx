@@ -365,7 +365,9 @@ export default function StoreList(): React.ReactElement {
           {store.phone && (
             <span className="storelist-contact-text">
               <LuPhone size={14} className="storelist-icon" />
-              <span>{store.phone}</span>
+              <span>
+                {store.countryCode} - {store.phone}
+              </span>
             </span>
           )}
           {!store.email && !store.phone && <span>—</span>}

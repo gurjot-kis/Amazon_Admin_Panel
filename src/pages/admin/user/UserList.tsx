@@ -173,7 +173,9 @@ export default function UserList(): React.ReactElement {
       render: (user) => (
         <span className="user-table-contact-text">
           <LuPhone size={14} className="user-table-icon" />
-          <span>{user.phone || "—"}</span>
+          <span>
+            {user.countryCode} - {user.phone || "—"}
+          </span>
         </span>
       ),
     },

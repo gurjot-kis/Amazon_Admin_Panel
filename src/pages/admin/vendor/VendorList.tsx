@@ -245,7 +245,9 @@ export default function VendorList(): React.ReactElement {
       render: (vendor) => (
         <span className="vendor-table-contact-text">
           <LuPhone size={14} className="vendor-table-icon" />
-          <span>{vendor.phone || "—"}</span>
+          <span>
+            {vendor.countryCode} - {vendor.phone || "—"}
+          </span>
         </span>
       ),
     },

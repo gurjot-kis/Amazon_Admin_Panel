@@ -5,6 +5,7 @@ export interface User {
   fullName: string;
   email: string;
   phone: string;
+  countryCode: string;
   address: string;
   latitude: number | null;
   longitude: number | null;

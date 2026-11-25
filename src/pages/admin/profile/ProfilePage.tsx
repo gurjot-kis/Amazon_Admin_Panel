@@ -1,4 +1,10 @@
-import React, { useEffect, useState, type FormEvent } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -15,6 +21,7 @@ import {
   LuEyeOff,
 } from "react-icons/lu";
 
+import countryCodesRaw from "../../../assets/countryCodes.json";
 import {
   getStoredToken,
   getStoredUser,
@@ -30,16 +37,34 @@ import {
 import "../../../styles/ProfilePage.css";
 import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
 
+interface CountryCodeItem {
+  flag: string;
+  country: string;
+  code?: string;
+  dial_code: string;
+}
+
 interface AdminProfileData {
   fullName?: string;
   email?: string;
   phone?: string;
+  countryCode?: string;
+  country_code?: string;
   address?: string;
   profilePicture?: string;
   profile_picture?: string;
   profile_image?: string;
   profileImage?: string;
   avatar?: string;
+}
+
+const countryCodes = countryCodesRaw as CountryCodeItem[];
+const DEFAULT_COUNTRY_CODE = "+91";
+
+function normalizeDialCode(rawCode?: string): string {
+  const trimmed = (rawCode ?? "").trim();
+  if (!trimmed) return DEFAULT_COUNTRY_CODE;
+  return trimmed.startsWith("+") ? trimmed : `+${trimmed}`;
 }
 
 export default function ProfilePage(): React.ReactElement {
@@ -72,11 +97,18 @@ export default function ProfilePage(): React.ReactElement {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreviewUrl, setProfileImagePreviewUrl] = useState("");
+
+  // Searchable Country Code State
+  const [ccOpen, setCcOpen] = useState(false);
+  const [ccSearch, setCcSearch] = useState("");
+  const ccContainerRef = useRef<HTMLDivElement>(null);
+  const ccSearchInputRef = useRef<HTMLInputElement>(null);
 
   // Sync RTK Query response with local form state
   useEffect(() => {
@@ -86,8 +118,10 @@ export default function ProfilePage(): React.ReactElement {
       } & AdminProfileData;
       const profile: AdminProfileData = raw?.data ?? raw;
 
+      const rawCode = profile.countryCode ?? profile.country_code;
       setFullName(String(profile.fullName ?? ""));
       setEmail(String(profile.email ?? ""));
+      setCountryCode(normalizeDialCode(rawCode));
       setPhone(String(profile.phone ?? ""));
       setAddress(String(profile.address ?? ""));
       setProfileImage(
@@ -116,6 +150,64 @@ export default function ProfilePage(): React.ReactElement {
     return () => URL.revokeObjectURL(objectUrl);
   }, [profileImageFile]);
 
+  // Close dropdown on outside click or Escape
+  useEffect(() => {
+    if (!ccOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        ccContainerRef.current &&
+        !ccContainerRef.current.contains(e.target as Node)
+      ) {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ccOpen]);
+
+  useEffect(() => {
+    if (ccOpen) {
+      ccSearchInputRef.current?.focus();
+    }
+  }, [ccOpen]);
+
+  const selectedCountry = useMemo(() => {
+    return (
+      countryCodes.find((c) => c.dial_code === countryCode) ??
+      countryCodes.find((c) => c.dial_code === DEFAULT_COUNTRY_CODE) ??
+      countryCodes[0]
+    );
+  }, [countryCode]);
+
+  const filteredCountries = useMemo(() => {
+    const q = ccSearch.trim().toLowerCase();
+    if (!q) return countryCodes;
+    const qDigits = q.replace(/^\+/, "");
+    return countryCodes.filter((item) => {
+      const nameMatch = item.country.toLowerCase().includes(q);
+      const codeMatch = item.code?.toLowerCase().includes(q);
+      const dialMatch =
+        item.dial_code.toLowerCase().includes(q) ||
+        (qDigits.length > 0 &&
+          item.dial_code.replace(/^\+/, "").includes(qDigits));
+      return Boolean(nameMatch || codeMatch || dialMatch);
+    });
+  }, [ccSearch]);
+
   if (!token || !currentUser) {
     return <Navigate to={ROUTES.login} replace />;
   }
@@ -123,6 +215,8 @@ export default function ProfilePage(): React.ReactElement {
   const handleReset = () => {
     setPassword("");
     setShowPassword(false);
+    setCcOpen(false);
+    setCcSearch("");
     refetch();
     toast.info("Form reset", {
       description: "Reverted changes to match server state.",
@@ -142,6 +236,7 @@ export default function ProfilePage(): React.ReactElement {
       const formData = new FormData();
       formData.append("fullName", fullName.trim());
       formData.append("email", email.trim());
+      formData.append("countryCode", normalizeDialCode(countryCode));
       formData.append("phone", phone.trim());
       formData.append("address", address.trim());
       if (password.trim()) formData.append("password", password.trim());
@@ -149,13 +244,11 @@ export default function ProfilePage(): React.ReactElement {
         formData.append("profile_picture", profileImageFile);
       }
 
-      // Execute RTK Mutation
       const res = await updateProfile(formData as any).unwrap();
       const updatedProfile: AdminProfileData =
         (res as unknown as { data?: AdminProfileData })?.data ??
         (res as unknown as AdminProfileData);
 
-      // Keep user session in sync with updated values
       setAuthSession({
         ...currentUser,
         name: fullName.trim(),
@@ -173,7 +266,6 @@ export default function ProfilePage(): React.ReactElement {
         description: "Your profile information has been successfully updated.",
       });
 
-      // Redirect to dashboard
       navigate(ROUTES.dashboard);
     } catch (error: any) {
       console.error("Failed to update profile:", error);
@@ -342,19 +434,96 @@ export default function ProfilePage(): React.ReactElement {
                 </div>
               </div>
 
-              {/* Phone */}
+              {/* Country Code + Phone */}
               <div className="user-profile-field">
                 <label className="user-profile-label">Phone Number</label>
-                <div className="user-profile-input-box">
-                  <LuPhone className="user-profile-field-icon" size={18} />
-                  <input
-                    type="text"
-                    className="user-profile-input"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. +1 555 123 4567"
-                    maxLength={20}
-                  />
+                <div className="user-profile-phone-row">
+                  <div className="user-profile-cc-wrapper" ref={ccContainerRef}>
+                    <button
+                      type="button"
+                      className="user-profile-cc-trigger"
+                      aria-label="Select country code"
+                      aria-expanded={ccOpen}
+                      onClick={() => setCcOpen((prev) => !prev)}
+                    >
+                      {selectedCountry?.flag && (
+                        <img
+                          src={selectedCountry.flag}
+                          alt={selectedCountry.country}
+                          className="user-profile-cc-flag"
+                        />
+                      )}
+                      <span>{countryCode}</span>
+                      <span aria-hidden="true">▾</span>
+                    </button>
+
+                    {ccOpen && (
+                      <div className="user-profile-cc-dropdown" role="listbox">
+                        <div className="user-profile-cc-search-box">
+                          <input
+                            ref={ccSearchInputRef}
+                            type="text"
+                            className="user-profile-cc-search-input"
+                            placeholder="Search country or +code..."
+                            value={ccSearch}
+                            onChange={(e) => setCcSearch(e.target.value)}
+                          />
+                        </div>
+                        <ul className="user-profile-cc-list">
+                          {filteredCountries.length > 0 ? (
+                            filteredCountries.map((item, idx) => {
+                              const isSelected =
+                                item.dial_code === countryCode &&
+                                item.country === selectedCountry?.country;
+                              return (
+                                <li
+                                  key={`${item.code ?? "cc"}-${item.country}-${idx}`}
+                                >
+                                  <button
+                                    type="button"
+                                    className={`user-profile-cc-item ${isSelected ? "is-selected" : ""}`}
+                                    onClick={() => {
+                                      setCountryCode(item.dial_code);
+                                      setCcOpen(false);
+                                      setCcSearch("");
+                                    }}
+                                  >
+                                    <img
+                                      src={item.flag}
+                                      alt={item.country}
+                                      className="user-profile-cc-flag"
+                                    />
+                                    <span className="user-profile-cc-name">
+                                      {item.country}
+                                    </span>
+                                    <span className="user-profile-cc-dial">
+                                      {item.dial_code}
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })
+                          ) : (
+                            <li className="user-profile-cc-empty">
+                              No matching country found
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="user-profile-input-box user-profile-phone-input-box">
+                    <LuPhone className="user-profile-field-icon" size={18} />
+                    <input
+                      type="text"
+                      className="user-profile-input"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      maxLength={20}
+                    />
+                  </div>
                 </div>
               </div>
 

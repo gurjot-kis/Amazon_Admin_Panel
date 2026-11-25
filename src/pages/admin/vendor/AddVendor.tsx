@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import countryCodesRaw from "../../../assets/countryCodes.json";
 import {
   useCreateVendorMutation,
   useUpdateVendorMutation,
@@ -13,18 +14,31 @@ import type {
   UpdateVendorPayload,
 } from "../../../features/vendor/vendorTypes";
 
+interface CountryCodeItem {
+  flag: string;
+  country: string;
+  code?: string;
+  dial_code: string;
+}
+
 interface VendorFormState {
   fullName: string;
   email: string;
   password: string;
+  countryCode: string;
   phone: string;
   address: string;
 }
+
+const countryCodes = countryCodesRaw as CountryCodeItem[];
+
+const DEFAULT_COUNTRY_CODE = "+91";
 
 const initialState: VendorFormState = {
   fullName: "",
   email: "",
   password: "",
+  countryCode: DEFAULT_COUNTRY_CODE,
   phone: "",
   address: "",
 };
@@ -43,7 +57,12 @@ const AddVendor: React.FC = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPassword, setShowPassword] = useState(false);
 
+  const [ccOpen, setCcOpen] = useState(false);
+  const [ccSearch, setCcSearch] = useState("");
+
   const passwordRef = useRef<HTMLInputElement>(null);
+  const ccContainerRef = useRef<HTMLDivElement>(null);
+  const ccSearchInputRef = useRef<HTMLInputElement>(null);
 
   const {
     data: vendorRes,
@@ -62,15 +81,75 @@ const AddVendor: React.FC = () => {
       fullName: v.fullName ?? "",
       email: v.email ?? "",
       password: "",
+      countryCode: v.countryCode || DEFAULT_COUNTRY_CODE,
       phone: v.phone ?? "",
       address: v.address ?? "",
     });
     setTouched({ fullName: true, email: true, phone: true, address: true });
   }, [vendorRes]);
 
+  // Close dropdown on outside click or Escape
+  useEffect(() => {
+    if (!ccOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        ccContainerRef.current &&
+        !ccContainerRef.current.contains(e.target as Node)
+      ) {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ccOpen]);
+
+  useEffect(() => {
+    if (ccOpen) {
+      ccSearchInputRef.current?.focus();
+    }
+  }, [ccOpen]);
+
+  const selectedCountry = useMemo(() => {
+    return (
+      countryCodes.find((c) => c.dial_code === form.countryCode) ??
+      countryCodes.find((c) => c.dial_code === DEFAULT_COUNTRY_CODE) ??
+      countryCodes[0]
+    );
+  }, [form.countryCode]);
+
+  const filteredCountries = useMemo(() => {
+    const q = ccSearch.trim().toLowerCase();
+    if (!q) return countryCodes;
+    const qDigits = q.replace(/^\+/, "");
+    return countryCodes.filter((item) => {
+      const nameMatch = item.country.toLowerCase().includes(q);
+      const codeMatch = item.code?.toLowerCase().includes(q);
+      const dialMatch =
+        item.dial_code.toLowerCase().includes(q) ||
+        (qDigits.length > 0 &&
+          item.dial_code.replace(/^\+/, "").includes(qDigits));
+      return Boolean(nameMatch || codeMatch || dialMatch);
+    });
+  }, [ccSearch]);
+
   const trimmed = {
     fullName: form.fullName.trim(),
     email: form.email.trim(),
+    countryCode: form.countryCode.trim() || DEFAULT_COUNTRY_CODE,
     phone: form.phone.trim(),
     address: form.address.trim(),
   };
@@ -136,6 +215,8 @@ const AddVendor: React.FC = () => {
   const handleReset = () => {
     setForm(initialState);
     setTouched({});
+    setCcOpen(false);
+    setCcSearch("");
     navigate("/admin/vendors");
   };
 
@@ -149,6 +230,7 @@ const AddVendor: React.FC = () => {
         const payload: UpdateVendorPayload = {
           fullName: trimmed.fullName,
           email: trimmed.email,
+          countryCode: trimmed.countryCode,
           phone: trimmed.phone,
           address: trimmed.address,
           ...(form.password && { password: form.password }),
@@ -162,6 +244,7 @@ const AddVendor: React.FC = () => {
           fullName: trimmed.fullName,
           email: trimmed.email,
           password: form.password,
+          countryCode: trimmed.countryCode,
           phone: trimmed.phone,
           address: trimmed.address,
         };
@@ -261,29 +344,113 @@ const AddVendor: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Phone */}
+                {/* Country Code + Phone */}
                 <div className="col-12 col-md-6">
                   <div className="av-field">
                     <label htmlFor="av-phone">
                       Phone Number{" "}
                       <span className="form-required-field">*</span>
                     </label>
-                    <input
-                      id="av-phone"
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      className={`form-control av-input ${errors.phone ? "is-invalid" : ""}`}
-                      placeholder="9876543210"
-                      value={form.phone}
-                      onChange={(e) =>
-                        setForm((p) => ({
-                          ...p,
-                          phone: e.target.value.replace(/\D/g, ""),
-                        }))
-                      }
-                      onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
-                    />
+                    <div className="av-phone-row">
+                      <div className="av-cc-wrapper" ref={ccContainerRef}>
+                        <button
+                          type="button"
+                          className="av-cc-trigger"
+                          aria-label="Select country code"
+                          aria-expanded={ccOpen}
+                          onClick={() => setCcOpen((prev) => !prev)}
+                        >
+                          {selectedCountry?.flag && (
+                            <img
+                              src={selectedCountry.flag}
+                              alt={selectedCountry.country}
+                              className="av-cc-flag"
+                            />
+                          )}
+                          <span>{form.countryCode}</span>
+                          <span aria-hidden="true">▾</span>
+                        </button>
+
+                        {ccOpen && (
+                          <div className="av-cc-dropdown" role="listbox">
+                            <div className="av-cc-search-box">
+                              <input
+                                ref={ccSearchInputRef}
+                                type="text"
+                                className="av-cc-search-input"
+                                placeholder="Search country or +code..."
+                                value={ccSearch}
+                                onChange={(e) => setCcSearch(e.target.value)}
+                              />
+                            </div>
+                            <ul className="av-cc-list">
+                              {filteredCountries.length > 0 ? (
+                                filteredCountries.map((item, idx) => {
+                                  const isSelected =
+                                    item.dial_code === form.countryCode &&
+                                    item.country === selectedCountry?.country;
+                                  return (
+                                    <li
+                                      key={`${item.code ?? "cc"}-${item.country}-${idx}`}
+                                    >
+                                      <button
+                                        type="button"
+                                        className={`av-cc-item ${isSelected ? "is-selected" : ""}`}
+                                        onClick={() => {
+                                          setForm((p) => ({
+                                            ...p,
+                                            countryCode: item.dial_code,
+                                          }));
+                                          setCcOpen(false);
+                                          setCcSearch("");
+                                        }}
+                                      >
+                                        <img
+                                          src={item.flag}
+                                          alt={item.country}
+                                          className="av-cc-flag"
+                                        />
+                                        <span className="av-cc-name">
+                                          {item.country}
+                                        </span>
+                                        <span className="av-cc-dial">
+                                          {item.dial_code}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  );
+                                })
+                              ) : (
+                                <li className="av-cc-empty">
+                                  No matching country found
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="av-phone-input-wrap">
+                        <input
+                          id="av-phone"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          className={`form-control av-input ${errors.phone ? "is-invalid" : ""}`}
+                          placeholder="9876543210"
+                          value={form.phone}
+                          onChange={(e) =>
+                            setForm((p) => ({
+                              ...p,
+                              phone: e.target.value.replace(/\D/g, ""),
+                            }))
+                          }
+                          onBlur={() =>
+                            setTouched((t) => ({ ...t, phone: true }))
+                          }
+                        />
+                      </div>
+                    </div>
                     {errors.phone && (
                       <div className="av-error">{errors.phone}</div>
                     )}

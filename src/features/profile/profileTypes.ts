@@ -3,6 +3,7 @@ export interface AdminProfile {
   user_id: string;
   fullName: string;
   email: string;
+  countryCode?: string;
   phone: string;
   address: string;
   profilePicture: string;
@@ -30,6 +31,7 @@ export interface VendorProfile {
   fullName: string;
   email: string;
   phone: string;
+  countryCode?: string;
   address: string;
   profilePicture: string;
   code: string;

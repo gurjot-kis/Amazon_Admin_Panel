@@ -23,6 +23,7 @@ export interface Store {
   store_description?: string;
 
   email?: string;
+  countryCode?: string;
   phone?: string;
 
   address: string;
@@ -118,6 +119,7 @@ export interface CreateStorePayload {
   store_name: string;
   store_description?: string;
   email?: string;
+  countryCode?: string;
   phone?: string;
   address: string;
   country?: string;

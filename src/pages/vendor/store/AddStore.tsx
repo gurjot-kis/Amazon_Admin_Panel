@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import countryCodesRaw from "../../../assets/countryCodes.json";
 import {
   useCreateStoreMutation,
   useGetMyStoreByIdQuery,
@@ -16,9 +17,7 @@ import type {
   CreateStorePayload,
   UpdateStorePayload,
 } from "../../../features/store/storeTypes";
-// Reuses the shared cc-* form styles from the category page.
 import "../../../styles/category/AddCategory.css";
-// Extra styles only needed by the store form.
 import "../../../styles/store/AddStore.css";
 import { FullScreenLoader } from "../../../components/common/FullScreenLoader";
 
@@ -30,6 +29,7 @@ const STORE_LIST_PATH = "/vendor/stores"; // change to your vendor store list ro
 const MAX_LOGO_MB = 2;
 const MAX_BANNER_MB = 4;
 const MAX_DESC_LENGTH = 500;
+const DEFAULT_COUNTRY_CODE = "+91";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[\d\s-]{7,16}$/;
@@ -40,10 +40,18 @@ const GST_REGEX = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 /*                                    Types                                   */
 /* -------------------------------------------------------------------------- */
 
+interface CountryCodeItem {
+  flag: string;
+  country: string;
+  code?: string;
+  dial_code: string;
+}
+
 interface StoreFormState {
   store_name: string;
   store_description: string;
   email: string;
+  countryCode: string;
   phone: string;
   address: string;
   country: string;
@@ -59,10 +67,13 @@ interface StoreFormState {
 type TextField = Exclude<keyof StoreFormState, "is_default">;
 type FormErrors = Partial<Record<TextField, string>>;
 
+const countryCodes = countryCodesRaw as CountryCodeItem[];
+
 const initialState: StoreFormState = {
   store_name: "",
   store_description: "",
   email: "",
+  countryCode: DEFAULT_COUNTRY_CODE,
   phone: "",
   address: "",
   country: "",
@@ -78,6 +89,12 @@ const initialState: StoreFormState = {
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */
 /* -------------------------------------------------------------------------- */
+
+const normalizeDialCode = (raw?: string): string => {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) return DEFAULT_COUNTRY_CODE;
+  return trimmed.startsWith("+") ? trimmed : `+${trimmed}`;
+};
 
 const assetUrl = (path: string): string =>
   /^https?:\/\//i.test(path)
@@ -342,6 +359,11 @@ const AddStore: React.FC = () => {
   );
   const [isLocating, setIsLocating] = useState(false);
 
+  const [ccOpen, setCcOpen] = useState(false);
+  const [ccSearch, setCcSearch] = useState("");
+  const ccContainerRef = useRef<HTMLDivElement>(null);
+  const ccSearchInputRef = useRef<HTMLInputElement>(null);
+
   const logo = useImageField(MAX_LOGO_MB);
   const banner = useImageField(MAX_BANNER_MB);
   const { setExisting: setLogoExisting } = logo;
@@ -367,11 +389,15 @@ const AddStore: React.FC = () => {
 
     const coords = store.location?.coordinates;
     const [lng, lat] = coords && coords.length === 2 ? coords : [null, null];
+    const rawStoreCode =
+      (store as { countryCode?: string; country_code?: string }).countryCode ??
+      (store as { countryCode?: string; country_code?: string }).country_code;
 
     setForm({
       store_name: store.store_name ?? "",
       store_description: store.store_description ?? "",
       email: store.email ?? "",
+      countryCode: normalizeDialCode(rawStoreCode),
       phone: store.phone ?? "",
       address: store.address ?? "",
       country: store.country ?? "",
@@ -387,6 +413,64 @@ const AddStore: React.FC = () => {
     setLogoExisting(store.store_logo ? assetUrl(store.store_logo) : null);
     setBannerExisting(store.store_banner ? assetUrl(store.store_banner) : null);
   }, [isEditMode, store, setLogoExisting, setBannerExisting]);
+
+  /* ---------------- Close country code dropdown on outside click ----------- */
+  useEffect(() => {
+    if (!ccOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        ccContainerRef.current &&
+        !ccContainerRef.current.contains(e.target as Node)
+      ) {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCcOpen(false);
+        setCcSearch("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [ccOpen]);
+
+  useEffect(() => {
+    if (ccOpen) {
+      ccSearchInputRef.current?.focus();
+    }
+  }, [ccOpen]);
+
+  const selectedCountry = useMemo(() => {
+    return (
+      countryCodes.find((c) => c.dial_code === form.countryCode) ??
+      countryCodes.find((c) => c.dial_code === DEFAULT_COUNTRY_CODE) ??
+      countryCodes[0]
+    );
+  }, [form.countryCode]);
+
+  const filteredCountries = useMemo(() => {
+    const q = ccSearch.trim().toLowerCase();
+    if (!q) return countryCodes;
+    const qDigits = q.replace(/^\+/, "");
+    return countryCodes.filter((item) => {
+      const nameMatch = item.country.toLowerCase().includes(q);
+      const codeMatch = item.code?.toLowerCase().includes(q);
+      const dialMatch =
+        item.dial_code.toLowerCase().includes(q) ||
+        (qDigits.length > 0 &&
+          item.dial_code.replace(/^\+/, "").includes(qDigits));
+      return Boolean(nameMatch || codeMatch || dialMatch);
+    });
+  }, [ccSearch]);
 
   /* ------------------------------- Validation ------------------------------ */
   const errors = useMemo(() => validate(form), [form]);
@@ -423,7 +507,7 @@ const AddStore: React.FC = () => {
           latitude: pos.coords.latitude.toFixed(6),
           longitude: pos.coords.longitude.toFixed(6),
         }));
-        setTouched((t) => ({ ...t, latitude: true, longitude: true })); // add
+        setTouched((t) => ({ ...t, latitude: true, longitude: true }));
         setIsLocating(false);
       },
       () => {
@@ -443,6 +527,7 @@ const AddStore: React.FC = () => {
       store_name: form.store_name.trim(),
       store_description: form.store_description.trim(),
       email: form.email.trim(),
+      countryCode: normalizeDialCode(form.countryCode),
       phone: form.phone.trim(),
       address: form.address.trim(),
       country: form.country.trim(),
@@ -461,11 +546,11 @@ const AddStore: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Reveal every validation message on submit.
     setTouched({
       store_name: true,
       store_description: true,
       email: true,
+      countryCode: true,
       phone: true,
       address: true,
       country: true,
@@ -613,6 +698,7 @@ const AddStore: React.FC = () => {
 
   const descError = visibleError("store_description");
   const addressError = visibleError("address");
+  const phoneError = visibleError("phone");
 
   const addressLine = [form.city, form.state, form.country]
     .map((s) => s.trim())
@@ -707,11 +793,108 @@ const AddStore: React.FC = () => {
                       type: "email",
                       placeholder: "store@example.com",
                     })}
-                    {renderInput("phone", "Phone", {
-                      type: "tel",
-                      inputMode: "tel",
-                      placeholder: "+91 98765 43210",
-                    })}
+
+                    <div className="cc-field">
+                      <label htmlFor="st-phone">Phone</label>
+                      <div className="st-phone-row">
+                        <div className="st-cc-wrapper" ref={ccContainerRef}>
+                          <button
+                            type="button"
+                            className="st-cc-trigger"
+                            aria-label="Select country code"
+                            aria-expanded={ccOpen}
+                            onClick={() => setCcOpen((prev) => !prev)}
+                          >
+                            {selectedCountry?.flag && (
+                              <img
+                                src={selectedCountry.flag}
+                                alt={selectedCountry.country}
+                                className="st-cc-flag"
+                              />
+                            )}
+                            <span>{form.countryCode}</span>
+                            <span aria-hidden="true">▾</span>
+                          </button>
+
+                          {ccOpen && (
+                            <div className="st-cc-dropdown" role="listbox">
+                              <div className="st-cc-search-box">
+                                <input
+                                  ref={ccSearchInputRef}
+                                  type="text"
+                                  className="st-cc-search-input"
+                                  placeholder="Search country or +code..."
+                                  value={ccSearch}
+                                  onChange={(e) => setCcSearch(e.target.value)}
+                                />
+                              </div>
+                              <ul className="st-cc-list">
+                                {filteredCountries.length > 0 ? (
+                                  filteredCountries.map((item, idx) => {
+                                    const isSelected =
+                                      item.dial_code === form.countryCode &&
+                                      item.country === selectedCountry?.country;
+                                    return (
+                                      <li
+                                        key={`${item.code ?? "cc"}-${item.country}-${idx}`}
+                                      >
+                                        <button
+                                          type="button"
+                                          className={`st-cc-item ${isSelected ? "is-selected" : ""}`}
+                                          onClick={() => {
+                                            setForm((p) => ({
+                                              ...p,
+                                              countryCode: item.dial_code,
+                                            }));
+                                            setCcOpen(false);
+                                            setCcSearch("");
+                                          }}
+                                        >
+                                          <img
+                                            src={item.flag}
+                                            alt={item.country}
+                                            className="st-cc-flag"
+                                          />
+                                          <span className="st-cc-name">
+                                            {item.country}
+                                          </span>
+                                          <span className="st-cc-dial">
+                                            {item.dial_code}
+                                          </span>
+                                        </button>
+                                      </li>
+                                    );
+                                  })
+                                ) : (
+                                  <li className="st-cc-empty">
+                                    No matching country found
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="st-phone-input-wrap">
+                          <input
+                            id="st-phone"
+                            type="tel"
+                            inputMode="tel"
+                            className={`form-control cc-input ${
+                              phoneError ? "is-invalid" : ""
+                            }`}
+                            placeholder="98765 43210"
+                            value={form.phone}
+                            onChange={onText("phone")}
+                            onBlur={() => markTouched("phone")}
+                            aria-invalid={Boolean(phoneError)}
+                          />
+                        </div>
+                      </div>
+                      {phoneError && (
+                        <div className="cc-error">{phoneError}</div>
+                      )}
+                    </div>
                   </div>
 
                   {renderInput("gst_number", "GST number", {

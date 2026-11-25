@@ -20,6 +20,7 @@ export interface Vendor {
   profilePicture: string;
   email: string;
   phone: string;
+  countryCode?: string;
   address: string;
   code: string;
   gst_number: string;
@@ -38,6 +39,7 @@ export interface VendorDetails {
   user_id: string;
   email: string;
   phone: string;
+  countryCode?: string;
   address: string;
   gst_number: string;
   vendorCategories: string[];
@@ -64,6 +66,7 @@ export interface CreateVendorPayload {
   fullName: string;
   email: string;
   password: string;
+  countryCode: string;
   phone: string;
   address: string;
 }
@@ -73,6 +76,7 @@ export interface UpdateVendorPayload {
   email?: string;
   password?: string;
   phone?: string;
+  countryCode?: string;
   address?: string;
   gst_number?: string;
   vendorCategories?: string[];

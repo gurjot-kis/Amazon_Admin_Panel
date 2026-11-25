@@ -90,6 +90,7 @@ const StoreCard: React.FC<StoreCardProps> = ({
     store_banner,
     email,
     phone,
+    countryCode,
     address,
     city,
     state,
@@ -195,7 +196,10 @@ const StoreCard: React.FC<StoreCardProps> = ({
               <span className="sc-detail-label">Phone</span>
               <div className="sc-detail-value">
                 <Phone size={13} className="sc-detail-icon" />
-                <span>{phone}</span>
+                <span>
+                  {countryCode}
+                  {""} - {phone}
+                </span>
               </div>
             </div>
           )}
